@@ -245,7 +245,7 @@ Transform:
   m_GameObject: {fileID: 116569409}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -14.72, y: 0.1, z: 14.63}
+  m_LocalPosition: {x: -14.72, y: 0.05, z: 14.63}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -310,7 +310,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
+  field of view: 46.418144
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -336,13 +336,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 279915152}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.021763088, y: -0.92624027, z: 0.05413082, w: 0.37239137}
-  m_LocalPosition: {x: 37.26, y: 14.99, z: 37.52}
+  m_LocalRotation: {x: 0.10581314, y: -0.88971007, z: 0.2631865, w: 0.35770455}
+  m_LocalPosition: {x: 32.69, y: 22.29, z: 32.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 6.689, y: -136.195, z: 0}
+  m_LocalEulerAnglesHint: {x: 32.958, y: -136.195, z: 0}
 --- !u!1 &620617650
 GameObject:
   m_ObjectHideFlags: 0
@@ -550,7 +550,7 @@ Transform:
   m_GameObject: {fileID: 629611569}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 14.89, y: 0.1, z: 14.63}
+  m_LocalPosition: {x: 14.89, y: 0.05, z: 14.63}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -706,7 +706,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 8
   jumpForce: 8
-  cubePrefab: {fileID: 3897580097097246174, guid: b2b90372de0953b4e99448a735bd887b, type: 3}
+  cubePrefab: {fileID: 5740389238676272771, guid: ad2b08b344bd79345b5084f248944df4, type: 3}
   stackParent: {fileID: 1486851344}
   stackArea2: {fileID: 1486979100}
 --- !u!54 &1486851340
@@ -734,7 +734,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 80
+  m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!136 &1486851341
 CapsuleCollider:
@@ -946,7 +946,7 @@ Transform:
   m_GameObject: {fileID: 1486979095}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -21.55, y: 0.1, z: 21.75}
+  m_LocalPosition: {x: -21.55, y: 0.05, z: 21.75}
   m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
   m_ConstrainProportionsScale: 1
   m_Children: []

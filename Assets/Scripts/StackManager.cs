@@ -1,22 +1,23 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 
 public class StackManager : MonoBehaviour
 {
-    [Header("Stack Ayarlarý")]
-    public GameObject cubePrefab;        // Eklenecek küp prefabý
-    public Transform stackParent;        // Küplerin ekleneceði kapsül veya boþ obje
-    public float stackInterval = 0.5f;   // Küplerin eklenme aralýðý
-    public float moveDuration = 0.3f;    // DOTween ile animasyon süresi
+    [Header("Stack AyarlarÄ±")]
+    public GameObject cubePrefab;
+    public Transform stackParent;
+    public float stackInterval = 0.5f;
+    public float moveDuration = 0.3f;
 
-    [Header("Stack Silme Ayarlarý")]
-    public Transform stackArea;          // Küplerin aktarýlacaðý hedef alan
-    public float transferDuration = 0.5f; // Aktarma animasyon süresi
-    public float transferDelay = 0.2f;    // Küplerin sýrayla gitmesi için gecikme
+    [Header("Stack Silme AyarlarÄ±")]
+    public Transform stackArea;
+    public float transferDuration = 0.5f;
+    public float transferDelay = 0.2f;
 
-    private List<GameObject> stackList = new List<GameObject>();
+    public List<GameObject> stackList = new List<GameObject>();       // Oyuncu Ã¼zerindeki kÃ¼pler
+   public List<GameObject> areaStackList = new List<GameObject>();   // Area2'deki kÃ¼pler
     private bool stacking = false;
 
     private void OnTriggerEnter(Collider other)
@@ -52,49 +53,54 @@ public class StackManager : MonoBehaviour
     private void AddCube()
     {
         GameObject newCube = Instantiate(cubePrefab, stackParent);
-
-        // Küpün boyutunu yarýya indir
         newCube.transform.localScale = cubePrefab.transform.localScale * 0.5f;
-
         float height = newCube.transform.localScale.y;
 
-        // Yeni küpün local pozisyonunu ayarla
         Vector3 localOffset = new Vector3(0, stackList.Count * height, -1f);
-        newCube.transform.localPosition = Vector3.zero; // Baþlangýç noktasý stackParent merkezinde olsun
+        newCube.transform.localPosition = Vector3.zero;
 
-        // DOTween ile hedef local pozisyona taþý
         newCube.transform.DOLocalMove(localOffset, moveDuration).SetEase(Ease.OutQuad);
 
         stackList.Add(newCube);
     }
 
     private IEnumerator TransferCubesToAreaRoutine()
-{
-    int index = 0; // stackArea içindeki sýra
-
-    for (int i = stackList.Count - 1; i >= 0; i--)
     {
-        GameObject cube = stackList[i];
-        cube.transform.SetParent(stackArea);
+        // BaÅŸlangÄ±Ã§ Y pozisyonu
+        float currentY = 0f;
 
-        // Bu küpün yüksekliðini al
-        float height = cube.transform.localScale.y;
+        // EÄŸer areaStackList boÅŸ deÄŸilse son kÃ¼pÃ¼n Ã¼stÃ¼nden baÅŸla
+        if (areaStackList.Count > 0)
+        {
+            GameObject lastCube = areaStackList[areaStackList.Count - 1];
+            currentY = lastCube.transform.localPosition.y + lastCube.transform.localScale.y;
+        }
 
-        // Hedef pozisyon: stackArea içinde sýrayla dizilsin
-        Vector3 targetPos = new Vector3(0, index * height, 0);
+        // stackList'teki tÃ¼m kÃ¼pleri sÄ±rayla diz
+        for (int i = 0; i < stackList.Count; i++)
+        {
+            GameObject cube = stackList[i];
+            cube.transform.SetParent(stackArea);
 
-        // DOTween ile hedef pozisyona taþý
-        cube.transform.DOLocalMove(targetPos, transferDuration).SetEase(Ease.OutBounce);
+            float height = cube.transform.localScale.y;
+            Vector3 targetPos = new Vector3(0, currentY, 0);
 
-        // Biraz bekle, sonra diðer küpü gönder
-        yield return new WaitForSeconds(transferDelay);
+            cube.transform.DOLocalMove(targetPos, transferDuration).SetEase(Ease.OutBounce);
 
-        index++;
+            areaStackList.Add(cube);
+
+            currentY += height; // Bir sonraki kÃ¼p iÃ§in y koordinatÄ±nÄ± gÃ¼ncelle
+            yield return new WaitForSeconds(transferDelay);
+        }
+
+        stackList.Clear();
     }
 
-    // Tüm küpler aktarýldý, listemizi temizle
-    stackList.Clear();
-}
 
 
+    // Ä°stersen areaStackList'i dÄ±ÅŸarÄ±dan da kontrol edebilirsin
+    public List<GameObject> GetAreaCubes()
+    {
+        return areaStackList;
+    }
 }

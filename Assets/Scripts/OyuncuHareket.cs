@@ -25,14 +25,26 @@ public class OyuncuHareket : MonoBehaviour
 
     void Update()
     {
-        // Oyuncu hareketleri
-        float moveX = Input.GetAxis("Horizontal");
-        float moveZ = Input.GetAxis("Vertical");
+        // Oyuncu hareketleri - Kameraya göre relatif hale getirdik
+        float moveX = Input.GetAxis("Horizontal");  // A/D için sağ/sol
+        float moveZ = Input.GetAxis("Vertical");    // W/S için ileri/geri
 
-        Vector3 move = new Vector3(moveX, 0, moveZ) * moveSpeed;
+        // Kameranın forward ve right vektörlerini al (y=0 için yatay tut)
+        Vector3 camForward = Camera.main.transform.forward;
+        camForward.y = 0f;
+        camForward.Normalize();
+
+        Vector3 camRight = Camera.main.transform.right;
+        camRight.y = 0f;
+        camRight.Normalize();
+
+        // Hareket vektörü: kameraya göre hesapla
+        Vector3 move = (camRight * moveX + camForward * moveZ) * moveSpeed;
+
+        // Velocity'i uygula, y bileşenini koru (zıplama için)
         rb.velocity = new Vector3(move.x, rb.velocity.y, move.z);
 
-        // Zıplama
+        // Zıplama (değişmedi)
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
@@ -55,7 +67,7 @@ public class OyuncuHareket : MonoBehaviour
         if (collision.gameObject.CompareTag("StackSilmeNoktasi0"))
         {
             CancelInvoke(nameof(AddCubeToStack));
-            StartCoroutine(TransferStackToArea2()); // animasyonlu aktarım
+            StartCoroutine(TransferStackToArea2());
         }
     }
 
@@ -70,17 +82,15 @@ public class OyuncuHareket : MonoBehaviour
     void AddCubeToStack()
     {
         GameObject newCube = Instantiate(cubePrefab);
-
         float height = cubePrefab.transform.localScale.y;
 
-        // pivot ortada olduğu için +height/2 ekliyoruz
-        Vector3 offset = new Vector3(0, (stackList.Count * height) + height / 2f, -1f);
-
+        // Yeni küpün pozisyonu: stackParent'ın dünya pozisyonuna göre
+        Vector3 offset = new Vector3(0, (stackList.Count * height) + (height / 2f), -1f);
         newCube.transform.position = stackParent.position + offset;
         newCube.transform.SetParent(stackParent);
         stackList.Add(newCube);
 
-        Debug.Log("Yeni küp eklendi! Stack boyutu: " + stackList.Count);
+        Debug.Log($"Yeni küp eklendi! Stack boyutu: {stackList.Count}, Pozisyon: {newCube.transform.position}");
     }
 
     IEnumerator TransferStackToArea2()
@@ -89,21 +99,23 @@ public class OyuncuHareket : MonoBehaviour
 
         float height = cubePrefab.transform.localScale.y;
 
+        // Ters sırayla aktar (en üstteki küpten başla)
         for (int i = stackList.Count - 1; i >= 0; i--)
         {
             GameObject cube = stackList[i];
 
+            // Hedef pozisyonu hesapla
             Vector3 targetPos;
             if (area2List.Count == 0)
             {
-                // İlk küp → stackArea2'nin pozisyonu (world space)
-                targetPos = stackArea2.position;
+                // İlk küp: stackArea2'nin pozisyonuna, pivot ortada olduğu için +height/2
+                targetPos = stackArea2.position + Vector3.up * (height / 2f);
             }
             else
             {
-                // Son eklenen küpün üstüne koy
+                // Son eklenen küpün üstüne bitişik
                 GameObject lastCube = area2List[area2List.Count - 1];
-                targetPos = lastCube.transform.position + new Vector3(0, height, 0);
+                targetPos = lastCube.transform.position + Vector3.up * height;
             }
 
             // Animasyon
@@ -112,20 +124,21 @@ public class OyuncuHareket : MonoBehaviour
 
             while (t < 1f)
             {
-                t += Time.deltaTime * 4f;
+                t += Time.deltaTime * 2f;
                 cube.transform.position = Vector3.Lerp(startPos, targetPos, t);
                 yield return null;
             }
 
+            // Son pozisyonu kesinleştir
             cube.transform.position = targetPos;
-
-            // Parent’e ekle ve lokal pozisyonu sıfırla
             cube.transform.SetParent(stackArea2);
-            cube.transform.localPosition = new Vector3(cube.transform.localPosition.x, cube.transform.localPosition.y, cube.transform.localPosition.z);
-
             area2List.Add(cube);
+
+            Debug.Log($"Küp aktarıldı! area2List boyutu: {area2List.Count}, Pozisyon: {cube.transform.position}");
         }
 
+        // stackList'i sıfırla
         stackList.Clear();
+        Debug.Log("stackList sıfırlandı.");
     }
 }

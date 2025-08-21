@@ -1,53 +1,53 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using DG.Tweening; // DOTween kütüphanesini kullanmak için (animasyon ve tween işlemleri)
+using DG.Tweening; // DOTween kÃ¼tÃ¼phanesini kullanmak iÃ§in (animasyon ve tween iÅŸlemleri)
 
 public class StackCollector : MonoBehaviour
 {
-    [Header("Stack Ayarları")]
-    public GameObject cubePrefab; // Spawn edilecek küp prefabı
-    public Transform stackRoot; // Küplerin karakterin arkasında birikmeye başlayacağı nokta
-    public float cubeHeight = 0.3f; // Her küpün yüksekliği, üst üste dizilirken kullanılır
-    public float spawnInterval = 0.2f; // Küplerin arka arkaya spawnlanma süresi
-    public float tweenDuration = 0.4f; // Küplerin hareket animasyonunun süresi
-    public Ease tweenEase = Ease.OutBack; // Animasyonun easing türü (yumuşak hareket)
+    [Header("Stack AyarlarÄ±")]
+    public GameObject cubePrefab; // Spawn edilecek kÃ¼p prefabÄ±
+    public Transform stackRoot; // KÃ¼plerin karakterin arkasÄ±nda birikmeye baÅŸlayacaÄŸÄ± nokta
+    public float cubeHeight = 0.3f; // Her kÃ¼pÃ¼n yÃ¼ksekliÄŸi, Ã¼st Ã¼ste dizilirken kullanÄ±lÄ±r
+    public float spawnInterval = 0.2f; // KÃ¼plerin arka arkaya spawnlanma sÃ¼resi
+    public float tweenDuration = 0.4f; // KÃ¼plerin hareket animasyonunun sÃ¼resi
+    public Ease tweenEase = Ease.OutBack; // Animasyonun easing tÃ¼rÃ¼ (yumuÅŸak hareket)
 
-    [Header("Küp Boyutu")]
-    public Vector3 cubeTargetScale = new Vector3(0.3f, 0.3f, 0.3f); // Küpler spawnlandığında ulaşacağı boyut
+    [Header("KÃ¼p Boyutu")]
+    public Vector3 cubeTargetScale = new Vector3(0.3f, 0.3f, 0.3f); // KÃ¼pler spawnlandÄ±ÄŸÄ±nda ulaÅŸacaÄŸÄ± boyut
 
-    [Header("Stack Bırakma Ayarları")]
-    public Transform stackAreaTarget; // Küplerin bırakılacağı hedef alan (3. nokta / StackAlanı1)
+    [Header("Stack BÄ±rakma AyarlarÄ±")]
+    public Transform stackAreaTarget; // KÃ¼plerin bÄ±rakÄ±lacaÄŸÄ± hedef alan (3. nokta / StackAlanÄ±1)
 
-    private readonly List<Transform> stack = new List<Transform>(); // Mevcut stackteki küplerin listesi
-    private Coroutine stackingLoop; // Küplerin otomatik spawnlanmasını kontrol eden coroutine
+    private readonly List<Transform> stack = new List<Transform>(); // Mevcut stackteki kÃ¼plerin listesi
+    private Coroutine stackingLoop; // KÃ¼plerin otomatik spawnlanmasÄ±nÄ± kontrol eden coroutine
 
-    private int placedCount = 0; // 3. noktaya bırakılmış küp sayısı, küpler üst üste bırakılırken kullanılır
+    private int placedCount = 0; // 3. noktaya bÄ±rakÄ±lmÄ±ÅŸ kÃ¼p sayÄ±sÄ±, kÃ¼pler Ã¼st Ã¼ste bÄ±rakÄ±lÄ±rken kullanÄ±lÄ±r
 
     void OnTriggerEnter(Collider other)
     {
-        // 1. Nokta: Stack toplamaya başla
+        // 1. Nokta: Stack toplamaya baÅŸla
         if (other.CompareTag("StackNoktasi0"))
         {
-            // Eğer coroutine çalışmıyorsa başlat
+            // EÄŸer coroutine Ã§alÄ±ÅŸmÄ±yorsa baÅŸlat
             if (stackingLoop == null)
                 stackingLoop = StartCoroutine(SpawnLoop());
         }
 
-        // 2. Nokta: Stack bırak
+        // 2. Nokta: Stack bÄ±rak
         if (other.CompareTag("StackSilmeNoktasi0"))
         {
-            // Eğer elimizde küp varsa, sırasıyla bırak
+            // EÄŸer elimizde kÃ¼p varsa, sÄ±rasÄ±yla bÄ±rak
             if (stack.Count > 0)
             {
-                StartCoroutine(DropSequence()); // Küpleri bırakma animasyonu
+                StartCoroutine(DropSequence()); // KÃ¼pleri bÄ±rakma animasyonu
             }
         }
     }
 
     void OnTriggerExit(Collider other)
     {
-        // 1. noktadan çıkınca stack durdur
+        // 1. noktadan Ã§Ä±kÄ±nca stack durdur
         if (other.CompareTag("StackNoktasi0"))
         {
             if (stackingLoop != null)
@@ -58,62 +58,88 @@ public class StackCollector : MonoBehaviour
         }
     }
 
-    // Küpleri belirli aralıklarla spawnlayan coroutine
+    // KÃ¼pleri belirli aralÄ±klarla spawnlayan coroutine
     IEnumerator SpawnLoop()
     {
-        var wait = new WaitForSeconds(spawnInterval); // Her döngü arası bekleme süresi
+        var wait = new WaitForSeconds(spawnInterval); // Her dÃ¶ngÃ¼ arasÄ± bekleme sÃ¼resi
         while (true)
         {
-            AddOneCube(); // Yeni küp ekle
-            yield return wait; // Belirtilen süre bekle
+            AddOneCube(); // Yeni kÃ¼p ekle
+            yield return wait; // Belirtilen sÃ¼re bekle
         }
     }
 
-    // Tek bir küp spawnlama ve animasyon işlemi
+    // Tek bir kÃ¼p spawnlama ve animasyon iÅŸlemi
     void AddOneCube()
     {
-        // Küpün stackRoot'a göre konumu (üst üste dizilecek)
+        // KÃ¼pÃ¼n stackRoot'a gÃ¶re konumu (Ã¼st Ã¼ste dizilecek)
         Vector3 targetLocalPos = new Vector3(0f, cubeHeight * stack.Count, 0f);
-        // Spawnlanacağı başlangıç pozisyonu (stackRoot'un biraz üstü)
+        // SpawnlanacaÄŸÄ± baÅŸlangÄ±Ã§ pozisyonu (stackRoot'un biraz Ã¼stÃ¼)
         Vector3 spawnWorldPos = stackRoot.position + Vector3.up * 1.5f;
 
-        GameObject go = Instantiate(cubePrefab, spawnWorldPos, Quaternion.identity); // Küpü oluştur
-        go.transform.SetParent(stackRoot, true); // StackRoot altına yerleştir
-        go.transform.localScale = Vector3.zero; // Animasyon için başlangıç boyutu 0
+        GameObject go = Instantiate(cubePrefab, spawnWorldPos, Quaternion.identity); // KÃ¼pÃ¼ oluÅŸtur
+        go.transform.SetParent(stackRoot, true); // StackRoot altÄ±na yerleÅŸtir
+        go.transform.localScale = Vector3.zero; // Animasyon iÃ§in baÅŸlangÄ±Ã§ boyutu 0
 
-        // DOTween ile hareket ve ölçek animasyonu
+        // DOTween ile hareket ve Ã¶lÃ§ek animasyonu
         Sequence seq = DOTween.Sequence();
-        seq.Join(go.transform.DOLocalMove(targetLocalPos, tweenDuration).SetEase(tweenEase)); // Konuma taşı
+        seq.Join(go.transform.DOLocalMove(targetLocalPos, tweenDuration).SetEase(tweenEase)); // Konuma taÅŸÄ±
         seq.Join(go.transform.DOScale(cubeTargetScale, tweenDuration).SetEase(tweenEase)); // Boyut animasyonu
 
-        stack.Add(go.transform); // Küpü stack listesine ekle
+        stack.Add(go.transform); // KÃ¼pÃ¼ stack listesine ekle
     }
 
-    // Küpleri hedef alana bırakma animasyonu
+    // KÃ¼pleri hedef alana bÄ±rakma animasyonu
+    // KÃ¼pleri hedef alana bÄ±rakma animasyonu
     IEnumerator DropSequence()
     {
-        for (int i = stack.Count - 1; i >= 0; i--) // TERSTEN BAŞLA
+        float currentY = stackAreaTarget.position.y; // taban pivot
+
+        // Hedef alanda zaten kÃ¼pler varsa en Ã¼stteki pozisyonu al
+        if (stackAreaTarget.childCount > 0)
         {
-            Transform cube = stack[i];
-
-            // Küp yüksekliğini dinamik al
-            float cubeHeight = cube.GetComponent<Renderer>().bounds.size.y;
-
-            // Önceki bırakılanların üstünden devam et
-            int targetIndex = placedCount;
-            Vector3 targetPos = stackAreaTarget.position + new Vector3(0f, cubeHeight * targetIndex, 0f);
-
-            cube.SetParent(null); // Küpü sahneden bağımsızlaştır
-
-            // Küpü zıplatarak veya yumuşak şekilde hedefe götür
-            yield return cube.DOJump(targetPos, 0.5f, 1, 0.4f)
-                             .SetEase(Ease.OutQuad)
-                             .WaitForCompletion();
-
-            placedCount++; // Bir sonraki küp bir öncekinin üstüne gelecek
+            float maxY = currentY;
+            foreach (Transform child in stackAreaTarget)
+            {
+                float top = child.position.y + child.GetComponent<Renderer>().bounds.size.y / 2f;
+                if (top > maxY) maxY = top;
+            }
+            currentY = maxY; // en Ã¼stten baÅŸla
         }
 
-        // stack temizle
+        // KÃ¼pleri sÄ±rayla yerleÅŸtir
+        for (int i = 0; i < stack.Count; i++)
+        {
+            Transform cube = stack[i];
+            float cubeHeight = cube.GetComponent<Renderer>().bounds.size.y;
+
+            Vector3 targetPos = new Vector3(
+                stackAreaTarget.position.x,
+                currentY + cubeHeight / 2f,
+                stackAreaTarget.position.z
+            );
+
+            cube.SetParent(stackAreaTarget);
+            cube.position = targetPos; // ANÄ° olarak yerleÅŸtir
+
+            // ğŸ‰ KÃ¼Ã§Ã¼k scale animasyonu (hamburger gibi puf efekti)
+            cube.DOScale(cubeTargetScale * 1.2f, 0.15f)
+                .SetEase(Ease.OutBack)
+                .OnComplete(() =>
+                {
+                    cube.DOScale(cubeTargetScale, 0.15f).SetEase(Ease.InOutSine);
+                });
+
+            currentY += cubeHeight; // bir sonraki kÃ¼pÃ¼n y pozisyonu
+            yield return new WaitForSeconds(0.05f); // kÃ¼Ã§Ã¼k gecikme (daha hoÅŸ gÃ¶rÃ¼nÃ¼r)
+        }
+
         stack.Clear();
+        yield break;
     }
+
+
+
+
+
 }

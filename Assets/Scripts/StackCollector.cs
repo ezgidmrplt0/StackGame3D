@@ -92,9 +92,12 @@ public class StackCollector : MonoBehaviour
     // Küpleri hedef alana býrakma animasyonu
     IEnumerator DropSequence()
     {
-        for (int i = 0; i < stack.Count; i++)
+        for (int i = stack.Count - 1; i >= 0; i--) // TERSTEN BAÞLA
         {
             Transform cube = stack[i];
+
+            // Küp yüksekliðini dinamik al
+            float cubeHeight = cube.GetComponent<Renderer>().bounds.size.y;
 
             // Önceki býrakýlanlarýn üstünden devam et
             int targetIndex = placedCount;
@@ -113,6 +116,4 @@ public class StackCollector : MonoBehaviour
         // stack temizle
         stack.Clear();
     }
-
-    public int Count => stack.Count; // Stackteki mevcut küp sayýsýný döndür
 }

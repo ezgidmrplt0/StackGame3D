@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using UnityEngine.UIElements;
 
 public class StackManager : MonoBehaviour
 {
@@ -64,43 +65,34 @@ public class StackManager : MonoBehaviour
         stackList.Add(newCube);
     }
 
+    private float cubeHeight = 0f; // Prefab yüksekliğini buraya koy
+
     private IEnumerator TransferCubesToAreaRoutine()
     {
-        // Başlangıç Y pozisyonu
         float currentY = 0f;
 
-        // Eğer areaStackList boş değilse son küpün üstünden başla
         if (areaStackList.Count > 0)
         {
             GameObject lastCube = areaStackList[areaStackList.Count - 1];
-            currentY = lastCube.transform.localPosition.y + lastCube.transform.localScale.y;
+            currentY = lastCube.transform.localPosition.y + cubeHeight + 0.05f; // Küpler arası boşluk
         }
 
-        // stackList'teki tüm küpleri sırayla diz
         for (int i = 0; i < stackList.Count; i++)
         {
             GameObject cube = stackList[i];
             cube.transform.SetParent(stackArea);
 
-            float height = cube.transform.localScale.y;
             Vector3 targetPos = new Vector3(0, currentY, 0);
-
             cube.transform.DOLocalMove(targetPos, transferDuration).SetEase(Ease.OutBounce);
 
             areaStackList.Add(cube);
 
-            currentY += height; // Bir sonraki küp için y koordinatını güncelle
+            currentY += cubeHeight + 0.05f;
             yield return new WaitForSeconds(transferDelay);
         }
 
         stackList.Clear();
+
     }
 
-
-
-    // İstersen areaStackList'i dışarıdan da kontrol edebilirsin
-    public List<GameObject> GetAreaCubes()
-    {
-        return areaStackList;
-    }
 }

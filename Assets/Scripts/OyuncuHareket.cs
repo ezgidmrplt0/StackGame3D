@@ -9,40 +9,60 @@ public class OyuncuHareket : MonoBehaviour
     private Rigidbody rb;
 
     [Header("Dönüş Ayarları")]
-    public float rotationSpeed = 10f; // ne kadar hızlı dönsün
+    public float rotationSpeed = 10f;
+
+    // Yerçekimi için
+    public float gravity = -9.81f;
+    private Vector3 velocity;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        // Rigidbody ayarları
+        rb.freezeRotation = true;
     }
 
     void Update()
     {
-        // Oyuncu hareketleri - Kameraya göre relatif hale getirdik
-        float moveX = Input.GetAxis("Horizontal");  // A/D için sağ/sol
-        float moveZ = Input.GetAxis("Vertical");    // W/S için ileri/geri
+        // Hareket girdisi
+        float moveX = Input.GetAxis("Horizontal");
+        float moveZ = Input.GetAxis("Vertical");
 
-        // Kameranın forward ve right vektörlerini al (y=0 için yatay tut)
+        // Kameranın yön vektörleri
         Vector3 camForward = Camera.main.transform.forward;
-        camForward.y = 0f;
-        camForward.Normalize();
-
         Vector3 camRight = Camera.main.transform.right;
+        camForward.y = 0f;
         camRight.y = 0f;
+        camForward.Normalize();
         camRight.Normalize();
 
-        // Hareket vektörü: kameraya göre hesapla
-        Vector3 move = (camRight * moveX + camForward * moveZ) * moveSpeed;
+        // Hareket vektörü
+        Vector3 move = (camRight * moveX + camForward * moveZ).normalized;
 
-        // Velocity'i uygula, y bileşenini koru
-        rb.velocity = new Vector3(move.x, rb.velocity.y, move.z);
-
-        // Karakterin baktığı yönü hareket vektörüne döndür
-        Vector3 lookDir = new Vector3(move.x, 0f, move.z);
-        if (lookDir.sqrMagnitude > 0.01f) // hareket ediyorsa
+        // Yerçekimi
+        if (!IsGrounded())
         {
-            Quaternion targetRotation = Quaternion.LookRotation(lookDir);
+            velocity.y += gravity * Time.deltaTime;
+        }
+        else if (velocity.y < 0)
+        {
+            velocity.y = -2f;
+        }
+
+        // Hareketi uygula
+        Vector3 moveVelocity = move * moveSpeed;
+        rb.velocity = new Vector3(moveVelocity.x, velocity.y, moveVelocity.z);
+
+        // Dönüş
+        if (move.magnitude > 0.1f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(move);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
         }
+    }
+
+    bool IsGrounded()
+    {
+        return Physics.Raycast(transform.position, -Vector3.up, 0.1f + 0.1f);
     }
 }

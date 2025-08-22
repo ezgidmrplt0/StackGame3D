@@ -92,7 +92,7 @@ public class StackCollector : MonoBehaviour
 
     IEnumerator DropSequence()
     {
-        float dropSpacing = 0.9f;
+        float dropSpacing = 1.3f;
 
         // Coroutine aktif olduğu sürece stack boşalana kadar veya drop noktasından çıkana kadar
         while (stack.Count > 0)

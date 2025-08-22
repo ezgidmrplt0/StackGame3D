@@ -8,6 +8,9 @@ public class OyuncuHareket : MonoBehaviour
     public float moveSpeed = 5f;
     private Rigidbody rb;
 
+    [Header("Dönüş Ayarları")]
+    public float rotationSpeed = 10f; // ne kadar hızlı dönsün
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -33,5 +36,13 @@ public class OyuncuHareket : MonoBehaviour
 
         // Velocity'i uygula, y bileşenini koru
         rb.velocity = new Vector3(move.x, rb.velocity.y, move.z);
+
+        // Karakterin baktığı yönü hareket vektörüne döndür
+        Vector3 lookDir = new Vector3(move.x, 0f, move.z);
+        if (lookDir.sqrMagnitude > 0.01f) // hareket ediyorsa
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(lookDir);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
+        }
     }
 }

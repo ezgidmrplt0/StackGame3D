@@ -8,6 +8,8 @@ TagManager:
   - StackNoktasi0
   - StackSilmeNoktasi0
   - MusteriNoktasi
+  - BeklemeNoktasi
+  - SatisNoktasi
   layers:
   - Default
   - TransparentFX

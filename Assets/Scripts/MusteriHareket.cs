@@ -23,7 +23,7 @@ public class MusteriHareket : MonoBehaviour
         spawnPoint = GameObject.FindGameObjectWithTag("BeklemeNoktasi").transform;
         animator = GetComponent<Animator>();
 
-        istenenUrunSayisi = Random.Range(1, 6);
+        istenenUrunSayisi = Random.Range(1, 9);
 
         transform.position = new Vector3(
             transform.position.x,
@@ -140,6 +140,9 @@ public class MusteriHareket : MonoBehaviour
         alinanUrunSayisi++;
         Debug.Log("Müşteri ürün aldı: " + alinanUrunSayisi + "/" + istenenUrunSayisi);
 
+        // 💰 Her ürün için 1 para ekle
+        MoneyManager.Instance.AddMoney(1);
+
         if (alinanUrunSayisi >= istenenUrunSayisi)
         {
             hasBeenServed = true;
@@ -147,6 +150,7 @@ public class MusteriHareket : MonoBehaviour
             StartCoroutine(LeaveStore());
         }
     }
+
 
     IEnumerator LeaveStore()
     {
@@ -160,7 +164,15 @@ public class MusteriHareket : MonoBehaviour
 
         MusteriSpawner.UpdateQueuePositions();
 
-        yield return new WaitForSeconds(1f);
+        // Çıkarken hızını artır
+        float originalSpeed = moveSpeed;
+        moveSpeed *= 2f; // %50 daha hızlı yürüsün
+
+        yield return new WaitForSeconds(0.5f); // kısa gecikme
+
+        moveSpeed = originalSpeed; // Geri normale döndür (istersen bunu kaldırabilirsin)
+
         isLeaving = false;
     }
+
 }

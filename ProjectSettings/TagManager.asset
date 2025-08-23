@@ -10,6 +10,7 @@ TagManager:
   - MusteriNoktasi
   - BeklemeNoktasi
   - SatisNoktasi
+  - YukseltmeNoktasi
   layers:
   - Default
   - TransparentFX

@@ -1,38 +1,39 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class MusteriSpawner : MonoBehaviour
 {
-    public GameObject musteriPrefab;
-    public float spawnInterval = 3f;
-
-    private Transform spawnPoint;
-
+    public List<GameObject> musteriPrefabs; // Birden fazla müþteri prefabýný buraya ekle
+    public Transform spawnPoint;
     public static Queue<MusteriHareket> musteriKuyrugu = new Queue<MusteriHareket>();
 
-    void Start()
-    {
-        spawnPoint = GameObject.FindGameObjectWithTag("BeklemeNoktasi").transform;
-        StartCoroutine(SpawnLoop());
-    }
+    public float spawnInterval = 3f;
+    private float timer = 0f;
 
-    IEnumerator SpawnLoop()
+    void Update()
     {
-        while (true)
+        timer += Time.deltaTime;
+        if (timer >= spawnInterval)
         {
             SpawnMusteri();
-            yield return new WaitForSeconds(spawnInterval);
+            timer = 0f;
         }
     }
 
     void SpawnMusteri()
     {
-        GameObject yeniMusteri = Instantiate(musteriPrefab, spawnPoint.position, Quaternion.identity);
+        // Rastgele müþteri prefab seç
+        int index = Random.Range(0, musteriPrefabs.Count);
 
-        MusteriHareket musteriScript = yeniMusteri.GetComponent<MusteriHareket>();
-        musteriKuyrugu.Enqueue(musteriScript);
-        musteriScript.kuyruktakiSirasi = musteriKuyrugu.Count - 1;
+        GameObject yeniMusteri = Instantiate(
+            musteriPrefabs[index],
+            spawnPoint.position,
+            Quaternion.identity
+        );
+
+        MusteriHareket hareket = yeniMusteri.GetComponent<MusteriHareket>();
+        hareket.kuyruktakiSirasi = musteriKuyrugu.Count;
+        musteriKuyrugu.Enqueue(hareket);
     }
 
     public static void UpdateQueuePositions()

@@ -197,6 +197,7 @@ public class StackCollector : MonoBehaviour
     }
 
     // --- Drop Sistemi (Eski Mekanik) ---
+    // --- Drop Sistemi (Düzeltilmiş) ---
     IEnumerator DropSequence()
     {
         float dropSpacing = 1.3f;
@@ -225,19 +226,21 @@ public class StackCollector : MonoBehaviour
 
             cube.SetParent(null);
 
-            int targetIndex = placedCount;
+            // --- ÖNEMLİ KISIM ---
+            // Artık placedCount kullanmıyoruz
+            int targetIndex = dropList.Count;
             Vector3 targetPos = stackAreaTarget.position + new Vector3(0f, dropSpacing * targetIndex, 0f);
 
             // Küpü hedefe doğru hareket ettir
             cube.DOJump(targetPos, 0.5f, 1, 0.4f).SetEase(Ease.OutQuad);
 
-            // Drop listesine ekle (satış mekanizması için) - EN SONA EKLE
+            // Drop listesine ekle (satış mekanizması için)
             dropList.Add(cube);
 
-            placedCount++;
             yield return new WaitForSeconds(0.1f); // Küpler arası bekleme süresi
         }
     }
+
 
     public int StackCount => stack.Count;
     public int DropCount => dropList.Count;

@@ -26,6 +26,6 @@ public class MoneyManager : MonoBehaviour
     void UpdateUI()
     {
         if (moneyText != null)
-            moneyText.text = "Money: " + money;
+            moneyText.text = "" + money;
     }
 }

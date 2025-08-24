@@ -11,6 +11,8 @@ TagManager:
   - BeklemeNoktasi
   - SatisNoktasi
   - YukseltmeNoktasi
+  - MusteriDonmeNoktasi
+  - MusteriFinal
   layers:
   - Default
   - TransparentFX

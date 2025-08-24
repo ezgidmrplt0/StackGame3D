@@ -8,19 +8,27 @@ public class MusteriHareket : MonoBehaviour
     public int istenenUrunSayisi;
     public int alinanUrunSayisi = 0;
 
-    private Transform musteriNoktasi;
-    private Transform spawnPoint;
+    private Transform musteriNoktasi;       // Kasadaki nokta
+    private Transform spawnPoint;           // Kuyruk başlangıç noktası
+    private Transform musteriDonmeNoktasi;  // İlk dönüş noktası
+    private Transform musteriFinal;         // ✅ Yeni: iş bitince gidilecek yer
+
     private float takipMesafesi = 3f;
     private Animator animator;
     private float musteriYukseklik = 7.5f;
+
     private bool isAtCounter = false;
     private bool hasBeenServed = false;
     private bool isLeaving = false;
+    private bool isGoingToTurnPoint = true;
 
     void Start()
     {
         musteriNoktasi = GameObject.FindGameObjectWithTag("MusteriNoktasi").transform;
         spawnPoint = GameObject.FindGameObjectWithTag("BeklemeNoktasi").transform;
+        musteriDonmeNoktasi = GameObject.FindGameObjectWithTag("MusteriDonmeNoktasi").transform;
+        musteriFinal = GameObject.FindGameObjectWithTag("MusteriFinal").transform; // ✅ Final noktası
+
         animator = GetComponent<Animator>();
 
         istenenUrunSayisi = Random.Range(1, 9);
@@ -36,9 +44,25 @@ public class MusteriHareket : MonoBehaviour
     {
         if (isLeaving) return;
 
-        Vector3 hedefPozisyon;
+        Vector3 hedefPozisyon = transform.position;
 
-        if (kuyruktakiSirasi == 0 && !hasBeenServed)
+        // 1) Önce Donme Noktasına git
+        if (isGoingToTurnPoint)
+        {
+            hedefPozisyon = new Vector3(
+                musteriDonmeNoktasi.position.x,
+                musteriYukseklik,
+                musteriDonmeNoktasi.position.z
+            );
+
+            if (Vector3.Distance(transform.position, hedefPozisyon) < 0.5f)
+            {
+                isGoingToTurnPoint = false;
+                StartCoroutine(DonVeDevamEt());
+            }
+        }
+        // 2) Kasaya git (sırası gelmişse)
+        else if (kuyruktakiSirasi == 0 && !hasBeenServed)
         {
             hedefPozisyon = new Vector3(
                 musteriNoktasi.position.x,
@@ -57,14 +81,23 @@ public class MusteriHareket : MonoBehaviour
                 Debug.Log("Müşteri kasaya ulaştı! İstenen ürün: " + istenenUrunSayisi);
             }
         }
+        // 3) İsteği karşılandı → MusteriFinal noktasına git
         else if (hasBeenServed)
         {
             hedefPozisyon = new Vector3(
-                spawnPoint.position.x,
+                musteriFinal.position.x,
                 musteriYukseklik,
-                spawnPoint.position.z
+                musteriFinal.position.z
             );
+
+            if (Vector3.Distance(transform.position, musteriFinal.position) < 0.5f)
+            {
+                Debug.Log("Müşteri final noktasına ulaştı ve ayrıldı.");
+                Destroy(gameObject);
+            }
+
         }
+        // 4) Kuyrukta bekleme mantığı
         else
         {
             MusteriHareket[] musteriler = MusteriSpawner.musteriKuyrugu.ToArray();
@@ -79,12 +112,13 @@ public class MusteriHareket : MonoBehaviour
                     onundekiPozisyon.z - onundeki.transform.forward.z * takipMesafesi
                 );
             }
-            else
-            {
-                hedefPozisyon = transform.position;
-            }
         }
 
+        HareketEt(hedefPozisyon);
+    }
+
+    private void HareketEt(Vector3 hedefPozisyon)
+    {
         Vector3 currentPosition = transform.position;
         Vector3 targetPositionXZ = new Vector3(hedefPozisyon.x, musteriYukseklik, hedefPozisyon.z);
 
@@ -117,14 +151,26 @@ public class MusteriHareket : MonoBehaviour
         else
         {
             if (animator != null) animator.SetBool("isWalking", false);
-
-            if (hasBeenServed && Vector3.Distance(transform.position, spawnPoint.position) < 0.5f)
-            {
-                Destroy(gameObject);
-            }
         }
     }
 
+    IEnumerator DonVeDevamEt()
+    {
+        // 90 derece sola dön
+        Quaternion hedefRotasyon = transform.rotation * Quaternion.Euler(0, -90, 0);
+
+        float t = 0f;
+        while (t < 1f)
+        {
+            t += Time.deltaTime * 2f; // dönüş hızı
+            transform.rotation = Quaternion.Slerp(transform.rotation, hedefRotasyon, t);
+            yield return null;
+        }
+
+        Debug.Log("Müşteri döndü, kasaya gidiyor...");
+    }
+
+    // Kuyruk/ürün kontrol fonksiyonları
     public bool IsAtCounter()
     {
         return isAtCounter && !hasBeenServed && !isLeaving;
@@ -146,33 +192,14 @@ public class MusteriHareket : MonoBehaviour
         if (alinanUrunSayisi >= istenenUrunSayisi)
         {
             hasBeenServed = true;
-            Debug.Log("Müşteri doydu, ayrılıyor...");
-            StartCoroutine(LeaveStore());
+            Debug.Log("Müşteri doydu, MusteriFinal noktasına gidiyor...");
+
+            // Kuyruktan çıkar
+            if (MusteriSpawner.musteriKuyrugu.Count > 0 && MusteriSpawner.musteriKuyrugu.Peek() == this)
+            {
+                MusteriSpawner.musteriKuyrugu.Dequeue();
+            }
+            MusteriSpawner.UpdateQueuePositions();
         }
     }
-
-
-    IEnumerator LeaveStore()
-    {
-        isLeaving = true;
-        Debug.Log("Müşteri ayrılıyor...");
-
-        if (MusteriSpawner.musteriKuyrugu.Count > 0 && MusteriSpawner.musteriKuyrugu.Peek() == this)
-        {
-            MusteriSpawner.musteriKuyrugu.Dequeue();
-        }
-
-        MusteriSpawner.UpdateQueuePositions();
-
-        // Çıkarken hızını artır
-        float originalSpeed = moveSpeed;
-        moveSpeed *= 2f; // %50 daha hızlı yürüsün
-
-        yield return new WaitForSeconds(0.5f); // kısa gecikme
-
-        moveSpeed = originalSpeed; // Geri normale döndür (istersen bunu kaldırabilirsin)
-
-        isLeaving = false;
-    }
-
 }

@@ -5,30 +5,50 @@ using System.Collections;
 public class KasiyerHareket : MonoBehaviour
 {
     public Transform satisNoktasi;
-    public float hareketHizi = 2f;
+    public float hareketHizi = 10f;
 
     private bool isAtSalesPoint = false;
     private bool isSelling = false;
     private float lastSellTime = 0f;
-    public float sellCooldown = 1f; // 1 saniyede bir satýþ
+    public float sellCooldown = 0.1f;
 
     void Start()
     {
-        if (satisNoktasi != null)
+        // Eðer inspector’dan atanmadýysa otomatik bul
+        if (satisNoktasi == null)
         {
-            transform.DOMove(satisNoktasi.position, hareketHizi)
-                .SetEase(Ease.Linear)
-                .OnComplete(() =>
-                {
-                    isAtSalesPoint = true;
-                    Debug.Log("Kasiyer satýþ noktasýna ulaþtý!");
-                });
+            GameObject hedefObj = GameObject.FindGameObjectWithTag("SatisNoktasi");
+            if (hedefObj != null)
+            {
+                satisNoktasi = hedefObj.transform;
+            }
+            else
+            {
+                Debug.LogError("Sahne içinde 'SatisNoktasi' tag’li bir obje yok!");
+                return;
+            }
         }
+
+
+        // Hedef pozisyonu al ve Y eksenini sabitle (örn: 9)
+        Vector3 hedefPozisyon = satisNoktasi.position;
+        hedefPozisyon.y = 9f;
+
+        // Sabit hýzla gitmesi için süre hesapla
+        float mesafe = Vector3.Distance(transform.position, hedefPozisyon);
+        float sure = mesafe / hareketHizi;
+
+        transform.DOMove(hedefPozisyon, sure)
+            .SetEase(Ease.Linear)
+            .OnComplete(() =>
+            {
+                isAtSalesPoint = true;
+                Debug.Log("Kasiyer satýþ noktasýna ulaþtý!");
+            });
     }
 
     void Update()
     {
-        // Satýþ yapma kontrolü
         if (isAtSalesPoint && !isSelling && Time.time - lastSellTime > sellCooldown)
         {
             TrySellProducts();
@@ -38,7 +58,6 @@ public class KasiyerHareket : MonoBehaviour
     public void TrySellProducts()
     {
         if (isSelling) return;
-
         StartCoroutine(SellProducts());
     }
 
@@ -47,7 +66,6 @@ public class KasiyerHareket : MonoBehaviour
         isSelling = true;
         lastSellTime = Time.time;
 
-        // StackCollector'dan ürün satmaya çalýþ
         if (StackCollector.Instance != null)
         {
             bool sold = StackCollector.Instance.SellProduct();

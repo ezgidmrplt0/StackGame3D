@@ -148,31 +148,59 @@ public class StackCollector : MonoBehaviour
 
     void TryBuyKasiyer(GameObject yukseltmeNoktasi)
     {
-        int kasiyerFiyati = 10;
+        int kasiyerFiyati = 0;
 
         if (MoneyManager.Instance.money >= kasiyerFiyati)
         {
-            MoneyManager.Instance.AddMoney(-kasiyerFiyati);
-            Destroy(yukseltmeNoktasi);
-
-            if (kasiyerPrefab != null && kasiyerSpawnPoint != null)
-            {
-                GameObject yeniKasiyer = Instantiate(kasiyerPrefab, kasiyerSpawnPoint.position, kasiyerSpawnPoint.rotation);
-                Debug.Log("Kasiyer satın alındı!");
-
-                KasiyerHareket kasiyerScript = yeniKasiyer.GetComponent<KasiyerHareket>();
-                if (kasiyerScript != null && kasiyerSalesPoint != null)
-                {
-                    kasiyerScript.satisNoktasi = kasiyerSalesPoint;
-                    activeKasiyers.Add(kasiyerScript);
-                }
-            }
+            // Coroutine başlat
+            StartCoroutine(SlowlyPayForKasiyer(kasiyerFiyati, yukseltmeNoktasi));
         }
         else
         {
             Debug.Log("Yeterli para yok! Gerekli: " + kasiyerFiyati + ", Mevcut: " + MoneyManager.Instance.money);
         }
     }
+
+    IEnumerator SlowlyPayForKasiyer(int fiyat, GameObject yukseltmeNoktasi)
+    {
+        int kalan = fiyat;
+
+        while (kalan > 0)
+        {
+            MoneyManager.Instance.AddMoney(-1); // her adımda 1 azalt
+            kalan--;
+
+            yield return new WaitForSeconds(0.01f); // hızını buradan ayarlayabilirsin (0.05f → 50ms)
+        }
+
+        // Para tamamen ödendikten sonra kasiyeri oluştur
+        if (kasiyerPrefab != null && kasiyerSpawnPoint != null)
+        {
+            GameObject yeniKasiyer = Instantiate(kasiyerPrefab, kasiyerSpawnPoint.position, kasiyerSpawnPoint.rotation);
+            Debug.Log("Kasiyer satın alındı!");
+
+            KasiyerHareket kasiyerScript = yeniKasiyer.GetComponent<KasiyerHareket>();
+
+            // Eğer inspector'da atanmışsa kullan, yoksa tag’den bul
+            if (kasiyerScript != null)
+            {
+                if (kasiyerSalesPoint != null)
+                {
+                    kasiyerScript.satisNoktasi = kasiyerSalesPoint;
+                }
+                else
+                {
+                    GameObject hedefObj = GameObject.FindGameObjectWithTag("SatisNoktasi");
+                    if (hedefObj != null) kasiyerScript.satisNoktasi = hedefObj.transform;
+                }
+
+                activeKasiyers.Add(kasiyerScript);
+            }
+        }
+
+        Destroy(yukseltmeNoktasi);
+    }
+
 
     public bool SellProduct()
     {

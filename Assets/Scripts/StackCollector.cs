@@ -293,7 +293,7 @@ public class StackCollector : MonoBehaviour
 
     IEnumerator DropSequence()
     {
-        float dropSpacing = 1.3f;
+        float dropSpacing = 2f;
 
         while (stack.Count > 0 && isInDropArea)
         {

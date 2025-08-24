@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using TMPro; // ✅ TextMeshPro kullanımı için
 
 public class MusteriHareket : MonoBehaviour
 {
@@ -20,6 +21,10 @@ public class MusteriHareket : MonoBehaviour
     private bool hasBeenServed = false;
     private bool isLeaving = false;
 
+    // ✅ TextMeshPro referansı
+    [Header("UI")]
+    public TextMeshProUGUI urunText;
+
     void Start()
     {
         musteriNoktasi = GameObject.FindGameObjectWithTag("MusteriNoktasi").transform;
@@ -28,7 +33,14 @@ public class MusteriHareket : MonoBehaviour
 
         animator = GetComponent<Animator>();
 
+        // Rastgele ürün sayısı
         istenenUrunSayisi = Random.Range(1, 9);
+
+        // ✅ TextMeshPro’ya yazdır
+        if (urunText != null)
+        {
+            urunText.text = istenenUrunSayisi.ToString();
+        }
 
         transform.position = new Vector3(
             transform.position.x,
@@ -43,7 +55,7 @@ public class MusteriHareket : MonoBehaviour
 
         Vector3 hedefPozisyon = transform.position;
 
-        // 1) Kasaya git (sırası gelmişse)
+        // 1) Kasaya git
         if (kuyruktakiSirasi == 0 && !hasBeenServed)
         {
             hedefPozisyon = new Vector3(
@@ -63,7 +75,7 @@ public class MusteriHareket : MonoBehaviour
                 Debug.Log("Müşteri kasaya ulaştı! İstenen ürün: " + istenenUrunSayisi);
             }
         }
-        // 2) İsteği karşılandı → MusteriFinal noktasına git
+        // 2) İsteği karşılandı → Final noktasına git
         else if (hasBeenServed)
         {
             hedefPozisyon = new Vector3(
@@ -154,8 +166,15 @@ public class MusteriHareket : MonoBehaviour
         alinanUrunSayisi++;
         Debug.Log("Müşteri ürün aldı: " + alinanUrunSayisi + "/" + istenenUrunSayisi);
 
-        // 💰 Her ürün için 1 para ekle
+        // 💰 Para ekle
         MoneyManager.Instance.AddMoney(1);
+
+        // ✅ Text güncelle
+        if (urunText != null)
+        {
+            int kalan = istenenUrunSayisi - alinanUrunSayisi;
+            urunText.text = kalan > 0 ? kalan.ToString() : "";
+        }
 
         if (alinanUrunSayisi >= istenenUrunSayisi)
         {

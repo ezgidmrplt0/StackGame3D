@@ -293,6 +293,10 @@ public class StackCollector : MonoBehaviour
 
     void AddOneCube()
     {
+        // Eğer stack zaten 5 veya daha fazlaysa yeni küp ekleme
+        if (stack.Count >= 5)
+            return;
+
         float yOffset = cubeTargetScale.y * 0.5f;
         Vector3 spawnPosition = stackRoot.position + Vector3.up * (cubeHeight * stack.Count + yOffset);
 
@@ -318,6 +322,7 @@ public class StackCollector : MonoBehaviour
 
         stack.Add(newCube.transform);
     }
+
 
     IEnumerator DropSequence()
     {

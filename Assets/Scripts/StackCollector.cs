@@ -43,6 +43,10 @@ public class StackCollector : MonoBehaviour
 
     private List<KasiyerHareket> activeKasiyers = new List<KasiyerHareket>();
 
+    // 🔥 Dinamik stack limiti
+    private int stackLimit = 5; // Başlangıç limiti
+    public void SetStackLimit(int newLimit) => stackLimit = newLimit;
+
     void Awake()
     {
         if (Instance == null)
@@ -64,7 +68,6 @@ public class StackCollector : MonoBehaviour
             TrySellToCustomer();
         }
 
-        // Kasiyerleri kontrol et
         UpdateKasiyerSales();
     }
 
@@ -152,7 +155,6 @@ public class StackCollector : MonoBehaviour
 
         if (MoneyManager.Instance.money >= kasiyerFiyati)
         {
-            // Coroutine başlat
             StartCoroutine(SlowlyPayForKasiyer(kasiyerFiyati, yukseltmeNoktasi));
         }
         else
@@ -167,13 +169,11 @@ public class StackCollector : MonoBehaviour
 
         while (kalan > 0)
         {
-            MoneyManager.Instance.AddMoney(-1); // her adımda 1 azalt
+            MoneyManager.Instance.AddMoney(-1);
             kalan--;
-
-            yield return new WaitForSeconds(0.01f); // hızını buradan ayarlayabilirsin (0.05f → 50ms)
+            yield return new WaitForSeconds(0.01f);
         }
 
-        // Para tamamen ödendikten sonra kasiyeri oluştur
         if (kasiyerPrefab != null && kasiyerSpawnPoint != null)
         {
             GameObject yeniKasiyer = Instantiate(kasiyerPrefab, kasiyerSpawnPoint.position, kasiyerSpawnPoint.rotation);
@@ -181,7 +181,6 @@ public class StackCollector : MonoBehaviour
 
             KasiyerHareket kasiyerScript = yeniKasiyer.GetComponent<KasiyerHareket>();
 
-            // Eğer inspector'da atanmışsa kullan, yoksa tag’den bul
             if (kasiyerScript != null)
             {
                 if (kasiyerSalesPoint != null)
@@ -200,7 +199,6 @@ public class StackCollector : MonoBehaviour
 
         Destroy(yukseltmeNoktasi);
     }
-
 
     public bool SellProduct()
     {
@@ -229,7 +227,6 @@ public class StackCollector : MonoBehaviour
             }
         }
 
-        // Eğer müşteri yoksa ürünü geri koy
         dropList.Add(product);
         return false;
     }
@@ -293,8 +290,7 @@ public class StackCollector : MonoBehaviour
 
     void AddOneCube()
     {
-        // Eğer stack zaten 5 veya daha fazlaysa yeni küp ekleme
-        if (stack.Count >= 5)
+        if (stack.Count >= stackLimit) // 🔥 burası artık dinamik
             return;
 
         float yOffset = cubeTargetScale.y * 0.5f;
@@ -322,7 +318,6 @@ public class StackCollector : MonoBehaviour
 
         stack.Add(newCube.transform);
     }
-
 
     IEnumerator DropSequence()
     {

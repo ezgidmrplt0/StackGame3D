@@ -71,6 +71,20 @@ public class StackCollector : MonoBehaviour
     private float lastSellTime = 0f;
     public float sellCooldown = 0.1f;
 
+    [Header("Depocu Ayarları")]
+    public GameObject depocuPrefab;
+    public Transform depocuSpawnPoint;
+    public Transform cayToplamaNoktasi;
+    public Transform cayBirakmaNoktasi;
+    private List<DepocuCalisan> activeDepocular = new List<DepocuCalisan>();
+
+    [Header("Depocu Ekonomi")]
+    public int depocuCost = 10;
+    public float depocuCostIncreaseRate = 0.2f;
+    public float depocuDuration = 20f;
+    public TextMeshProUGUI depocuFiyatText;
+
+
     private int stackLimit = 5;
     public void SetStackLimit(int newLimit) => stackLimit = newLimit;
 
@@ -444,6 +458,53 @@ public class StackCollector : MonoBehaviour
 
     public int StackCount => stack.Count;
     public int DropCount => dropList.Count;
+    public void DepocuAktifEt()
+    {
+        if (MoneyManager.Instance.money < depocuCost)
+        {
+            Debug.Log("Yetersiz para! Gerekli: " + depocuCost);
+            return;
+        }
+
+        // Para düş
+        MoneyManager.Instance.AddMoney(-depocuCost);
+
+        // Fiyat artır
+        depocuCost = Mathf.CeilToInt(depocuCost * (1 + depocuCostIncreaseRate));
+        if (depocuFiyatText != null)
+            depocuFiyatText.text = $"Depocu Al ({depocuCost}$)";
+
+        // Depocu oluştur
+        if (depocuPrefab != null && depocuSpawnPoint != null)
+        {
+            GameObject yeniDepocu = Instantiate(depocuPrefab, depocuSpawnPoint.position, depocuSpawnPoint.rotation);
+            DepocuCalisan depocuScript = yeniDepocu.GetComponent<DepocuCalisan>();
+
+            if (depocuScript != null)
+            {
+                depocuScript.toplamaNoktasi = cayToplamaNoktasi;
+                depocuScript.birakmaNoktasi = cayBirakmaNoktasi;
+                depocuScript.hamCayPrefab = hamCayPrefab;
+                depocuScript.stackRoot = yeniDepocu.transform; // üstüne eklesin
+
+                activeDepocular.Add(depocuScript);
+                StartCoroutine(DepocuSuresiBitinceYokEt(depocuScript));
+            }
+        }
+    }
+
+    IEnumerator DepocuSuresiBitinceYokEt(DepocuCalisan depocu)
+    {
+        yield return new WaitForSeconds(depocuDuration);
+        if (activeDepocular.Contains(depocu))
+            activeDepocular.Remove(depocu);
+        depocu.CalismayiBitir();
+        Debug.Log("Depocu süresi doldu!");
+    }
+    public void UretimStokEkle(int miktar)
+    {
+        uretimStogu += miktar;
+    }
 
     void GuncelleUI()
     {

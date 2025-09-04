@@ -31,16 +31,19 @@ public class StackCollector : MonoBehaviour
     public GameObject kasiyerPrefab;
     public Transform kasiyerSpawnPoint;
     public Transform kasiyerSalesPoint;
+    private List<KasiyerHareket> activeKasiyers = new List<KasiyerHareket>();
 
-    // ─────────────────────────────────────────────────────────────
-    // ÇAY SİSTEMİ (Hammadde → Depo → Üretim)
+    [Header("Kasiyer Ekonomi")]
+    public int kasiyerCost = 100;             // Başlangıç fiyatı
+    public float costIncreaseRate = 0.2f;     // %20 artış
+    public float kasiyerDuration = 20f;       // Süreli kullanım
+    public TextMeshProUGUI kasiyerFiyatText;  // UI fiyat yazısı
+
+    // ÇAY SİSTEMİ
     [Header("Çay Sistemi")]
-    [Tooltip("Ot toplama alanı tag'i")]
-    public string cayToplamaTag = "CayToplamaNoktasi";
-    [Tooltip("Toplanan otların bırakıldığı alan tag'i")]
-    public string cayBirakmaTag = "CayBirakmaNoktasi";
-    [Tooltip("Üretim için bekleme (StackNoktasi0 zaten var)")]
-    public int hamCayTasimaLimiti = 30;
+    [Tooltip("Ot toplama alanı tag'i")] public string cayToplamaTag = "CayToplamaNoktasi";
+    [Tooltip("Toplanan otların bırakıldığı alan tag'i")] public string cayBirakmaTag = "CayBirakmaNoktasi";
+    [Tooltip("Üretim için bekleme (StackNoktasi0 zaten var)")] public int hamCayTasimaLimiti = 30;
     public float toplamaAraligi = 0.15f;
     public int toplamaAdedi = 1;
     public TextMeshProUGUI hamCayText;
@@ -53,14 +56,11 @@ public class StackCollector : MonoBehaviour
     private Coroutine toplamaLoop;
     private Coroutine birakmaLoop;
 
-    // ─────────────────────────────────────────────────────────────
-    // Ham Yaprak Kuyruk Stack
     [Header("Ham Yaprak Stack (Arkada Kuyruk)")]
     public GameObject hamCayPrefab;
     public Transform hamCayStackRoot;
     public float hamCaySpacing = 0.5f;
     private List<Transform> hamCayStack = new List<Transform>();
-    // ─────────────────────────────────────────────────────────────
 
     private readonly List<Transform> stack = new List<Transform>();
     private Coroutine stackingLoop;
@@ -71,8 +71,6 @@ public class StackCollector : MonoBehaviour
     private float lastSellTime = 0f;
     public float sellCooldown = 0.1f;
 
-    private List<KasiyerHareket> activeKasiyers = new List<KasiyerHareket>();
-
     private int stackLimit = 5;
     public void SetStackLimit(int newLimit) => stackLimit = newLimit;
 
@@ -82,10 +80,15 @@ public class StackCollector : MonoBehaviour
         else Destroy(gameObject);
     }
 
+    void Start()
+    {
+        UpdateKasiyerUI();
+    }
+
     void Update()
     {
-        UpdateStackPositions();        // Çay küpleri (dikey)
-        UpdateHamCayStackPositions();  // Yaprak kuyruğu
+        UpdateStackPositions();
+        UpdateHamCayStackPositions();
 
         if (isInSalesArea && dropList.Count > 0 && Time.time - lastSellTime > sellCooldown)
             TrySellToCustomer();
@@ -99,6 +102,12 @@ public class StackCollector : MonoBehaviour
         foreach (var kasiyer in activeKasiyers)
             if (kasiyer != null && kasiyer.IsAtSalesPoint() && dropList.Count > 0)
                 kasiyer.TrySellProducts();
+    }
+
+    void UpdateKasiyerUI()
+    {
+        if (kasiyerFiyatText != null)
+            kasiyerFiyatText.text = $"Kasiyer Al ({kasiyerCost}$)";
     }
 
     void UpdateStackPositions()
@@ -132,35 +141,27 @@ public class StackCollector : MonoBehaviour
             if (toplamaLoop == null)
                 toplamaLoop = StartCoroutine(ToplamaLoop());
         }
-
         if (other.CompareTag(cayBirakmaTag))
         {
             birakmaAlaninda = true;
             if (birakmaLoop == null)
                 birakmaLoop = StartCoroutine(BirakmaLoop());
         }
-
         if (other.CompareTag("StackNoktasi0"))
         {
             if (stackingLoop == null)
                 stackingLoop = StartCoroutine(SpawnLoop());
         }
-
         if (other.CompareTag("StackSilmeNoktasi0"))
         {
             isInDropArea = true;
             if (dropLoop == null)
                 dropLoop = StartCoroutine(DropSequence());
         }
-
         if (other.CompareTag("SatisNoktasi"))
         {
             isInSalesArea = true;
-            Debug.Log("Satış alanına girdi");
         }
-
-        if (other.CompareTag("YukseltmeNoktasi"))
-            TryBuyKasiyer(other.gameObject);
     }
 
     void OnTriggerExit(Collider other)
@@ -174,7 +175,6 @@ public class StackCollector : MonoBehaviour
                 toplamaLoop = null;
             }
         }
-
         if (other.CompareTag(cayBirakmaTag))
         {
             birakmaAlaninda = false;
@@ -184,7 +184,6 @@ public class StackCollector : MonoBehaviour
                 birakmaLoop = null;
             }
         }
-
         if (other.CompareTag("StackNoktasi0"))
         {
             if (stackingLoop != null)
@@ -193,7 +192,6 @@ public class StackCollector : MonoBehaviour
                 stackingLoop = null;
             }
         }
-
         if (other.CompareTag("StackSilmeNoktasi0"))
         {
             isInDropArea = false;
@@ -203,34 +201,31 @@ public class StackCollector : MonoBehaviour
                 dropLoop = null;
             }
         }
-
         if (other.CompareTag("SatisNoktasi"))
         {
             isInSalesArea = false;
-            Debug.Log("Satış alanından çıktı");
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
+    // 🌿 Çay toplama
     IEnumerator ToplamaLoop()
     {
         var wait = new WaitForSeconds(toplamaAraligi);
         while (true)
         {
             if (toplamaTriggerSayaci <= 0) break;
-
             if (uzerimdeHamCay < hamCayTasimaLimiti)
             {
                 uzerimdeHamCay += toplamaAdedi;
                 uzerimdeHamCay = Mathf.Min(uzerimdeHamCay, hamCayTasimaLimiti);
-
-                AddHamCayCube(); // 🌿 yaprak kuyruk ekle
+                AddHamCayCube();
             }
             yield return wait;
         }
         toplamaLoop = null;
     }
 
+    // 🌿 Çay bırakma
     IEnumerator BirakmaLoop()
     {
         var wait = new WaitForSeconds(0.05f);
@@ -240,71 +235,57 @@ public class StackCollector : MonoBehaviour
             {
                 uzerimdeHamCay--;
                 uretimStogu++;
-
-                RemoveHamCayCube(); // 🌿 yaprak kuyruktan çıkar
+                RemoveHamCayCube();
             }
             yield return wait;
         }
         birakmaLoop = null;
     }
-    // ─────────────────────────────────────────────────────────────
 
     void AddHamCayCube()
     {
         if (hamCayPrefab == null || hamCayStackRoot == null) return;
-
         Vector3 offset = -hamCayStackRoot.forward * hamCaySpacing * hamCayStack.Count;
         Vector3 spawnPos = hamCayStackRoot.position + offset;
-
         GameObject newLeaf = Instantiate(hamCayPrefab, spawnPos, Quaternion.identity);
         newLeaf.transform.localScale = Vector3.zero;
         newLeaf.transform.DOScale(Vector3.one * 0.3f, 0.3f).SetEase(Ease.OutBack);
         newLeaf.transform.SetParent(hamCayStackRoot);
-
         hamCayStack.Add(newLeaf.transform);
     }
 
     void RemoveHamCayCube()
     {
         if (hamCayStack.Count == 0) return;
-
         Transform lastLeaf = hamCayStack[hamCayStack.Count - 1];
         hamCayStack.RemoveAt(hamCayStack.Count - 1);
-
         lastLeaf.DOScale(Vector3.zero, 0.2f)
-                .SetEase(Ease.InBack)
-                .OnComplete(() => Destroy(lastLeaf.gameObject));
+            .SetEase(Ease.InBack)
+            .OnComplete(() => Destroy(lastLeaf.gameObject));
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // ÇAY ÜRETİM ve SATIŞ SİSTEMİ (senin kodun aynı kaldı)
-    // ─────────────────────────────────────────────────────────────
-
-    void TryBuyKasiyer(GameObject yukseltmeNoktasi)
+    // 🛒 Kasiyeri satın alma
+    public void KasiyerAktifEt()
     {
-        int kasiyerFiyati = 0;
-        if (MoneyManager.Instance.money >= kasiyerFiyati)
-            StartCoroutine(SlowlyPayForKasiyer(kasiyerFiyati, yukseltmeNoktasi));
-        else
-            Debug.Log("Yeterli para yok!");
-    }
-
-    IEnumerator SlowlyPayForKasiyer(int fiyat, GameObject yukseltmeNoktasi)
-    {
-        int kalan = fiyat;
-        while (kalan > 0)
+        if (MoneyManager.Instance.money < kasiyerCost)
         {
-            MoneyManager.Instance.AddMoney(-1);
-            kalan--;
-            yield return new WaitForSeconds(0.01f);
+            Debug.Log("Yetersiz para! Gerekli: " + kasiyerCost);
+            return;
         }
 
+        // Para düş
+        MoneyManager.Instance.AddMoney(-kasiyerCost);
+
+        // Fiyat artır
+        kasiyerCost = Mathf.CeilToInt(kasiyerCost * (1 + costIncreaseRate));
+        UpdateKasiyerUI();
+
+        // Kasiyeri oluştur
         if (kasiyerPrefab != null && kasiyerSpawnPoint != null)
         {
             GameObject yeniKasiyer = Instantiate(kasiyerPrefab, kasiyerSpawnPoint.position, kasiyerSpawnPoint.rotation);
-            Debug.Log("Kasiyer satın alındı!");
-
             KasiyerHareket kasiyerScript = yeniKasiyer.GetComponent<KasiyerHareket>();
+
             if (kasiyerScript != null)
             {
                 if (kasiyerSalesPoint != null)
@@ -315,15 +296,24 @@ public class StackCollector : MonoBehaviour
                     if (hedefObj != null) kasiyerScript.satisNoktasi = hedefObj.transform;
                 }
                 activeKasiyers.Add(kasiyerScript);
+                StartCoroutine(KasiyerSuresiBitinceYokEt(yeniKasiyer, kasiyerScript));
             }
         }
-        Destroy(yukseltmeNoktasi);
     }
 
+    IEnumerator KasiyerSuresiBitinceYokEt(GameObject kasiyerObj, KasiyerHareket kasiyerScript)
+    {
+        yield return new WaitForSeconds(kasiyerDuration);
+        if (activeKasiyers.Contains(kasiyerScript))
+            activeKasiyers.Remove(kasiyerScript);
+        Destroy(kasiyerObj);
+        Debug.Log("Kasiyer süresi doldu!");
+    }
+
+    // 💸 Satış
     public bool SellProduct()
     {
         if (dropList.Count == 0) return false;
-
         Transform product = dropList[dropList.Count - 1];
         dropList.RemoveAt(dropList.Count - 1);
 
@@ -333,7 +323,6 @@ public class StackCollector : MonoBehaviour
             if (customer != null && customer.IsAtCounter() && customer.NeedsMoreProducts())
             {
                 Vector3 customerPosition = customer.transform.position + Vector3.up * 1.5f;
-
                 product.DOMove(customerPosition, 0.2f)
                       .SetEase(Ease.OutQuad)
                       .OnComplete(() =>
@@ -352,7 +341,6 @@ public class StackCollector : MonoBehaviour
     void TrySellToCustomer()
     {
         if (isSelling) return;
-
         if (MusteriSpawner.musteriKuyrugu.Count > 0)
         {
             MusteriHareket currentCustomer = MusteriSpawner.musteriKuyrugu.Peek();
@@ -364,7 +352,6 @@ public class StackCollector : MonoBehaviour
     IEnumerator GiveProductsToCustomer(MusteriHareket customer)
     {
         if (dropList.Count == 0 || isSelling) yield break;
-
         isSelling = true;
         lastSellTime = Time.time;
 
@@ -375,18 +362,15 @@ public class StackCollector : MonoBehaviour
         {
             Transform product = dropList[dropList.Count - 1];
             dropList.RemoveAt(dropList.Count - 1);
-
             Vector3 customerPosition = customer.transform.position + Vector3.up * 1.5f;
-
             product.DOMove(customerPosition, 0.15f)
-                   .SetEase(Ease.OutQuad)
-                   .OnComplete(() =>
-                   {
-                       customer.ReceiveProduct();
-                       Destroy(product.gameObject);
-                       MoneyManager.Instance.AddMoney(1);
-                   });
-
+                .SetEase(Ease.OutQuad)
+                .OnComplete(() =>
+                {
+                    customer.ReceiveProduct();
+                    Destroy(product.gameObject);
+                    MoneyManager.Instance.AddMoney(1);
+                });
             yield return new WaitForSeconds(0.05f);
         }
         isSelling = false;
@@ -409,10 +393,8 @@ public class StackCollector : MonoBehaviour
     void AddOneCube()
     {
         if (stack.Count >= stackLimit) return;
-
         float yOffset = cubeTargetScale.y * 0.5f;
         Vector3 spawnPosition = stackRoot.position + Vector3.up * (cubeHeight * stack.Count + yOffset);
-
         GameObject newCube = Instantiate(cubePrefab, spawnPosition, Quaternion.identity);
 
         Rigidbody cubeRb = newCube.GetComponent<Rigidbody>();
@@ -422,14 +404,12 @@ public class StackCollector : MonoBehaviour
             cubeRb.useGravity = false;
             cubeRb.drag = 10f;
         }
-
         Collider cubeCollider = newCube.GetComponent<Collider>();
         if (cubeCollider != null && cubeCollider is BoxCollider boxCollider)
             boxCollider.size = cubeTargetScale * 0.9f;
 
         newCube.transform.localScale = Vector3.zero;
         newCube.transform.DOScale(cubeTargetScale, tweenDuration).SetEase(tweenEase);
-
         stack.Add(newCube.transform);
     }
 
@@ -448,19 +428,16 @@ public class StackCollector : MonoBehaviour
                 cubeRb.useGravity = true;
                 cubeRb.drag = 1f;
             }
-
             Collider cubeCollider = cube.GetComponent<Collider>();
             if (cubeCollider != null && cubeCollider is BoxCollider boxCollider)
                 boxCollider.size = Vector3.one;
 
             cube.SetParent(null);
-
             int targetIndex = dropList.Count;
             Vector3 targetPos = stackAreaTarget.position + new Vector3(0f, dropSpacing * targetIndex, 0f);
-
             cube.DOJump(targetPos, 0.5f, 1, 0.4f).SetEase(Ease.OutQuad);
-            dropList.Add(cube);
 
+            dropList.Add(cube);
             yield return new WaitForSeconds(0.1f);
         }
     }

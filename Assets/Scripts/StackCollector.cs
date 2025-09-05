@@ -62,7 +62,7 @@ public class StackCollector : MonoBehaviour
     public float hamCaySpacing = 0.5f;
     private List<Transform> hamCayStack = new List<Transform>();
 
-    private readonly List<Transform> stack = new List<Transform>();
+    public readonly List<Transform> stack = new List<Transform>();
     private Coroutine stackingLoop;
     private Coroutine dropLoop;
     private bool isInDropArea = false;
@@ -513,4 +513,55 @@ public class StackCollector : MonoBehaviour
         if (hamCayText != null) hamCayText.text = $"Yaprak: {uzerimdeHamCay}/{hamCayTasimaLimiti}";
         if (uretimStoguText != null) uretimStoguText.text = $"Üretim Stoku: {uretimStogu}";
     }
+
+    [Header("Urun Tasiyici Ayarları")]
+    public GameObject urunTasiyiciPrefab;
+    public Transform urunTasiyiciSpawnPoint;
+    public Transform urunTasiyiciAlmaNoktasi;
+    public Transform urunTasiyiciBirakmaNoktasi;
+    public Transform urunTasiyiciStackTarget;
+    private List<UrunTasiyici> activeTasiyicilar = new List<UrunTasiyici>();
+
+    [Header("Urun Tasiyici Ekonomi")]
+    public int urunTasiyiciCost = 100;
+    public float urunTasiyiciCostIncreaseRate = 0.2f;
+    public float urunTasiyiciDuration = 20f;
+    public TextMeshProUGUI urunTasiyiciFiyatText;
+
+    public void UrunTasiyiciAktifEt()
+    {
+        if (MoneyManager.Instance.money < urunTasiyiciCost)
+        {
+            Debug.Log("Yetersiz para! Gerekli: " + urunTasiyiciCost);
+            return;
+        }
+
+        MoneyManager.Instance.AddMoney(-urunTasiyiciCost);
+
+        urunTasiyiciCost = Mathf.CeilToInt(urunTasiyiciCost * (1 + urunTasiyiciCostIncreaseRate));
+        if (urunTasiyiciFiyatText != null)
+            urunTasiyiciFiyatText.text = $"Taşıyıcı Al ({urunTasiyiciCost}$)";
+
+        if (urunTasiyiciPrefab != null && urunTasiyiciSpawnPoint != null)
+        {
+            GameObject yeniTasiyici = Instantiate(urunTasiyiciPrefab, urunTasiyiciSpawnPoint.position, urunTasiyiciSpawnPoint.rotation);
+            UrunTasiyici script = yeniTasiyici.GetComponent<UrunTasiyici>();
+            script.stackAlmaNoktasi = urunTasiyiciAlmaNoktasi;
+            script.stackBirakmaNoktasi = urunTasiyiciBirakmaNoktasi;
+            script.stackAreaTarget = urunTasiyiciStackTarget;
+
+            activeTasiyicilar.Add(script);
+            StartCoroutine(UrunTasiyiciSuresiBitinceYokEt(script));
+        }
+    }
+
+    IEnumerator UrunTasiyiciSuresiBitinceYokEt(UrunTasiyici tasiyici)
+    {
+        yield return new WaitForSeconds(urunTasiyiciDuration);
+        if (activeTasiyicilar.Contains(tasiyici))
+            activeTasiyicilar.Remove(tasiyici);
+        tasiyici.CalismayiBitir();
+        Debug.Log("Ürün taşıyıcı süresi doldu!");
+    }
+
 }

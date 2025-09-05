@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using Unity.VisualScripting;
 
 public class MoneyManager : MonoBehaviour
 {
@@ -21,11 +22,17 @@ public class MoneyManager : MonoBehaviour
         money += amount;
         UpdateUI();
         Debug.Log("Para eklendi: " + amount + ", Toplam: " + money);
+
     }
 
     void UpdateUI()
     {
         if (moneyText != null)
-            moneyText.text = "" + money;
+            moneyText.text = money + "$";
+    }
+
+    private void Start()
+    {
+        AddMoney(1000);
     }
 }

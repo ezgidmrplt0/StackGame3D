@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using DG.Tweening;
 using System.Collections;
 
@@ -14,7 +14,7 @@ public class KasiyerHareket : MonoBehaviour
 
     void Start()
     {
-        // Eðer inspector’dan atanmadýysa otomatik bul
+        // EÃ°er inspectorâ€™dan atanmadÃ½ysa otomatik bul
         if (satisNoktasi == null)
         {
             GameObject hedefObj = GameObject.FindGameObjectWithTag("SatisNoktasi");
@@ -24,17 +24,17 @@ public class KasiyerHareket : MonoBehaviour
             }
             else
             {
-                Debug.LogError("Sahne içinde 'SatisNoktasi' tag’li bir obje yok!");
+                Debug.LogError("Sahne iÃ§inde 'SatisNoktasi' tagâ€™li bir obje yok!");
                 return;
             }
         }
 
 
-        // Hedef pozisyonu al ve Y eksenini sabitle (örn: 9)
+        // Hedef pozisyonu al ve Y eksenini sabitle (Ã¶rn: 9)
         Vector3 hedefPozisyon = satisNoktasi.position;
-        hedefPozisyon.y = 9f;
+        hedefPozisyon.y = 2f;
 
-        // Sabit hýzla gitmesi için süre hesapla
+        // Sabit hÃ½zla gitmesi iÃ§in sÃ¼re hesapla
         float mesafe = Vector3.Distance(transform.position, hedefPozisyon);
         float sure = mesafe / hareketHizi;
 
@@ -43,7 +43,7 @@ public class KasiyerHareket : MonoBehaviour
             .OnComplete(() =>
             {
                 isAtSalesPoint = true;
-                Debug.Log("Kasiyer satýþ noktasýna ulaþtý!");
+                Debug.Log("Kasiyer satÃ½Ã¾ noktasÃ½na ulaÃ¾tÃ½!");
             });
     }
 
@@ -71,7 +71,7 @@ public class KasiyerHareket : MonoBehaviour
             bool sold = StackCollector.Instance.SellProduct();
             if (sold)
             {
-                Debug.Log("Kasiyer satýþ yaptý!");
+                Debug.Log("Kasiyer satÃ½Ã¾ yaptÃ½!");
             }
         }
 

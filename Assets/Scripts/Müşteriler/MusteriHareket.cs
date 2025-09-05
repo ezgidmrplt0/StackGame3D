@@ -1,29 +1,32 @@
 ﻿using UnityEngine;
 using System.Collections;
-using TMPro; // ✅ TextMeshPro kullanımı için
+using TMPro; // TextMeshPro kullanımı için
 
 public class MusteriHareket : MonoBehaviour
 {
+    [Header("Hareket Ayarları")]
     public float moveSpeed = 10f;
+    public float takipMesafesi = 6f;
+    private float musteriYukseklik = 7.5f;
+
+    [Header("Sipariş Bilgisi")]
     public int kuyruktakiSirasi;
     public int istenenUrunSayisi;
     public int alinanUrunSayisi = 0;
-
-    private Transform musteriNoktasi;   // Kasadaki nokta
-    private Transform spawnPoint;       // Kuyruk başlangıç noktası
-    private Transform musteriFinal;     // İş bitince gidilecek yer
-
-    private float takipMesafesi = 6f;
-    private Animator animator;
-    private float musteriYukseklik = 7.5f;
 
     private bool isAtCounter = false;
     private bool hasBeenServed = false;
     private bool isLeaving = false;
 
-    // ✅ TextMeshPro referansı
     [Header("UI")]
     public TextMeshProUGUI urunText;
+
+    [Header("Noktalar")]
+    private Transform musteriNoktasi;   // Kasadaki nokta
+    private Transform spawnPoint;       // Kuyruk başlangıç noktası
+    private Transform musteriFinal;     // İş bitince gidilecek yer
+
+    private Animator animator;
 
     void Start()
     {
@@ -33,20 +36,12 @@ public class MusteriHareket : MonoBehaviour
 
         animator = GetComponent<Animator>();
 
-        // Rastgele ürün sayısı
+        // Başlangıçta rastgele ürün sayısı (şimdilik 1)
         istenenUrunSayisi = 1;
 
-        // ✅ TextMeshPro’ya yazdır
-        if (urunText != null)
-        {
-            urunText.text = istenenUrunSayisi.ToString();
-        }
+        UpdateUI();
 
-        transform.position = new Vector3(
-            transform.position.x,
-            musteriYukseklik,
-            transform.position.z
-        );
+        transform.position = new Vector3(transform.position.x, musteriYukseklik, transform.position.z);
     }
 
     void Update()
@@ -58,11 +53,7 @@ public class MusteriHareket : MonoBehaviour
         // 1) Kasaya git
         if (kuyruktakiSirasi == 0 && !hasBeenServed)
         {
-            hedefPozisyon = new Vector3(
-                musteriNoktasi.position.x,
-                musteriYukseklik,
-                musteriNoktasi.position.z
-            );
+            hedefPozisyon = new Vector3(musteriNoktasi.position.x, musteriYukseklik, musteriNoktasi.position.z);
 
             float distanceToCounter = Vector3.Distance(
                 new Vector3(transform.position.x, 0, transform.position.z),
@@ -75,14 +66,10 @@ public class MusteriHareket : MonoBehaviour
                 Debug.Log("Müşteri kasaya ulaştı! İstenen ürün: " + istenenUrunSayisi);
             }
         }
-        // 2) İsteği karşılandı → Final noktasına git
+        // 2) Sipariş karşılandı → Final noktasına git
         else if (hasBeenServed)
         {
-            hedefPozisyon = new Vector3(
-                musteriFinal.position.x,
-                musteriYukseklik,
-                musteriFinal.position.z
-            );
+            hedefPozisyon = new Vector3(musteriFinal.position.x, musteriYukseklik, musteriFinal.position.z);
 
             Vector2 currentXZ = new Vector2(transform.position.x, transform.position.z);
             Vector2 targetXZ = new Vector2(musteriFinal.position.x, musteriFinal.position.z);
@@ -134,13 +121,7 @@ public class MusteriHareket : MonoBehaviour
             Vector3 direction = (targetPositionXZ - currentPosition).normalized;
             direction.y = 0;
             if (direction != Vector3.zero)
-            {
-                transform.rotation = Quaternion.Slerp(
-                    transform.rotation,
-                    Quaternion.LookRotation(direction),
-                    10f * Time.deltaTime
-                );
-            }
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), 10f * Time.deltaTime);
 
             if (animator != null) animator.SetBool("isWalking", true);
         }
@@ -150,36 +131,23 @@ public class MusteriHareket : MonoBehaviour
         }
     }
 
-    // Kuyruk/ürün kontrol fonksiyonları
-    public bool IsAtCounter()
-    {
-        return isAtCounter && !hasBeenServed && !isLeaving;
-    }
-
-    public bool NeedsMoreProducts()
-    {
-        return alinanUrunSayisi < istenenUrunSayisi;
-    }
+    // ✅ Fonksiyonlar
+    public bool IsAtCounter() => isAtCounter && !hasBeenServed && !isLeaving;
+    public bool NeedsMoreProducts() => alinanUrunSayisi < istenenUrunSayisi;
 
     public void ReceiveProduct()
     {
-        Debug.Log("ReceiveProduct çağrıldı. Şu an: " + alinanUrunSayisi + "/" + istenenUrunSayisi);
-
         if (hasBeenServed) return;
         if (alinanUrunSayisi >= istenenUrunSayisi) return;
 
         alinanUrunSayisi++;
-        Debug.Log("Müşteri ürün aldı: " + alinanUrunSayisi + "/" + istenenUrunSayisi);
+        Debug.Log($"Müşteri ürün aldı: {alinanUrunSayisi}/{istenenUrunSayisi}");
 
-        // 💰 Para ekle
+        // Para ekle
         MoneyManager.Instance.AddMoney(1);
 
-        // ✅ Text güncelle
-        if (urunText != null)
-        {
-            int kalan = istenenUrunSayisi - alinanUrunSayisi;
-            urunText.text = kalan > 0 ? kalan.ToString() : "";
-        }
+        // UI güncelle
+        UpdateUI();
 
         if (alinanUrunSayisi >= istenenUrunSayisi)
         {
@@ -188,10 +156,18 @@ public class MusteriHareket : MonoBehaviour
 
             // Kuyruktan çıkar
             if (MusteriSpawner.musteriKuyrugu.Count > 0 && MusteriSpawner.musteriKuyrugu.Peek() == this)
-            {
                 MusteriSpawner.musteriKuyrugu.Dequeue();
-            }
+
             MusteriSpawner.UpdateQueuePositions();
+        }
+    }
+
+    private void UpdateUI()
+    {
+        if (urunText != null)
+        {
+            int kalan = istenenUrunSayisi - alinanUrunSayisi;
+            urunText.text = kalan > 0 ? kalan.ToString() : "";
         }
     }
 }

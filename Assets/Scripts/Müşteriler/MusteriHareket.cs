@@ -34,7 +34,7 @@ public class MusteriHareket : MonoBehaviour
         animator = GetComponent<Animator>();
 
         // Rastgele ürün sayısı
-        istenenUrunSayisi = Random.Range(1, 1);
+        istenenUrunSayisi = 1;
 
         // ✅ TextMeshPro’ya yazdır
         if (urunText != null)
@@ -163,6 +163,11 @@ public class MusteriHareket : MonoBehaviour
 
     public void ReceiveProduct()
     {
+        Debug.Log("ReceiveProduct çağrıldı. Şu an: " + alinanUrunSayisi + "/" + istenenUrunSayisi);
+
+        if (hasBeenServed) return;
+        if (alinanUrunSayisi >= istenenUrunSayisi) return;
+
         alinanUrunSayisi++;
         Debug.Log("Müşteri ürün aldı: " + alinanUrunSayisi + "/" + istenenUrunSayisi);
 

@@ -74,12 +74,24 @@ public class DepocuCalisan : MonoBehaviour
 
     IEnumerator Git(Vector3 hedef)
     {
+        // Hedefe dön (sadece Y ekseninde)
+        Vector3 direction = (hedef - transform.position).normalized;
+        if (direction != Vector3.zero)
+        {
+            Quaternion lookRotation = Quaternion.LookRotation(direction, Vector3.up);
+            lookRotation = Quaternion.Euler(0, lookRotation.eulerAngles.y, 0); // sadece Y ekseninde dönsün
+            transform.rotation = lookRotation;
+        }
+
+        // Hedefe doðru yürü
         while (Vector3.Distance(transform.position, hedef) > 0.1f)
         {
             transform.position = Vector3.MoveTowards(transform.position, hedef, speed * Time.deltaTime);
             yield return null;
         }
     }
+
+
 
     void AddHamCayCube()
     {

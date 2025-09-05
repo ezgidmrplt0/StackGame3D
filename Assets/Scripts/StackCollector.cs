@@ -477,7 +477,8 @@ public class StackCollector : MonoBehaviour
         // Depocu oluştur
         if (depocuPrefab != null && depocuSpawnPoint != null)
         {
-            GameObject yeniDepocu = Instantiate(depocuPrefab, depocuSpawnPoint.position, depocuSpawnPoint.rotation);
+            Quaternion spawnRotation = depocuSpawnPoint.rotation * Quaternion.Euler(0, 90, 0);
+            GameObject yeniDepocu = Instantiate(depocuPrefab, depocuSpawnPoint.position, spawnRotation);
             DepocuCalisan depocuScript = yeniDepocu.GetComponent<DepocuCalisan>();
 
             if (depocuScript != null)
@@ -491,6 +492,7 @@ public class StackCollector : MonoBehaviour
                 StartCoroutine(DepocuSuresiBitinceYokEt(depocuScript));
             }
         }
+
     }
 
     IEnumerator DepocuSuresiBitinceYokEt(DepocuCalisan depocu)

@@ -50,7 +50,7 @@ public class StackCollector : MonoBehaviour
     public TextMeshProUGUI uretimStoguText;
 
     private int uzerimdeHamCay = 0;
-    private int uretimStogu = 0;
+    public int uretimStogu = 0;
     private int toplamaTriggerSayaci = 0;
     private bool birakmaAlaninda = false;
     private Coroutine toplamaLoop;
@@ -550,6 +550,9 @@ public class StackCollector : MonoBehaviour
             script.stackBirakmaNoktasi = urunTasiyiciBirakmaNoktasi;
             script.stackAreaTarget = urunTasiyiciStackTarget;
 
+            // StackCollector referansını ata
+            script.stackCollector = this;
+
             activeTasiyicilar.Add(script);
             StartCoroutine(UrunTasiyiciSuresiBitinceYokEt(script));
         }
@@ -563,5 +566,24 @@ public class StackCollector : MonoBehaviour
         tasiyici.CalismayiBitir();
         Debug.Log("Ürün taşıyıcı süresi doldu!");
     }
+    // StackCollector scriptine bu metodu ekleyin
+    public void AddToDropList(Transform product)
+    {
+        if (product == null) return;
 
+        // Ürünü dropList'e eklemeden önce parent'ını sıfırla
+        product.SetParent(null);
+
+        // Fizik özelliklerini ayarla
+        Rigidbody rb = product.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.useGravity = true;
+            rb.drag = 1f;
+        }
+
+        dropList.Add(product);
+        Debug.Log("Ürün dropList'e eklendi: " + dropList.Count);
+    }
 }

@@ -91,8 +91,6 @@ public class DepocuCalisan : MonoBehaviour
         }
     }
 
-
-
     void AddHamCayCube()
     {
         if (hamCayPrefab == null || stackRoot == null) return;
@@ -116,6 +114,36 @@ public class DepocuCalisan : MonoBehaviour
     {
         calisiyor = false;
         StopAllCoroutines();
+
+        // Eðer üzerinde çay varsa, önce onlarý býrak sonra yok ol
+        if (uzerindekiCay > 0)
+        {
+            StartCoroutine(CaylariBirakVeYokOl());
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    IEnumerator CaylariBirakVeYokOl()
+    {
+        // Býrakma noktasýna git
+        if (birakmaNoktasi != null)
+        {
+            yield return StartCoroutine(Git(birakmaNoktasi.position));
+
+            // Tüm çaylarý býrak
+            while (uzerindekiCay > 0)
+            {
+                uzerindekiCay--;
+                RemoveHamCayCube();
+                StackCollector.Instance.UretimStokEkle(1);
+                yield return new WaitForSeconds(0.1f);
+            }
+        }
+
+        // Tüm çaylar býrakýldýktan sonra yok ol
         Destroy(gameObject);
     }
 }

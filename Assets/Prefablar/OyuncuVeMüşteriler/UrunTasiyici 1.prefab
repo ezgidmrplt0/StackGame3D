@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &740303709163589813
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2824748101125587799}
+  m_Layer: 0
+  m_Name: stack
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2824748101125587799
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 740303709163589813}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.906, z: -0.886}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6735024914612527901}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1434279336022810509
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -142,6 +173,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       insertIndex: -1
       addedObject: {fileID: 974953365747379339}
+    - targetCorrespondingSourceObject: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2824748101125587799}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3670405753088119664, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       insertIndex: -1
@@ -168,11 +202,18 @@ MonoBehaviour:
   kapasite: 5
   toplamaAraligi: 0.2
   urunPrefab: {fileID: 3465660891527946698, guid: feb6a9a6191bf784daa980f997d3bfab, type: 3}
-  stackRoot: {fileID: 974953365747379339}
-  stackSpacing: 0.3
+  stackRoot: {fileID: 2824748101125587799}
+  stackSpacing: 2
   stackAreaTarget: {fileID: 0}
   stackAlmaNoktasi: {fileID: 0}
   stackBirakmaNoktasi: {fileID: 0}
+  stackCollector: {fileID: 0}
+  gerekliHamCayMiktari: 1
+  urunBoyutu: {x: 0.1, y: 0.1, z: 0.1}
+  stackLimit: 5
+  tweenDuration: 0.3
+  tweenEase: 9
+  dropSpacing: 2
 --- !u!4 &6735024914612527901 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}

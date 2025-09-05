@@ -14,6 +14,8 @@ TagManager:
   - MusteriFinal
   - CayBirakmaNoktasi
   - CayToplamaNoktasi
+  - Fluid
+  - SodaNoktasi
   layers:
   - Default
   - TransparentFX

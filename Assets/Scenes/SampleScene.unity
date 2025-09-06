@@ -16758,6 +16758,7 @@ GameObject:
   m_Component:
   - component: {fileID: 977301555}
   - component: {fileID: 977301554}
+  - component: {fileID: 977301556}
   m_Layer: 0
   m_Name: PanelManager
   m_TagString: Untagged
@@ -16796,6 +16797,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &977301556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 977301553}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3110ad8defb3614797a22b2bf370527, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cooldownTime: 30
+  buttons:
+  - {fileID: 1285207846}
+  - {fileID: 37646839}
+  - {fileID: 763563129}
+  - {fileID: 1296867209}
+  - {fileID: 2047251391}
 --- !u!1 &978943100
 GameObject:
   m_ObjectHideFlags: 0
@@ -19494,6 +19514,13 @@ MonoBehaviour:
   stackAreaTarget: {fileID: 0}
   stackAlmaNoktasi: {fileID: 0}
   stackBirakmaNoktasi: {fileID: 0}
+  stackCollector: {fileID: 0}
+  gerekliHamCayMiktari: 1
+  urunBoyutu: {x: 0.3, y: 0.3, z: 0.3}
+  stackLimit: 5
+  tweenDuration: 0.3
+  tweenEase: 27
+  dropSpacing: 2
 --- !u!1 &1163782324 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3637134996410867462, guid: 9c6178fe943216540b276b975dafae16, type: 3}

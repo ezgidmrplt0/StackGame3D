@@ -84,6 +84,9 @@ public class StackCollector : MonoBehaviour
     public float depocuDuration = 20f;
     public TextMeshProUGUI depocuFiyatText;
 
+    [Header("Satış Ayarları")]
+    public int urunFiyati = 2; // Ürün başı fiyat
+
 
     private int stackLimit = 5;
     public void SetStackLimit(int newLimit) => stackLimit = newLimit;
@@ -114,8 +117,16 @@ public class StackCollector : MonoBehaviour
     void UpdateKasiyerSales()
     {
         foreach (var kasiyer in activeKasiyers)
-            if (kasiyer != null && kasiyer.IsAtSalesPoint() && dropList.Count > 0)
-                kasiyer.TrySellProducts();
+        {
+            if (kasiyer != null && kasiyer.IsAtSalesPoint() && dropList.Count > 0 &&
+                Time.time - lastSellTime > sellCooldown)
+            {
+                if (SellProduct()) // Kasiyer de aynı metodu kullansın
+                {
+                    lastSellTime = Time.time;
+                }
+            }
+        }
     }
 
     void UpdateKasiyerUI()
@@ -325,43 +336,80 @@ public class StackCollector : MonoBehaviour
     }
 
     // 💸 Satış
+    // 💸 Satış - Bu metodu tamamen değiştiriyoruz
     public bool SellProduct()
     {
         if (dropList.Count == 0) return false;
+
+        // Müşteri kontrolü
+        if (MusteriSpawner.musteriKuyrugu.Count == 0) return false;
+
+        MusteriHareket customer = MusteriSpawner.musteriKuyrugu.Peek();
+
+        // CanReceiveProduct kontrolünü buraya da ekliyoruz
+        if (customer == null || !customer.IsAtCounter() || !customer.NeedsMoreProducts() || !customer.CanReceiveProduct())
+            return false;
+
+        // Sadece 1 ürün sat
         Transform product = dropList[dropList.Count - 1];
         dropList.RemoveAt(dropList.Count - 1);
 
-        if (MusteriSpawner.musteriKuyrugu.Count > 0)
-        {
-            MusteriHareket customer = MusteriSpawner.musteriKuyrugu.Peek();
-            if (customer != null && customer.IsAtCounter() && customer.NeedsMoreProducts())
+        Vector3 customerPosition = customer.transform.position + Vector3.up * 1.5f;
+        product.DOMove(customerPosition, 0.2f)
+              .SetEase(Ease.OutQuad)
+              .OnComplete(() =>
+              {
+                  customer.ReceiveProduct();
+                  Destroy(product.gameObject);
+                  MoneyManager.Instance.AddMoney(urunFiyati);
+              });
+
+        lastSellTime = Time.time;
+        return true;
+    }
+
+    IEnumerator GiveSingleProductToCustomer(MusteriHareket customer)
+    {
+        if (dropList.Count == 0 || isSelling) yield break;
+        isSelling = true;
+        lastSellTime = Time.time;
+
+
+        // SADECE 1 ÜRÜN VER
+        Transform product = dropList[dropList.Count - 1];
+        dropList.RemoveAt(dropList.Count - 1);
+
+        Vector3 customerPosition = customer.transform.position + Vector3.up * 1.5f;
+        product.DOMove(customerPosition, 0.15f)
+            .SetEase(Ease.OutQuad)
+            .OnComplete(() =>
             {
-                Vector3 customerPosition = customer.transform.position + Vector3.up * 1.5f;
-                product.DOMove(customerPosition, 0.2f)
-                      .SetEase(Ease.OutQuad)
-                      .OnComplete(() =>
-                      {
-                          customer.ReceiveProduct();
-                          Destroy(product.gameObject);
-                          MoneyManager.Instance.AddMoney(1);
-                      });
-                return true;
-            }
-        }
-        dropList.Add(product);
-        return false;
+                customer.ReceiveProduct();
+                Destroy(product.gameObject);
+                MoneyManager.Instance.AddMoney(urunFiyati); // Ürün fiyatı kadar para ekle
+            });
+
+        yield return new WaitForSeconds(0.1f);
+        isSelling = false;
     }
 
     void TrySellToCustomer()
     {
         if (isSelling) return;
+
         if (MusteriSpawner.musteriKuyrugu.Count > 0)
         {
             MusteriHareket currentCustomer = MusteriSpawner.musteriKuyrugu.Peek();
-            if (currentCustomer != null && currentCustomer.IsAtCounter() && currentCustomer.NeedsMoreProducts() && dropList.Count > 0)
-                StartCoroutine(GiveProductsToCustomer(currentCustomer));
+
+            // BURAYA EKLİYORUZ - CanReceiveProduct kontrolünü ekliyoruz
+            if (currentCustomer != null && currentCustomer.IsAtCounter() &&
+                currentCustomer.NeedsMoreProducts() && currentCustomer.CanReceiveProduct() && dropList.Count > 0)
+            {
+                StartCoroutine(GiveSingleProductToCustomer(currentCustomer));
+            }
         }
     }
+
 
     IEnumerator GiveProductsToCustomer(MusteriHareket customer)
     {
@@ -369,13 +417,17 @@ public class StackCollector : MonoBehaviour
         isSelling = true;
         lastSellTime = Time.time;
 
+        // Müşterinin ihtiyacı kadar ürün ver (sadece 1 tane)
         int needed = customer.istenenUrunSayisi - customer.alinanUrunSayisi;
-        int toGive = Mathf.Min(needed, dropList.Count);
+        int toGive = Mathf.Min(needed, 1); // SADECE 1 ÜRÜN VER
 
         for (int i = 0; i < toGive; i++)
         {
+            if (dropList.Count == 0) break;
+
             Transform product = dropList[dropList.Count - 1];
             dropList.RemoveAt(dropList.Count - 1);
+
             Vector3 customerPosition = customer.transform.position + Vector3.up * 1.5f;
             product.DOMove(customerPosition, 0.15f)
                 .SetEase(Ease.OutQuad)
@@ -385,6 +437,7 @@ public class StackCollector : MonoBehaviour
                     Destroy(product.gameObject);
                     MoneyManager.Instance.AddMoney(1);
                 });
+
             yield return new WaitForSeconds(0.05f);
         }
         isSelling = false;

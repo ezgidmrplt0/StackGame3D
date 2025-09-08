@@ -436,8 +436,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
+  takipMesafesi: 6
   kuyruktakiSirasi: 0
-  istenenUrunSayisi: 0
+  istenenUrunSayisi: 1
   alinanUrunSayisi: 0
   urunText: {fileID: 4913688632606147202}
 --- !u!1001 &5830309409946081316

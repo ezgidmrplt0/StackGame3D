@@ -368,6 +368,7 @@ public class StackCollector : MonoBehaviour
         return true;
     }
 
+
     IEnumerator GiveSingleProductToCustomer(MusteriHareket customer)
     {
         if (dropList.Count == 0 || isSelling) yield break;
@@ -410,38 +411,6 @@ public class StackCollector : MonoBehaviour
         }
     }
 
-
-    IEnumerator GiveProductsToCustomer(MusteriHareket customer)
-    {
-        if (dropList.Count == 0 || isSelling) yield break;
-        isSelling = true;
-        lastSellTime = Time.time;
-
-        // Müşterinin ihtiyacı kadar ürün ver (sadece 1 tane)
-        int needed = customer.istenenUrunSayisi - customer.alinanUrunSayisi;
-        int toGive = Mathf.Min(needed, 1); // SADECE 1 ÜRÜN VER
-
-        for (int i = 0; i < toGive; i++)
-        {
-            if (dropList.Count == 0) break;
-
-            Transform product = dropList[dropList.Count - 1];
-            dropList.RemoveAt(dropList.Count - 1);
-
-            Vector3 customerPosition = customer.transform.position + Vector3.up * 1.5f;
-            product.DOMove(customerPosition, 0.15f)
-                .SetEase(Ease.OutQuad)
-                .OnComplete(() =>
-                {
-                    customer.ReceiveProduct();
-                    Destroy(product.gameObject);
-                    MoneyManager.Instance.AddMoney(1);
-                });
-
-            yield return new WaitForSeconds(0.05f);
-        }
-        isSelling = false;
-    }
 
     IEnumerator SpawnLoop()
     {

@@ -434,8 +434,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
+  takipMesafesi: 6
   kuyruktakiSirasi: 0
-  istenenUrunSayisi: 0
+  istenenUrunSayisi: 1
   alinanUrunSayisi: 0
   urunText: {fileID: 2323323009223933292}
 --- !u!4 &2293979355807276832 stripped

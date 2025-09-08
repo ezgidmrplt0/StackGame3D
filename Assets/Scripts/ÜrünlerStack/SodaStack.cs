@@ -14,6 +14,9 @@ public class SodaStack : MonoBehaviour
     public int maxStack = 10;
     public float spawnDelay = 0.4f;
 
+    [Header("Büyütülebilir Ölçek")]
+    public Vector3 sodaTargetScale = new Vector3(0.003f, 0.003f, 0.003f); // Inspector’dan değiştirebilirsin
+
     [Header("Bırakma Ayarları")]
     public Transform sodaDropTarget;  // Sodaların bırakılacağı yer
     public float dropSpacing = 0.002f; // Bırakılan sodaların arası mesafe
@@ -34,10 +37,9 @@ public class SodaStack : MonoBehaviour
         for (int i = 0; i < sodaStack.Count; i++)
         {
             Transform soda = sodaStack[i];
-            float yOffset = 0.0005f;
-            Vector3 targetPos = stackRoot.position + Vector3.up * (cubeHeight * i + yOffset);
-
-            soda.position = targetPos;
+            // Üst üste stack
+            Vector3 targetPos = stackRoot.position + Vector3.up * cubeHeight * i;
+            soda.position = Vector3.Lerp(soda.position, targetPos, Time.deltaTime * 10f);
             soda.rotation = Quaternion.identity;
         }
     }
@@ -98,7 +100,8 @@ public class SodaStack : MonoBehaviour
         newSoda.transform.localScale = Vector3.zero;
         newSoda.transform.SetParent(stackRoot);
 
-        newSoda.transform.DOScale(Vector3.one * 0.0012f, tweenDuration).SetEase(tweenEase);
+        // Target scale artık public, Inspector’dan değiştirebilirsin
+        newSoda.transform.DOScale(sodaTargetScale, tweenDuration).SetEase(tweenEase);
 
         sodaStack.Add(newSoda.transform);
     }
@@ -116,7 +119,8 @@ public class SodaStack : MonoBehaviour
 
             // Soda'ya bir tag veya component ekleyerek farklı olduğunu belirt
             soda.tag = "SodaProduct";
-            soda.gameObject.AddComponent<SodaProduct>(); // Yeni component
+            if (soda.GetComponent<SodaProduct>() == null)
+                soda.gameObject.AddComponent<SodaProduct>(); // Yeni component
 
             int dropIndex = StackCollector.Instance.DropCount;
             Vector3 targetPos = sodaDropTarget.position + Vector3.up * (cubeHeight * dropIndex);

@@ -60,6 +60,7 @@ public class StackCollector : MonoBehaviour
     public GameObject hamCayPrefab;
     public Transform hamCayStackRoot;
     public float hamCaySpacing = 0.5f;
+    public Vector3 hamCayTargetScale = new Vector3(0.3f, 0.3f, 0.3f);
     private List<Transform> hamCayStack = new List<Transform>();
 
     public readonly List<Transform> stack = new List<Transform>();
@@ -183,11 +184,13 @@ public class StackCollector : MonoBehaviour
         for (int i = 0; i < hamCayStack.Count; i++)
         {
             Transform leaf = hamCayStack[i];
-            Vector3 targetPos = hamCayStackRoot.position - hamCayStackRoot.forward * hamCaySpacing * i;
+            // Üst üste stack
+            Vector3 targetPos = hamCayStackRoot.position + Vector3.up * hamCaySpacing * i;
             leaf.position = Vector3.Lerp(leaf.position, targetPos, Time.deltaTime * 10f);
             leaf.rotation = Quaternion.Lerp(leaf.rotation, hamCayStackRoot.rotation, Time.deltaTime * 10f);
         }
     }
+
 
     void OnTriggerEnter(Collider other)
     {
@@ -301,14 +304,19 @@ public class StackCollector : MonoBehaviour
     void AddHamCayCube()
     {
         if (hamCayPrefab == null || hamCayStackRoot == null) return;
-        Vector3 offset = -hamCayStackRoot.forward * hamCaySpacing * hamCayStack.Count;
+
+        Vector3 offset = Vector3.up * hamCaySpacing * hamCayStack.Count; // üst üste stack
         Vector3 spawnPos = hamCayStackRoot.position + offset;
+
         GameObject newLeaf = Instantiate(hamCayPrefab, spawnPos, Quaternion.identity);
         newLeaf.transform.localScale = Vector3.zero;
-        newLeaf.transform.DOScale(Vector3.one * 0.3f, 0.3f).SetEase(Ease.OutBack);
+        newLeaf.transform.DOScale(hamCayTargetScale, 0.3f).SetEase(Ease.OutBack);
+
         newLeaf.transform.SetParent(hamCayStackRoot);
         hamCayStack.Add(newLeaf.transform);
     }
+
+
 
     void RemoveHamCayCube()
     {

@@ -18,7 +18,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4884769026534185317
 Transform:
   m_ObjectHideFlags: 0
@@ -107,6 +107,68 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+--- !u!1 &1820657221723364973
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6541598922906569881}
+  m_Layer: 0
+  m_Name: hamcaystack
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6541598922906569881
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1820657221723364973}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.511, z: 1.103}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4055935467706616220}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3353610333037566413
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7998673815387157351}
+  m_Layer: 0
+  m_Name: caystack
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7998673815387157351
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3353610333037566413}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.511, z: -0.986}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4055935467706616220}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5571422914281167848
 GameObject:
   m_ObjectHideFlags: 0
@@ -125,7 +187,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5218305947930444675
 Transform:
   m_ObjectHideFlags: 0
@@ -214,6 +276,37 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+--- !u!1 &7151573187562856466
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4421447118547754467}
+  m_Layer: 0
+  m_Name: soda stack
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4421447118547754467
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7151573187562856466}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.511, z: -1.658}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4055935467706616220}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &138949583603613782
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -277,13 +370,19 @@ PrefabInstance:
       addedObject: {fileID: 8604806290137998642}
     - targetCorrespondingSourceObject: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3362664704570122005}
-    - targetCorrespondingSourceObject: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 4884769026534185317}
     - targetCorrespondingSourceObject: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5218305947930444675}
+    - targetCorrespondingSourceObject: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7998673815387157351}
+    - targetCorrespondingSourceObject: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4421447118547754467}
+    - targetCorrespondingSourceObject: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6541598922906569881}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3670405753088119664, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       insertIndex: -1
@@ -331,7 +430,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cubePrefab: {fileID: 3465660891527946698, guid: feb6a9a6191bf784daa980f997d3bfab, type: 3}
-  stackRoot: {fileID: 3362664704570122005}
+  stackRoot: {fileID: 0}
   cubeHeight: 0.5
   spawnInterval: 0.2
   tweenDuration: 0.4
@@ -344,7 +443,40 @@ MonoBehaviour:
   kasiyerPrefab: {fileID: 0}
   kasiyerSpawnPoint: {fileID: 0}
   kasiyerSalesPoint: {fileID: 0}
+  kasiyerCost: 100
+  costIncreaseRate: 0.2
+  kasiyerDuration: 20
+  kasiyerFiyatText: {fileID: 0}
+  cayToplamaTag: CayToplamaNoktasi
+  cayBirakmaTag: CayBirakmaNoktasi
+  hamCayTasimaLimiti: 30
+  toplamaAraligi: 0.15
+  toplamaAdedi: 1
+  hamCayText: {fileID: 0}
+  uretimStoguText: {fileID: 0}
+  uretimStogu: 0
+  hamCayPrefab: {fileID: 0}
+  hamCayStackRoot: {fileID: 0}
+  hamCaySpacing: 0.5
   sellCooldown: 0.1
+  depocuPrefab: {fileID: 0}
+  depocuSpawnPoint: {fileID: 0}
+  cayToplamaNoktasi: {fileID: 0}
+  cayBirakmaNoktasi: {fileID: 0}
+  depocuCost: 10
+  depocuCostIncreaseRate: 0.2
+  depocuDuration: 20
+  depocuFiyatText: {fileID: 0}
+  urunFiyati: 2
+  urunTasiyiciPrefab: {fileID: 0}
+  urunTasiyiciSpawnPoint: {fileID: 0}
+  urunTasiyiciAlmaNoktasi: {fileID: 0}
+  urunTasiyiciBirakmaNoktasi: {fileID: 0}
+  urunTasiyiciStackTarget: {fileID: 0}
+  urunTasiyiciCost: 100
+  urunTasiyiciCostIncreaseRate: 0.2
+  urunTasiyiciDuration: 20
+  urunTasiyiciFiyatText: {fileID: 0}
 --- !u!54 &4757564050303031712
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -465,84 +597,6 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 3436531399995891898, guid: 9e026f66c59cc4743bebc7c6075a9ff5, type: 3}
   m_PrefabInstance: {fileID: 745836131556004876}
-  m_PrefabAsset: {fileID: 0}
---- !u!1001 &1926427823986360434
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 4055935467706616220}
-    m_Modifications:
-    - target: {fileID: 3753361464824930151, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 3753361464824930151, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 3753361464824930151, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 3753361464824930151, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -0.153
-      objectReference: {fileID: 0}
-    - target: {fileID: 3753361464824930151, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.2
-      objectReference: {fileID: 0}
-    - target: {fileID: 3753361464824930151, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 1.238
-      objectReference: {fileID: 0}
-    - target: {fileID: 3753361464824930151, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.97198
-      objectReference: {fileID: 0}
-    - target: {fileID: 3753361464824930151, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3753361464824930151, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0.23506394
-      objectReference: {fileID: 0}
-    - target: {fileID: 3753361464824930151, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3753361464824930151, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3753361464824930151, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: -27.191
-      objectReference: {fileID: 0}
-    - target: {fileID: 3753361464824930151, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3753361464824930151, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
-      propertyPath: m_ConstrainProportionsScale
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4565892394791716317, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
-      propertyPath: m_Name
-      value: Tepsi
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
---- !u!4 &3362664704570122005 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3753361464824930151, guid: 4c8edd4f660ee29418616a8fbaa21222, type: 3}
-  m_PrefabInstance: {fileID: 1926427823986360434}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &9124892353972350386
 PrefabInstance:

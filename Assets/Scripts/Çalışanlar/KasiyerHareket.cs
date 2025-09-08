@@ -10,11 +10,11 @@ public class KasiyerHareket : MonoBehaviour
     private bool isAtSalesPoint = false;
     private bool isSelling = false;
     private float lastSellTime = 0f;
-    public float sellCooldown = 0.1f;
+    public float sellCooldown = 0.3f; // Cooldown'u artırdık
 
     void Start()
     {
-        // Eðer inspector’dan atanmadýysa otomatik bul
+        // Eğer inspector'dan atanmadıysa otomatik bul
         if (satisNoktasi == null)
         {
             GameObject hedefObj = GameObject.FindGameObjectWithTag("SatisNoktasi");
@@ -24,17 +24,16 @@ public class KasiyerHareket : MonoBehaviour
             }
             else
             {
-                Debug.LogError("Sahne içinde 'SatisNoktasi' tag’li bir obje yok!");
+                Debug.LogError("Sahne içinde 'SatisNoktasi' tag'li bir obje yok!");
                 return;
             }
         }
 
-
-        // Hedef pozisyonu al ve Y eksenini sabitle (örn: 9)
+        // Hedef pozisyonu al ve Y eksenini sabitle
         Vector3 hedefPozisyon = satisNoktasi.position;
         hedefPozisyon.y = 2f;
 
-        // Sabit hýzla gitmesi için süre hesapla
+        // Sabit hızla gitmesi için süre hesapla
         float mesafe = Vector3.Distance(transform.position, hedefPozisyon);
         float sure = mesafe / hareketHizi;
 
@@ -43,7 +42,7 @@ public class KasiyerHareket : MonoBehaviour
             .OnComplete(() =>
             {
                 isAtSalesPoint = true;
-                Debug.Log("Kasiyer satýþ noktasýna ulaþtý!");
+                Debug.Log("Kasiyer satış noktasına ulaştı!");
             });
     }
 
@@ -68,10 +67,11 @@ public class KasiyerHareket : MonoBehaviour
 
         if (StackCollector.Instance != null)
         {
-            bool sold = StackCollector.Instance.SellProduct();
+            // StackCollector'daki yeni metodla satış yap
+            bool sold = StackCollector.Instance.SellProductWithCooldown();
             if (sold)
             {
-                Debug.Log("Kasiyer satýþ yaptý!");
+                Debug.Log("Kasiyer satış yaptı!");
             }
         }
 

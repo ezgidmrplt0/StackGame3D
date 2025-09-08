@@ -440,6 +440,8 @@ MonoBehaviour:
   kuyruktakiSirasi: 0
   istenenUrunSayisi: 1
   alinanUrunSayisi: 0
+  minUrunSayisi: 1
+  maxUrunSayisi: 3
   urunText: {fileID: 4913688632606147202}
 --- !u!1001 &5830309409946081316
 PrefabInstance:

@@ -171,7 +171,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   satisNoktasi: {fileID: 0}
   hareketHizi: 10
-  sellCooldown: 0.1
+  sellCooldown: 0.5
 --- !u!1001 &4655633083192582317
 PrefabInstance:
   m_ObjectHideFlags: 0

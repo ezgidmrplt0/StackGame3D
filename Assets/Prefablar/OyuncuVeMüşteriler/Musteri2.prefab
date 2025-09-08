@@ -438,6 +438,8 @@ MonoBehaviour:
   kuyruktakiSirasi: 0
   istenenUrunSayisi: 1
   alinanUrunSayisi: 0
+  minUrunSayisi: 1
+  maxUrunSayisi: 3
   urunText: {fileID: 2323323009223933292}
 --- !u!4 &2293979355807276832 stripped
 Transform:

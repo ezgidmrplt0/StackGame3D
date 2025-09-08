@@ -86,6 +86,8 @@ public class StackCollector : MonoBehaviour
 
     [Header("Satış Ayarları")]
     public int urunFiyati = 2; // Ürün başı fiyat
+    private Dictionary<MusteriHareket, float> sonSatisZamanlari = new Dictionary<MusteriHareket, float>();
+    private float satisCoolDown = 0.3f;
 
 
     private int stackLimit = 5;
@@ -118,15 +120,44 @@ public class StackCollector : MonoBehaviour
     {
         foreach (var kasiyer in activeKasiyers)
         {
-            if (kasiyer != null && kasiyer.IsAtSalesPoint() && dropList.Count > 0 &&
-                Time.time - lastSellTime > sellCooldown)
+            if (kasiyer != null && kasiyer.IsAtSalesPoint() && dropList.Count > 0)
             {
-                if (SellProduct()) // Kasiyer de aynı metodu kullansın
-                {
-                    lastSellTime = Time.time;
-                }
+                TrySellWithKasiyer(kasiyer);
             }
         }
+    }
+    void TrySellWithKasiyer(KasiyerHareket kasiyer)
+    {
+        if (MusteriSpawner.musteriKuyrugu.Count == 0) return;
+
+        MusteriHareket customer = MusteriSpawner.musteriKuyrugu.Peek();
+        if (customer == null || !customer.CanReceiveProduct()) return;
+
+        // Kasiyer için cooldown kontrolü
+        if (sonSatisZamanlari.ContainsKey(customer) &&
+            Time.time - sonSatisZamanlari[customer] < satisCoolDown)
+            return;
+
+        if (SellProductToCustomer(customer))
+        {
+            sonSatisZamanlari[customer] = Time.time;
+            lastSellTime = Time.time;
+        }
+    }
+    void TrySellToCustomer()
+    {
+        if (isSelling) return;
+        if (MusteriSpawner.musteriKuyrugu.Count == 0) return;
+
+        MusteriHareket customer = MusteriSpawner.musteriKuyrugu.Peek();
+        if (customer == null || !customer.CanReceiveProduct()) return;
+
+        // Player için cooldown kontrolü
+        if (sonSatisZamanlari.ContainsKey(customer) &&
+            Time.time - sonSatisZamanlari[customer] < satisCoolDown)
+            return;
+
+        StartCoroutine(GiveSingleProductToCustomer(customer));
     }
 
     void UpdateKasiyerUI()
@@ -372,44 +403,61 @@ public class StackCollector : MonoBehaviour
     IEnumerator GiveSingleProductToCustomer(MusteriHareket customer)
     {
         if (dropList.Count == 0 || isSelling) yield break;
+
         isSelling = true;
-        lastSellTime = Time.time;
 
-
-        // SADECE 1 ÜRÜN VER
-        Transform product = dropList[dropList.Count - 1];
-        dropList.RemoveAt(dropList.Count - 1);
-
-        Vector3 customerPosition = customer.transform.position + Vector3.up * 1.5f;
-        product.DOMove(customerPosition, 0.15f)
-            .SetEase(Ease.OutQuad)
-            .OnComplete(() =>
-            {
-                customer.ReceiveProduct();
-                Destroy(product.gameObject);
-                MoneyManager.Instance.AddMoney(urunFiyati); // Ürün fiyatı kadar para ekle
-            });
+        if (SellProductToCustomer(customer))
+        {
+            sonSatisZamanlari[customer] = Time.time;
+            lastSellTime = Time.time;
+        }
 
         yield return new WaitForSeconds(0.1f);
         isSelling = false;
     }
-
-    void TrySellToCustomer()
+    public bool SellProductToCustomer(MusteriHareket customer)
     {
-        if (isSelling) return;
+        if (customer == null || !customer.CanReceiveProduct() || dropList.Count == 0)
+            return false;
 
-        if (MusteriSpawner.musteriKuyrugu.Count > 0)
-        {
-            MusteriHareket currentCustomer = MusteriSpawner.musteriKuyrugu.Peek();
+        Transform product = dropList[dropList.Count - 1];
+        dropList.RemoveAt(dropList.Count - 1);
 
-            // BURAYA EKLİYORUZ - CanReceiveProduct kontrolünü ekliyoruz
-            if (currentCustomer != null && currentCustomer.IsAtCounter() &&
-                currentCustomer.NeedsMoreProducts() && currentCustomer.CanReceiveProduct() && dropList.Count > 0)
-            {
-                StartCoroutine(GiveSingleProductToCustomer(currentCustomer));
-            }
-        }
+        Vector3 customerPosition = customer.transform.position + Vector3.up * 1.5f;
+        product.DOMove(customerPosition, 0.2f)
+              .SetEase(Ease.OutQuad)
+              .OnComplete(() =>
+              {
+                  customer.ReceiveProduct();
+                  Destroy(product.gameObject);
+                  MoneyManager.Instance.AddMoney(urunFiyati);
+                  Debug.Log($"{customer.name} için {urunFiyati}$ kazanıldı! Toplam: {MoneyManager.Instance.money}$");
+              });
+
+        return true;
     }
+    public bool SellProductWithCooldown()
+    {
+        if (MusteriSpawner.musteriKuyrugu.Count == 0) return false;
+
+        MusteriHareket customer = MusteriSpawner.musteriKuyrugu.Peek();
+        if (customer == null || !customer.CanReceiveProduct()) return false;
+
+        // Cooldown kontrolü
+        if (sonSatisZamanlari.ContainsKey(customer) &&
+            Time.time - sonSatisZamanlari[customer] < satisCoolDown)
+            return false;
+
+        if (SellProductToCustomer(customer))
+        {
+            sonSatisZamanlari[customer] = Time.time;
+            return true;
+        }
+
+        return false;
+    }
+
+
 
 
     IEnumerator SpawnLoop()

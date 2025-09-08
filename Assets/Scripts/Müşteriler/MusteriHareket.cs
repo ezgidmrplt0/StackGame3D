@@ -12,7 +12,11 @@ public class MusteriHareket : MonoBehaviour
     [Header("Sipariş Bilgisi")]
     public int kuyruktakiSirasi;
     public int istenenUrunSayisi = 1;
-    public int alinanUrunSayisi = -1;
+    public int alinanUrunSayisi = 0;
+
+    [Header("Random Sipariş Ayarları")]
+    public int minUrunSayisi = 1;
+    public int maxUrunSayisi = 3;
 
     private bool isAtCounter = false;
     private bool hasBeenServed = false;
@@ -32,10 +36,13 @@ public class MusteriHareket : MonoBehaviour
     private Animator animator;
     private Collider musteriCollider;
 
-    private static bool satisAlaniDolu = false; // Satış alanının durumunu takip et
+    private static bool satisAlaniDolu = false;
 
     void Start()
     {
+        // Rastgele ürün sayısı belirle
+        istenenUrunSayisi = Random.Range(minUrunSayisi, maxUrunSayisi + 1);
+
         // Noktaları bul
         musteriNoktasi = GameObject.FindGameObjectWithTag("MusteriNoktasi").transform;
         spawnPoint = GameObject.FindGameObjectWithTag("BeklemeNoktasi").transform;
@@ -53,6 +60,8 @@ public class MusteriHareket : MonoBehaviour
 
         // Y pozisyonunu sabitle
         transform.position = new Vector3(transform.position.x, musteriYukseklik, transform.position.z);
+
+        Debug.Log($"{name} {istenenUrunSayisi} ürün istiyor!");
     }
 
     void Update()
@@ -219,7 +228,7 @@ public class MusteriHareket : MonoBehaviour
         }
 
         alinanUrunSayisi++;
-        Debug.Log($"Müşteri ürün aldı: {alinanUrunSayisi}/{istenenUrunSayisi}");
+        Debug.Log(name + " ürün aldı -> Toplam: " + alinanUrunSayisi + "/" + istenenUrunSayisi);
         UpdateUI();
 
         if (alinanUrunSayisi >= istenenUrunSayisi)
@@ -235,7 +244,7 @@ public class MusteriHareket : MonoBehaviour
     {
         if (urunText != null)
         {
-            int kalan = 1 - alinanUrunSayisi;
+            int kalan = istenenUrunSayisi - alinanUrunSayisi;
             urunText.text = kalan > 0 ? kalan.ToString() : "";
             Debug.Log("UpdateUI çağrıldı, kalan: " + kalan);
         }
@@ -244,6 +253,7 @@ public class MusteriHareket : MonoBehaviour
             Debug.LogWarning("urunText null! UI doğru atanmış mı?");
         }
     }
+
 
 
     private void OnDestroy()

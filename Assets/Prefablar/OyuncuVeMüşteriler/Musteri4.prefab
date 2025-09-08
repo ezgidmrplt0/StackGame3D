@@ -502,4 +502,6 @@ MonoBehaviour:
   kuyruktakiSirasi: 0
   istenenUrunSayisi: 1
   alinanUrunSayisi: 0
+  minUrunSayisi: 1
+  maxUrunSayisi: 3
   urunText: {fileID: 7642024635499849927}

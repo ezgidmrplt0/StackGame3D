@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Seagull.Bar_02.Inspector {
+namespace Seagull.City_03.Inspector {
     
     public class AnInspector : Editor {
         

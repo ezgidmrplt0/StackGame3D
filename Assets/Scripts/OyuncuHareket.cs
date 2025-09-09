@@ -5,9 +5,9 @@ using UnityEngine;
 public class OyuncuVeKamera : MonoBehaviour
 {
     [Header("Oyuncu Ayarları")]
-    public float moveSpeed = 5f;
+    public float moveSpeed = 15f;
     public float rotationSpeed = 10f;
-    public float gravity = -9.81f;
+    public float gravity = 0f;
 
     private Rigidbody rb;
     private float verticalVelocity;

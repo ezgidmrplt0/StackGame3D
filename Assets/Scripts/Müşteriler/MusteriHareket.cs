@@ -14,9 +14,13 @@ public class MusteriHareket : MonoBehaviour
     public int istenenUrunSayisi = 1;
     public int alinanUrunSayisi = 0;
 
+    // Hangi ürünü istediği (0: çay, 1: soda)
+    public int requestedProductType = 0;
+
     [Header("Random Sipariş Ayarları")]
     public int minUrunSayisi = 1;
     public int maxUrunSayisi = 3;
+
 
     private bool isAtCounter = false;
     private bool hasBeenServed = false;
@@ -43,6 +47,9 @@ public class MusteriHareket : MonoBehaviour
         // Rastgele ürün sayısı belirle
         istenenUrunSayisi = Random.Range(minUrunSayisi, maxUrunSayisi + 1);
 
+
+        requestedProductType = Random.Range(0, 2);
+
         // Noktaları bul
         musteriNoktasi = GameObject.FindGameObjectWithTag("MusteriNoktasi").transform;
         spawnPoint = GameObject.FindGameObjectWithTag("BeklemeNoktasi").transform;
@@ -63,6 +70,10 @@ public class MusteriHareket : MonoBehaviour
 
         Debug.Log($"{name} {istenenUrunSayisi} ürün istiyor!");
     }
+
+    // Ürün tipine göre kontrol
+    public bool IsRequestingSoda() => requestedProductType == 1;
+    public bool IsRequestingTea() => requestedProductType == 0;
 
     void Update()
     {
@@ -245,14 +256,19 @@ public class MusteriHareket : MonoBehaviour
         if (urunText != null)
         {
             int kalan = istenenUrunSayisi - alinanUrunSayisi;
-            urunText.text = kalan > 0 ? kalan.ToString() : "";
-            Debug.Log("UpdateUI çağrıldı, kalan: " + kalan);
+
+            // Ürün tipine göre text gösterimi
+            string urunAdi = requestedProductType == 0 ? "Çay" : "Soda";
+            urunText.text = kalan > 0 ? urunAdi + ": " + kalan.ToString() : "";
+
+            Debug.Log("UpdateUI çağrıldı, kalan: " + kalan + " " + urunAdi);
         }
         else
         {
             Debug.LogWarning("urunText null! UI doğru atanmış mı?");
         }
     }
+
 
 
 

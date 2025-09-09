@@ -15,11 +15,14 @@ public class SodaStack : MonoBehaviour
     public float spawnDelay = 0.4f;
 
     [Header("Büyütülebilir Ölçek")]
-    public Vector3 sodaTargetScale = new Vector3(0.003f, 0.003f, 0.003f); // Inspector’dan değiştirebilirsin
+    public Vector3 sodaTargetScale = new Vector3(0.003f, 0.003f, 0.003f);
 
     [Header("Bırakma Ayarları")]
-    public Transform sodaDropTarget;  // Sodaların bırakılacağı yer
-    public float dropSpacing = 0.002f; // Bırakılan sodaların arası mesafe
+    public Transform sodaDropTarget;
+    public float dropSpacing = 0.002f;
+
+    // SODA LİSTESİ (StackCollector'daki dropList'ten bağımsız)
+    public List<Transform> sodaDropList = new List<Transform>();
 
     private List<Transform> sodaStack = new List<Transform>();
     private bool canCollect = false;
@@ -27,6 +30,14 @@ public class SodaStack : MonoBehaviour
     private Coroutine collectRoutine;
     private Coroutine dropRoutine;
 
+    // Singleton yapısı (StackCollector gibi)
+    public static SodaStack Instance;
+
+    void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
     private void Update()
     {
         UpdateStackPositions();
@@ -114,15 +125,14 @@ public class SodaStack : MonoBehaviour
             sodaStack.RemoveAt(sodaStack.Count - 1);
             soda.SetParent(null);
 
-            // StackCollector'ın dropList'ine ekle
-            StackCollector.Instance.AddToDropList(soda);
+            // StackCollector yerine kendi sodaDropList'imize ekliyoruz
+            sodaDropList.Add(soda);
 
-            // Soda'ya bir tag veya component ekleyerek farklı olduğunu belirt
             soda.tag = "SodaProduct";
             if (soda.GetComponent<SodaProduct>() == null)
-                soda.gameObject.AddComponent<SodaProduct>(); // Yeni component
+                soda.gameObject.AddComponent<SodaProduct>();
 
-            int dropIndex = StackCollector.Instance.DropCount;
+            int dropIndex = sodaDropList.Count - 1; // DropCount artık sodaDropList.Count
             Vector3 targetPos = sodaDropTarget.position + Vector3.up * (cubeHeight * dropIndex);
 
             soda.DOJump(targetPos, 0.002f, 1, 0.4f)
@@ -132,6 +142,19 @@ public class SodaStack : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
         }
     }
+
+    public bool SellSodaProduct()
+    {
+        if (sodaDropList.Count == 0) return false;
+
+        Transform soda = sodaDropList[sodaDropList.Count - 1];
+        sodaDropList.RemoveAt(sodaDropList.Count - 1);
+        Destroy(soda.gameObject);
+        return true;
+    }
+
+    public int SodaDropCount => sodaDropList.Count;
+
 }
 
 // Yeni Component: Soda ürünlerini tanımlamak için

@@ -10,7 +10,7 @@ public class KasiyerHareket : MonoBehaviour
     private bool isAtSalesPoint = false;
     private bool isSelling = false;
     private float lastSellTime = 0f;
-    public float sellCooldown = 0.3f; // Cooldown'u artırdık
+    public float sellCooldown = 0.3f;
 
     void Start()
     {
@@ -65,13 +65,29 @@ public class KasiyerHareket : MonoBehaviour
         isSelling = true;
         lastSellTime = Time.time;
 
-        if (StackCollector.Instance != null)
+        if (StackCollector.Instance != null && MusteriSpawner.musteriKuyrugu.Count > 0)
         {
-            // StackCollector'daki yeni metodla satış yap
-            bool sold = StackCollector.Instance.SellProductWithCooldown();
-            if (sold)
+            MusteriHareket customer = MusteriSpawner.musteriKuyrugu.Peek();
+
+            if (customer != null && customer.CanReceiveProduct())
             {
-                Debug.Log("Kasiyer satış yaptı!");
+                bool sold = false;
+
+                // Müşteri çay mı soda mı istiyor kontrol et
+                if (customer.IsRequestingTea() && StackCollector.Instance.DropCount > 0)
+                {
+                    sold = StackCollector.Instance.SellProductToCustomer(customer);
+                }
+                else if (customer.IsRequestingSoda() && SodaStack.Instance != null &&
+                         SodaStack.Instance.sodaDropList.Count > 0)
+                {
+                    sold = StackCollector.Instance.SellSodaToCustomer(customer);
+                }
+
+                if (sold)
+                {
+                    Debug.Log("Kasiyer satış yaptı!");
+                }
             }
         }
 

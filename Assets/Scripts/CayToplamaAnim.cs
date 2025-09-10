@@ -1,23 +1,22 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
-
 
 public class CayToplamaAnim : MonoBehaviour
 {
     private Vector3 originalScale;
     private Tween activeTween;
 
-    [Header("Küçülme Ayarlarý")]
-    [Tooltip("Orijinal Y ölçeðinin bu katýna kadar küçülsün (0 - 1 arasý). 0.25 = %25")]
+    [Header("KÃ¼Ã§Ã¼lme AyarlarÄ±")]
+    [Tooltip("Orijinal Y Ã¶lÃ§eÄŸinin bu katÄ±na kadar kÃ¼Ã§Ã¼lsÃ¼n (0 - 1 arasÄ±). 0.25 = %25")]
     public float minYFactor = 0.25f;
     public float shrinkDuration = 0.25f;
 
-    [Header("Geri Dönüþ Ayarlarý")]
-    public float waitTime = 5f;          // Küçüldükten sonra bekleme süresi
-    public float growDuration = 5f;      // Ne kadar sürede büyüsün
-    public Ease growEase = Ease.OutElastic; // Büyürken efekt
+    [Header("Geri DÃ¶nÃ¼ÅŸ AyarlarÄ±")]
+    public float waitTime = 5f;          // KÃ¼Ã§Ã¼ldÃ¼kten sonra bekleme sÃ¼resi
+    public float growDuration = 5f;      // Ne kadar sÃ¼rede bÃ¼yÃ¼sÃ¼n
+    public Ease growEase = Ease.OutElastic; // BÃ¼yÃ¼rken efekt
 
     private void Start()
     {
@@ -26,7 +25,8 @@ public class CayToplamaAnim : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        // Player veya Depocu tag'ine sahipse kÃ¼Ã§Ã¼ltme animasyonu baÅŸlasÄ±n
+        if (other.CompareTag("Player") || other.CompareTag("Depocu"))
         {
             TriggerShrink();
         }
@@ -34,14 +34,14 @@ public class CayToplamaAnim : MonoBehaviour
 
     public void TriggerShrink()
     {
-        // Önce varsa aktif animasyonu durdur
+        // Ã–nce varsa aktif animasyonu durdur
         if (activeTween != null && activeTween.IsActive()) activeTween.Kill();
 
-        // 1) Yavaþça küçült (Y ekseninde)
+        // 1) YavaÅŸÃ§a kÃ¼Ã§Ã¼lt (Y ekseninde)
         Vector3 targetScale = new Vector3(originalScale.x, originalScale.y * Mathf.Clamp01(minYFactor), originalScale.z);
         transform.DOScale(targetScale, shrinkDuration).SetEase(Ease.InOutSine).OnComplete(() =>
         {
-            // 2) Bekleme süresinden sonra tekrar büyüt
+            // 2) Bekleme sÃ¼resinden sonra tekrar bÃ¼yÃ¼t
             activeTween = DOVirtual.DelayedCall(waitTime, () =>
             {
                 transform.DOScale(originalScale, growDuration).SetEase(growEase);

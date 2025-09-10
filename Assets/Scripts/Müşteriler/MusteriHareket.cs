@@ -41,14 +41,23 @@ public class MusteriHareket : MonoBehaviour
     private Collider musteriCollider;
 
     private static bool satisAlaniDolu = false;
+    public static bool sodaAcik = false; // Başta kapalı olacak
+
 
     void Start()
     {
         // Rastgele ürün sayısı belirle
         istenenUrunSayisi = Random.Range(minUrunSayisi, maxUrunSayisi + 1);
+        if (!sodaAcik)
+        {
+            requestedProductType = 0; // 0 = çay
+        }
+        else
+        {
+            requestedProductType = Random.Range(0, 2); // 0 = çay, 1 = soda
+        }
 
 
-        requestedProductType = Random.Range(0, 2);
 
         // Noktaları bul
         musteriNoktasi = GameObject.FindGameObjectWithTag("MusteriNoktasi").transform;

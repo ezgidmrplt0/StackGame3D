@@ -462,15 +462,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_LocalScale.x
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_LocalScale.y
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_LocalScale.z
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_LocalPosition.x
@@ -514,7 +514,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_ConstrainProportionsScale
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -584,6 +584,7 @@ MonoBehaviour:
   kuyruktakiSirasi: 0
   istenenUrunSayisi: 1
   alinanUrunSayisi: 0
+  requestedProductType: 0
   minUrunSayisi: 1
   maxUrunSayisi: 3
   urunText: {fileID: 8871558077214026258}

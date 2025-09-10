@@ -524,27 +524,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_LocalScale.x
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_LocalScale.y
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_LocalScale.z
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -10
+      value: -9.3747
       objectReference: {fileID: 0}
     - target: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -4.3538
       objectReference: {fileID: 0}
     - target: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 0.49806
       objectReference: {fileID: 0}
     - target: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_LocalRotation.w
@@ -648,6 +648,7 @@ MonoBehaviour:
   kuyruktakiSirasi: 0
   istenenUrunSayisi: 1
   alinanUrunSayisi: 0
+  requestedProductType: 0
   minUrunSayisi: 1
   maxUrunSayisi: 3
   urunText: {fileID: 8320234913567749026}

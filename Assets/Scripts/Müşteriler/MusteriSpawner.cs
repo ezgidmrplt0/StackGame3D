@@ -26,12 +26,14 @@ public class MusteriSpawner : MonoBehaviour
 
     void SpawnMusteri()
     {
-        // Rastgele müşteri prefab seç
         int index = Random.Range(0, musteriPrefabs.Count);
+
+        Vector3 spawnPos = spawnPoint.position;
+        spawnPos.y = 0f; // Y eksenini sıfırla (zemine sabitle)
 
         GameObject yeniMusteri = Instantiate(
             musteriPrefabs[index],
-            spawnPoint.position,
+            spawnPos,
             Quaternion.identity
         );
 
@@ -39,6 +41,9 @@ public class MusteriSpawner : MonoBehaviour
         hareket.kuyruktakiSirasi = musteriKuyrugu.Count;
         musteriKuyrugu.Enqueue(hareket);
     }
+
+
+
 
     // Kuyruktaki sıraları güncelle
     public static void UpdateQueuePositions()

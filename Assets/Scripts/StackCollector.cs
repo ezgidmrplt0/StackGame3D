@@ -42,8 +42,8 @@ public class StackCollector : MonoBehaviour
     [Header("Çay Sistemi")]
     public string cayToplamaTag = "CayToplamaNoktasi";
     public string cayBirakmaTag = "CayBirakmaNoktasi";
-    public int hamCayTasimaLimiti = 30;
-    public float toplamaAraligi = 0.15f;
+    public int hamCayTasimaLimiti = 20;
+    public float toplamaAraligi = 0.5f;
     public int toplamaAdedi = 1;
     public TextMeshProUGUI hamCayText;
     public TextMeshProUGUI uretimStoguText;
@@ -59,7 +59,7 @@ public class StackCollector : MonoBehaviour
     public GameObject hamCayPrefab;
     public Transform hamCayStackRoot;
     public float hamCaySpacing = 0.5f;
-    public Vector3 hamCayTargetScale = new Vector3(0.3f, 0.3f, 0.3f);
+    public Vector3 hamCayTargetScale = new Vector3(0.5f, 0.5f, 0.5f);
     private List<Transform> hamCayStack = new List<Transform>();
 
     public readonly List<Transform> stack = new List<Transform>();
@@ -79,19 +79,19 @@ public class StackCollector : MonoBehaviour
     private List<DepocuCalisan> activeDepocular = new List<DepocuCalisan>();
 
     [Header("Depocu Ekonomi")]
-    public int depocuCost = 10;
+    public int depocuCost = 100;
     public float depocuCostIncreaseRate = 0.2f;
     public float depocuDuration = 20f;
     public TextMeshProUGUI depocuFiyatText;
 
     [Header("Satış Ayarları")]
     public int cayFiyati = 2;
-    public int sodaFiyati = 3;
+    public int sodaFiyati = 5;
     private Dictionary<MusteriHareket, float> sonSatisZamanlari = new Dictionary<MusteriHareket, float>();
-    private float satisCoolDown = 0.3f;
+    private float satisCoolDown = 0.5f;
 
     [Header("Soda Satış Kontrol")]
-    public bool sodaSatisAktif = false;
+    public bool sodaSatisAktif = true;
 
     private Dictionary<MusteriHareket, float> sonSodaSatisZamanlari = new Dictionary<MusteriHareket, float>();
     private int stackLimit = 5;

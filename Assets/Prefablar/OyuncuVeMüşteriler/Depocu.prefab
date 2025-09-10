@@ -74,6 +74,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Depocu
       objectReference: {fileID: 0}
+    - target: {fileID: 3670405753088119664, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
+      propertyPath: m_TagString
+      value: Depocu
+      objectReference: {fileID: 0}
     - target: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_LocalScale.x
       value: 6
@@ -146,6 +150,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3670405753088119664, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1840507450161249621}
+    - targetCorrespondingSourceObject: {fileID: 3670405753088119664, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5997729118058646560}
+    - targetCorrespondingSourceObject: {fileID: 3670405753088119664, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8269005726185229137}
   m_SourcePrefab: {fileID: 100100000, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
 --- !u!4 &1278261863749520526 stripped
 Transform:
@@ -177,6 +187,56 @@ MonoBehaviour:
   stackSpacing: 0.3
   toplamaNoktasi: {fileID: 0}
   birakmaNoktasi: {fileID: 0}
+--- !u!136 &5997729118058646560
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1942912675890091572}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 1, z: 0}
+--- !u!54 &8269005726185229137
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1942912675890091572}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 116
+  m_CollisionDetection: 0
 --- !u!1001 &4655633083192582317
 PrefabInstance:
   m_ObjectHideFlags: 0

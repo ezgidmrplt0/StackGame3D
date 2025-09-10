@@ -30,12 +30,14 @@ public class MusteriSpawner : MonoBehaviour
         {
             bool dondurmaSpawn = Random.value < dondurmaMusteriOrani;
 
-            // Dondurma dükkanı açık değilse dondurma müşterisi spawn etme
-            if (dondurmaSpawn && dondurmaMusteriKuyrugu.Count < maxDondurmaMusteri && MusteriHareket.dondurmaAcik)
+            // Dondurma müşterisi yalnızca dondurma açık ise spawn olur
+            if (dondurmaSpawn && MusteriHareket.dondurmaAcik && dondurmaMusteriKuyrugu.Count < maxDondurmaMusteri)
             {
                 SpawnDondurmaMusteri();
             }
-            else if (musteriKuyrugu.Count < maxMusteri)
+
+            // Normal müşteriler
+            if (musteriKuyrugu.Count < maxMusteri)
             {
                 SpawnNormalMusteri();
             }

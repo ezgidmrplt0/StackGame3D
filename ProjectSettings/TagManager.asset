@@ -17,6 +17,7 @@ TagManager:
   - Fluid
   - SodaNoktasi
   - Depocu
+  - DondurmaSatisAlani
   layers:
   - Default
   - TransparentFX

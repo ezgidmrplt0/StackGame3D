@@ -23,24 +23,75 @@ public class ExpandManager : MonoBehaviour
 
     [Header("UI Elemanlarý")]
     public TextMeshProUGUI priceText;
-    public Button expandButton;
+    public List<Button> expandButtons = new List<Button>();
+
+    // Her buton için ayrý step index saklayacaðýz
+    private Dictionary<Button, int> buttonStepIndices = new Dictionary<Button, int>();
 
     void Start()
     {
         currentPrice = basePrice;
         UpdateUI();
 
-        // Butona týklama event’i baðla
-        if (expandButton != null)
-            expandButton.onClick.AddListener(OnExpandButtonClick);
+        // Butonlarý ve step index'lerini baþlat
+        InitializeButtons();
     }
 
-    public void OnExpandButtonClick()
+    void InitializeButtons()
     {
-        // Tüm adýmlar bitmiþse
-        if (currentStep >= expansionSteps.Count)
+        // Butonlarý temizle
+        foreach (var button in expandButtons)
         {
-            Debug.Log("Tüm geniþletme adýmlarý tamamlandý.");
+            button.onClick.RemoveAllListeners();
+        }
+
+        // Her butona týklama event'ini baðla ve step index'ini ayarla
+        for (int i = 0; i < expandButtons.Count; i++)
+        {
+            int stepIndex = i; // Her buton için farklý bir step index
+            buttonStepIndices[expandButtons[i]] = stepIndex;
+
+            expandButtons[i].onClick.AddListener(() => OnExpandButtonClick(stepIndex));
+        }
+    }
+
+    // Manuel olarak buton-step eþleþtirmesi yapmak için fonksiyon
+    public void SetButtonStepIndex(Button button, int stepIndex)
+    {
+        if (buttonStepIndices.ContainsKey(button))
+        {
+            buttonStepIndices[button] = stepIndex;
+        }
+        else
+        {
+            buttonStepIndices.Add(button, stepIndex);
+        }
+
+        // Butonun listener'ýný güncelle
+        button.onClick.RemoveAllListeners();
+        button.onClick.AddListener(() => OnExpandButtonClick(stepIndex));
+    }
+
+    public void OnExpandButtonClick(int stepIndex)
+    {
+        // Geçersiz step index kontrolü
+        if (stepIndex < 0 || stepIndex >= expansionSteps.Count)
+        {
+            Debug.LogWarning("Geçersiz step index: " + stepIndex);
+            return;
+        }
+
+        // Bu step zaten tamamlanmýþsa
+        if (stepIndex < currentStep)
+        {
+            Debug.Log("Bu geniþletme adýmý zaten tamamlandý.");
+            return;
+        }
+
+        // Sýradaki step bu deðilse
+        if (stepIndex != currentStep)
+        {
+            Debug.Log("Önce önceki geniþletme adýmlarýný tamamlamalýsýn. Þu anki step: " + currentStep);
             return;
         }
 
@@ -51,11 +102,11 @@ public class ExpandManager : MonoBehaviour
             return;
         }
 
-        // Parayý düþ
+        // Parayý düþür
         MoneyManager.Instance.AddMoney(-currentPrice);
 
         // Bu adýmý uygula
-        ExpansionStep step = expansionSteps[currentStep];
+        ExpansionStep step = expansionSteps[stepIndex];
 
         foreach (GameObject obj in step.objectsToDestroy)
         {
@@ -78,5 +129,19 @@ public class ExpandManager : MonoBehaviour
     {
         if (priceText != null)
             priceText.text = currentPrice + "$";
+    }
+
+    // Yeni buton eklemek için yardýmcý fonksiyon
+    public void AddExpandButton(Button newButton, int stepIndex = -1)
+    {
+        if (!expandButtons.Contains(newButton))
+        {
+            expandButtons.Add(newButton);
+
+            // Step index belirtilmemiþse, son step'ten devam et
+            if (stepIndex == -1) stepIndex = expandButtons.Count - 1;
+
+            SetButtonStepIndex(newButton, stepIndex);
+        }
     }
 }

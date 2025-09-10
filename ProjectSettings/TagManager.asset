@@ -18,6 +18,8 @@ TagManager:
   - SodaNoktasi
   - Depocu
   - DondurmaSatisAlani
+  - DondurmaSilinmeNoktasi
+  - DondurmaMusteriSilinmeNoktasi
   layers:
   - Default
   - TransparentFX

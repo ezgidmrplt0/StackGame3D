@@ -31,7 +31,7 @@ public class MusteriHareket : MonoBehaviour
     private bool kuyruktanCikarildi = false;
     private bool waitingAfterProduct = false;
     private float waitTimer = 0f;
-    private bool paraKazanildi = false; // Yeni eklenen değişken
+    private bool paraKazanildi = false;
 
     [Header("UI")]
     public TextMeshProUGUI urunText;
@@ -41,6 +41,7 @@ public class MusteriHareket : MonoBehaviour
     private Transform dondurmaNoktasi;
     private Transform spawnPoint;
     private Transform musteriFinal;
+    private Transform dondurmaSilinmeNoktasi;
 
     private Animator animator;
     private Collider musteriCollider;
@@ -48,6 +49,7 @@ public class MusteriHareket : MonoBehaviour
     private static bool satisAlaniDolu = false;
     private static bool dondurmaAlaniDolu = false;
     public static bool sodaAcik = false;
+    public static bool dondurmaAcik = false; // Yeni eklendi: Dondurma dükkanı açık mı?
 
     void Start()
     {
@@ -70,6 +72,17 @@ public class MusteriHareket : MonoBehaviour
         dondurmaNoktasi = GameObject.FindGameObjectWithTag("DondurmaSatisAlani").transform;
         spawnPoint = GameObject.FindGameObjectWithTag("BeklemeNoktasi").transform;
         musteriFinal = GameObject.FindGameObjectWithTag("MusteriFinal").transform;
+
+        // DondurmaSilinmeNoktasi bulma
+        GameObject silinmeNoktasiObj = GameObject.FindGameObjectWithTag("DondurmaMusteriSilinmeNoktasi");
+        if (silinmeNoktasiObj != null)
+        {
+            dondurmaSilinmeNoktasi = silinmeNoktasiObj.transform;
+        }
+        else
+        {
+            Debug.LogError("DondurmaMusteriSilinmeNoktasi tag'li obje bulunamadı!");
+        }
 
         animator = GetComponent<Animator>();
         musteriCollider = GetComponent<Collider>();
@@ -126,7 +139,17 @@ public class MusteriHareket : MonoBehaviour
             int kazanilanPara = istenenUrunSayisi * 10;
             MoneyManager.Instance.AddMoney(kazanilanPara);
             paraKazanildi = true;
+            hasBeenServed = true; // Dondurma müşterisi için servis edildi olarak işaretle
             Debug.Log("Dondurma satışı: " + kazanilanPara + " para kazanıldı!");
+
+            // Dondurma müşterisini kuyruktan hemen çıkar
+            if (!kuyruktanCikarildi && MusteriSpawner.dondurmaMusteriKuyrugu.Count > 0 &&
+                MusteriSpawner.dondurmaMusteriKuyrugu.Peek() == this)
+            {
+                MusteriSpawner.dondurmaMusteriKuyrugu.Dequeue();
+                MusteriSpawner.UpdateDondurmaQueuePositions();
+                kuyruktanCikarildi = true;
+            }
         }
 
         Vector3 hedefPozisyon = transform.position;
@@ -149,14 +172,32 @@ public class MusteriHareket : MonoBehaviour
         }
         else if (hasBeenServed)
         {
-            hedefPozisyon = new Vector3(musteriFinal.position.x, musteriYukseklik, musteriFinal.position.z);
-
-            Vector2 currentXZ = new Vector2(transform.position.x, transform.position.z);
-            Vector2 targetXZ = new Vector2(musteriFinal.position.x, musteriFinal.position.z);
-
-            if (Vector2.Distance(currentXZ, targetXZ) < 0.1f)
+            // Dondurma müşterileri silinme noktasına, normal müşteriler final noktasına gitsin
+            if (musteriTipi == MusteriTipi.Dondurma && dondurmaSilinmeNoktasi != null)
             {
-                Destroy(gameObject);
+                hedefPozisyon = new Vector3(dondurmaSilinmeNoktasi.position.x, musteriYukseklik, dondurmaSilinmeNoktasi.position.z);
+
+                Vector2 currentXZ = new Vector2(transform.position.x, transform.position.z);
+                Vector2 targetXZ = new Vector2(dondurmaSilinmeNoktasi.position.x, dondurmaSilinmeNoktasi.position.z);
+
+                if (Vector2.Distance(currentXZ, targetXZ) < 0.1f)
+                {
+                    Debug.Log("Dondurma müşterisi silinme noktasına ulaştı, yok ediliyor.");
+                    Destroy(gameObject);
+                    return;
+                }
+            }
+            else
+            {
+                hedefPozisyon = new Vector3(musteriFinal.position.x, musteriYukseklik, musteriFinal.position.z);
+
+                Vector2 currentXZ = new Vector2(transform.position.x, transform.position.z);
+                Vector2 targetXZ = new Vector2(musteriFinal.position.x, musteriFinal.position.z);
+
+                if (Vector2.Distance(currentXZ, targetXZ) < 0.1f)
+                {
+                    Destroy(gameObject);
+                }
             }
         }
         else

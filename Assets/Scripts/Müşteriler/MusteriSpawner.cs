@@ -16,7 +16,7 @@ public class MusteriSpawner : MonoBehaviour
     [Header("Spawn Ayarları")]
     public float spawnInterval = 3f;
     private float timer = 0f;
-    public int maxMusteri = 5;
+    public int maxMusteri = 15;
     public int maxDondurmaMusteri = 3;
 
     [Range(0f, 1f)]

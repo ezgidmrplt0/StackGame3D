@@ -90,6 +90,9 @@ public class StackCollector : MonoBehaviour
     private Dictionary<MusteriHareket, float> sonSatisZamanlari = new Dictionary<MusteriHareket, float>();
     private float satisCoolDown = 0.3f;
 
+    [Header("Soda Satış Kontrol")]
+    public bool sodaSatisAktif = false;
+
     private Dictionary<MusteriHareket, float> sonSodaSatisZamanlari = new Dictionary<MusteriHareket, float>();
     private int stackLimit = 5;
 
@@ -126,6 +129,7 @@ public class StackCollector : MonoBehaviour
 
     void TrySellSodaToCustomer()
     {
+        if (!sodaSatisAktif) return;
         if (isSelling) return;
         if (MusteriSpawner.musteriKuyrugu.Count == 0) return;
 
@@ -196,6 +200,7 @@ public class StackCollector : MonoBehaviour
 
     void TrySellSodaWithKasiyer(KasiyerHareket kasiyer)
     {
+        if (!sodaSatisAktif) return;
         if (MusteriSpawner.musteriKuyrugu.Count == 0) return;
 
         MusteriHareket customer = MusteriSpawner.musteriKuyrugu.Peek();
@@ -671,6 +676,12 @@ public class StackCollector : MonoBehaviour
 
         dropList.Add(product);
         Debug.Log("Ürün dropList'e eklendi: " + dropList.Count);
+    }
+
+    public void SodaSatisiniAc()
+    {
+        StackCollector.Instance.sodaSatisAktif = true;
+        Debug.Log("Soda satışı aktifleştirildi!");
     }
 
     public void SetStackLimit(int newLimit) => stackLimit = newLimit;

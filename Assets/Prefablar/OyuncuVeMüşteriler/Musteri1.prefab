@@ -156,6 +156,7 @@ GameObject:
   - component: {fileID: 1494843869523679135}
   - component: {fileID: 3460082496852679483}
   - component: {fileID: 3759268744471474164}
+  - component: {fileID: 5024545472651162468}
   m_Layer: 5
   m_Name: Canvas (1)
   m_TagString: Untagged
@@ -248,6 +249,28 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &5024545472651162468
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5684030142731447055}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d32031aaa74a16d48af82e3478b3efdb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  baloncukArkaPlan: {fileID: 0}
+  cayIkonu: {fileID: 0}
+  sodaIkonu: {fileID: 0}
+  adetText: {fileID: 4913688632606147202}
+  tamamlandiIkonu: {fileID: 0}
+  caySprite: {fileID: 0}
+  sodaSprite: {fileID: 0}
+  normalArkaPlan: {r: 1, g: 1, b: 1, a: 1}
+  tamamlandiArkaPlan: {r: 0, g: 1, b: 0, a: 1}
+  targetCamera: {fileID: 0}
 --- !u!1 &7212284275846089580
 GameObject:
   m_ObjectHideFlags: 0
@@ -586,6 +609,7 @@ MonoBehaviour:
   kuyruktakiSirasi: 0
   istenenUrunSayisi: 1
   alinanUrunSayisi: 0
+  requestedProductType: 0
   minUrunSayisi: 1
   maxUrunSayisi: 3
   urunText: {fileID: 4913688632606147202}

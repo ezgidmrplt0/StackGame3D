@@ -30,11 +30,12 @@ public class MusteriSpawner : MonoBehaviour
         {
             bool dondurmaSpawn = Random.value < dondurmaMusteriOrani;
 
-            if (dondurmaSpawn && dondurmaMusteriKuyrugu.Count < maxDondurmaMusteri)
+            // Dondurma dükkanı açık değilse dondurma müşterisi spawn etme
+            if (dondurmaSpawn && dondurmaMusteriKuyrugu.Count < maxDondurmaMusteri && MusteriHareket.dondurmaAcik)
             {
                 SpawnDondurmaMusteri();
             }
-            else if (!dondurmaSpawn && musteriKuyrugu.Count < maxMusteri)
+            else if (musteriKuyrugu.Count < maxMusteri)
             {
                 SpawnNormalMusteri();
             }
@@ -45,6 +46,8 @@ public class MusteriSpawner : MonoBehaviour
 
     void SpawnNormalMusteri()
     {
+        if (musteriPrefabs.Count == 0) return;
+
         int index = Random.Range(0, musteriPrefabs.Count);
         Vector3 spawnPos = spawnPoint.position;
         spawnPos.y = 0f;
@@ -56,13 +59,18 @@ public class MusteriSpawner : MonoBehaviour
         );
 
         MusteriHareket hareket = yeniMusteri.GetComponent<MusteriHareket>();
-        hareket.kuyruktakiSirasi = musteriKuyrugu.Count;
-        hareket.musteriTipi = MusteriHareket.MusteriTipi.Normal;
-        musteriKuyrugu.Enqueue(hareket);
+        if (hareket != null)
+        {
+            hareket.kuyruktakiSirasi = musteriKuyrugu.Count;
+            hareket.musteriTipi = MusteriHareket.MusteriTipi.Normal;
+            musteriKuyrugu.Enqueue(hareket);
+        }
     }
 
     void SpawnDondurmaMusteri()
     {
+        if (dondurmaMusteriPrefabs.Count == 0) return;
+
         int index = Random.Range(0, dondurmaMusteriPrefabs.Count);
         Vector3 spawnPos = dondurmaSpawnPoint.position;
         spawnPos.y = 0f;
@@ -74,9 +82,12 @@ public class MusteriSpawner : MonoBehaviour
         );
 
         MusteriHareket hareket = yeniMusteri.GetComponent<MusteriHareket>();
-        hareket.kuyruktakiSirasi = dondurmaMusteriKuyrugu.Count;
-        hareket.musteriTipi = MusteriHareket.MusteriTipi.Dondurma;
-        dondurmaMusteriKuyrugu.Enqueue(hareket);
+        if (hareket != null)
+        {
+            hareket.kuyruktakiSirasi = dondurmaMusteriKuyrugu.Count;
+            hareket.musteriTipi = MusteriHareket.MusteriTipi.Dondurma;
+            dondurmaMusteriKuyrugu.Enqueue(hareket);
+        }
     }
 
     public static void UpdateQueuePositions()

@@ -49,7 +49,7 @@ public class MusteriHareket : MonoBehaviour
     private static bool satisAlaniDolu = false;
     private static bool dondurmaAlaniDolu = false;
     public static bool sodaAcik = false;
-    public static bool dondurmaAcik = false; // Dondurma dükkanı açık mı?
+    public static bool dondurmaAcik = false;
 
     void Start()
     {
@@ -69,27 +69,12 @@ public class MusteriHareket : MonoBehaviour
 
         istenenUrunSayisi = Random.Range(minUrunSayisi, maxUrunSayisi + 1);
 
-        // Noktaları güvenli şekilde bulma
+        // Noktaları bulma
         musteriNoktasi = GameObject.FindGameObjectWithTag("MusteriNoktasi")?.transform;
         dondurmaNoktasi = GameObject.FindGameObjectWithTag("DondurmaSatisAlani")?.transform;
         spawnPoint = GameObject.FindGameObjectWithTag("BeklemeNoktasi")?.transform;
         musteriFinal = GameObject.FindGameObjectWithTag("MusteriFinal")?.transform;
-
-        if (musteriNoktasi == null) Debug.LogError("MusteriNoktasi tag'li obje bulunamadı!");
-        if (dondurmaNoktasi == null) Debug.LogError("DondurmaSatisAlani tag'li obje bulunamadı!");
-        if (spawnPoint == null) Debug.LogError("BeklemeNoktasi tag'li obje bulunamadı!");
-        if (musteriFinal == null) Debug.LogError("MusteriFinal tag'li obje bulunamadı!");
-
-        // DondurmaSilinmeNoktasi bulma
-        GameObject silinmeNoktasiObj = GameObject.FindGameObjectWithTag("DondurmaMusteriSilinmeNoktasi");
-        if (silinmeNoktasiObj != null)
-        {
-            dondurmaSilinmeNoktasi = silinmeNoktasiObj.transform;
-        }
-        else
-        {
-            Debug.LogError("DondurmaMusteriSilinmeNoktasi tag'li obje bulunamadı!");
-        }
+        dondurmaSilinmeNoktasi = GameObject.FindGameObjectWithTag("DondurmaMusteriSilinmeNoktasi")?.transform;
 
         animator = GetComponent<Animator>();
         musteriCollider = GetComponent<Collider>();
@@ -150,7 +135,6 @@ public class MusteriHareket : MonoBehaviour
                 MoneyManager.Instance.AddMoney(kazanilanPara);
             paraKazanildi = true;
             hasBeenServed = true;
-            Debug.Log("Dondurma satışı: " + kazanilanPara + " para kazanıldı!");
 
             if (!kuyruktanCikarildi && MusteriSpawner.dondurmaMusteriKuyrugu.Count > 0 &&
                 MusteriSpawner.dondurmaMusteriKuyrugu.Peek() == this)
@@ -178,7 +162,6 @@ public class MusteriHareket : MonoBehaviour
             if (distanceToCounter < 1.5f && !isAtCounter)
             {
                 isAtCounter = true;
-                Debug.Log($"Müşteri {musteriTipi} tezgahına ulaştı! İstenen: {istenenUrunSayisi}");
             }
         }
         else if (hasBeenServed)
@@ -193,7 +176,6 @@ public class MusteriHareket : MonoBehaviour
 
                 if (Vector2.Distance(currentXZ, targetXZ) < 0.1f)
                 {
-                    Debug.Log("Dondurma müşterisi silinme noktasına ulaştı, yok ediliyor.");
                     Destroy(gameObject);
                     return;
                 }

@@ -127,22 +127,10 @@ public class MusteriHareket : MonoBehaviour
             return;
         }
 
-        // Dondurma müşterisi tezgaha ulaştığında para kazan
+        // Dondurma müşterisi tezgaha ulaştığında para kazanma yerine bekleme başlat
         if (musteriTipi == MusteriTipi.Dondurma && isAtCounter && !paraKazanildi)
         {
-            int kazanilanPara = istenenUrunSayisi * 10;
-            if (MoneyManager.Instance != null)
-                MoneyManager.Instance.AddMoney(kazanilanPara);
-            paraKazanildi = true;
-            hasBeenServed = true;
-
-            if (!kuyruktanCikarildi && MusteriSpawner.dondurmaMusteriKuyrugu.Count > 0 &&
-                MusteriSpawner.dondurmaMusteriKuyrugu.Peek() == this)
-            {
-                MusteriSpawner.dondurmaMusteriKuyrugu.Dequeue();
-                MusteriSpawner.UpdateDondurmaQueuePositions();
-                kuyruktanCikarildi = true;
-            }
+            StartCoroutine(DondurmaBeklemeRutini());
         }
 
         Transform hedefNokta = musteriTipi == MusteriTipi.Dondurma ? dondurmaNoktasi : musteriNoktasi;
@@ -350,6 +338,31 @@ public class MusteriHareket : MonoBehaviour
                 satisAlaniDolu = false;
             else
                 dondurmaAlaniDolu = false;
+        }
+    }
+
+    // --- Yeni eklenen kısım ---
+    private IEnumerator DondurmaBeklemeRutini()
+    {
+        paraKazanildi = true; // Tekrar çağrılmasın diye işaretle
+
+        if (animator != null)
+            animator.SetBool("isWalking", false);
+
+        yield return new WaitForSeconds(2f); // 2 saniye bekle
+
+        int kazanilanPara = istenenUrunSayisi * 10;
+        if (MoneyManager.Instance != null)
+            MoneyManager.Instance.AddMoney(kazanilanPara);
+
+        hasBeenServed = true;
+
+        if (!kuyruktanCikarildi && MusteriSpawner.dondurmaMusteriKuyrugu.Count > 0 &&
+            MusteriSpawner.dondurmaMusteriKuyrugu.Peek() == this)
+        {
+            MusteriSpawner.dondurmaMusteriKuyrugu.Dequeue();
+            MusteriSpawner.UpdateDondurmaQueuePositions();
+            kuyruktanCikarildi = true;
         }
     }
 }

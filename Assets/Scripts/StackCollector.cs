@@ -45,8 +45,8 @@ public class StackCollector : MonoBehaviour
     public int hamCayTasimaLimiti = 20;
     public float toplamaAraligi = 0.5f;
     public int toplamaAdedi = 1;
-    public TextMeshProUGUI hamCayText;
-    public TextMeshProUGUI uretimStoguText;
+    public TextMeshPro hamCayText;
+    public TextMeshPro uretimStoguText;
 
     private int uzerimdeHamCay = 0;
     public int uretimStogu = 0;
@@ -607,8 +607,8 @@ public class StackCollector : MonoBehaviour
 
     void GuncelleUI()
     {
-        if (hamCayText != null) hamCayText.text = $"Yaprak: {uzerimdeHamCay}/{hamCayTasimaLimiti}";
-        if (uretimStoguText != null) uretimStoguText.text = $"Üretim Stoku: {uretimStogu}";
+        if (hamCayText != null) hamCayText.text = $"{uzerimdeHamCay}/{hamCayTasimaLimiti}";
+        if (uretimStoguText != null) uretimStoguText.text = $"{uretimStogu}";
     }
 
     [Header("Urun Tasiyici Ayarları")]

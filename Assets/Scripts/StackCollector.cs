@@ -10,11 +10,14 @@ public class StackCollector : MonoBehaviour
 
     [Header("Stack Ayarları")]
     public GameObject cubePrefab;
-    public Transform stackRoot;
+    public List<Transform> stackRoots; // Ortak root listesi
     public float cubeHeight = 0.5f;
     public float spawnInterval = 0.2f;
     public float tweenDuration = 0.4f;
     public Ease tweenEase = Ease.OutBack;
+
+    [Header("Bağlantı")]
+    public SodaStack sodaStack; // soda ile haberleşmek için
 
     [Header("Küp Boyutu")]
     public Vector3 cubeTargetScale = new Vector3(0.3f, 0.3f, 0.3f);
@@ -261,8 +264,11 @@ public class StackCollector : MonoBehaviour
         for (int i = 0; i < stack.Count; i++)
         {
             Transform cube = stack[i];
+            int rootIndex = i % stackRoots.Count;
+            Transform currentRoot = stackRoots[rootIndex];
+
             float yOffset = cubeTargetScale.y * 0.5f;
-            Vector3 targetPos = stackRoot.position + Vector3.up * (cubeHeight * i + yOffset);
+            Vector3 targetPos = currentRoot.position + Vector3.up * (cubeHeight * (i / stackRoots.Count) + yOffset);
             cube.position = targetPos;
             cube.rotation = Quaternion.identity;
         }
@@ -507,8 +513,12 @@ public class StackCollector : MonoBehaviour
     void AddOneCube()
     {
         if (stack.Count >= stackLimit) return;
+
+        int rootIndex = stack.Count % stackRoots.Count;
+        Transform currentRoot = stackRoots[rootIndex];
+
         float yOffset = cubeTargetScale.y * 0.5f;
-        Vector3 spawnPosition = stackRoot.position + Vector3.up * (cubeHeight * stack.Count + yOffset);
+        Vector3 spawnPosition = currentRoot.position + Vector3.up * (cubeHeight * (stack.Count / stackRoots.Count) + yOffset);
         GameObject newCube = Instantiate(cubePrefab, spawnPosition, Quaternion.identity);
 
         Rigidbody cubeRb = newCube.GetComponent<Rigidbody>();
@@ -524,6 +534,7 @@ public class StackCollector : MonoBehaviour
 
         newCube.transform.localScale = Vector3.zero;
         newCube.transform.DOScale(cubeTargetScale, tweenDuration).SetEase(tweenEase);
+        newCube.transform.SetParent(currentRoot);
         stack.Add(newCube.transform);
     }
 

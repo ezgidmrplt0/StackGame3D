@@ -7,7 +7,7 @@ public class SodaStack : MonoBehaviour
 {
     [Header("Soda Ayarları")]
     public GameObject sodaPrefab;
-    public Transform stackRoot;
+    public List<Transform> stackRoots = new List<Transform>(); // stackRoot yerine stackRoots listesi
     public float cubeHeight = 0.005f;
     public float tweenDuration = 0.3f;
     public Ease tweenEase = Ease.OutCubic;
@@ -21,7 +21,7 @@ public class SodaStack : MonoBehaviour
     public Transform sodaDropTarget;
     public float dropSpacing = 0.002f;
 
-    // Soda listesi (StackCollector dropList’ten bağımsız)
+    // Soda listesi (StackCollector dropList'ten bağımsız)
     private List<Transform> sodaStack = new List<Transform>();
     public List<Transform> sodaDropList = new List<Transform>();
 
@@ -37,6 +37,19 @@ public class SodaStack : MonoBehaviour
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+
+        // Eski stackRoot değişkenini yeni listeye taşı (backward compatibility)
+        if (stackRoots.Count == 0 && stackRoot != null)
+        {
+            stackRoots.Add(stackRoot);
+        }
+
+        // Hala boşsa, otomatik olarak kendini ekle (fallback)
+        if (stackRoots.Count == 0)
+        {
+            stackRoots.Add(transform);
+            Debug.LogWarning("StackRoots listesi boş, otomatik olarak ana transform eklendi.");
+        }
     }
 
     void Update()
@@ -49,7 +62,10 @@ public class SodaStack : MonoBehaviour
         for (int i = 0; i < sodaStack.Count; i++)
         {
             Transform soda = sodaStack[i];
-            Vector3 targetPos = stackRoot.position + Vector3.up * cubeHeight * i;
+            int rootIndex = i % stackRoots.Count;
+            Transform currentRoot = stackRoots[rootIndex];
+
+            Vector3 targetPos = currentRoot.position + Vector3.up * cubeHeight * (i / stackRoots.Count);
             soda.position = Vector3.Lerp(soda.position, targetPos, Time.deltaTime * 10f);
             soda.rotation = Quaternion.identity;
         }
@@ -105,11 +121,21 @@ public class SodaStack : MonoBehaviour
 
     private void AddSoda()
     {
-        Vector3 spawnPos = stackRoot.position + Vector3.up * (cubeHeight * sodaStack.Count);
+        // Güvenlik kontrolü
+        if (stackRoots.Count == 0)
+        {
+            Debug.LogError("StackRoots listesi boş!");
+            return;
+        }
+
+        int rootIndex = sodaStack.Count % stackRoots.Count;
+        Transform currentRoot = stackRoots[rootIndex];
+
+        Vector3 spawnPos = currentRoot.position + Vector3.up * (cubeHeight * (sodaStack.Count / stackRoots.Count));
         GameObject newSoda = Instantiate(sodaPrefab, spawnPos, Quaternion.identity);
 
         newSoda.transform.localScale = Vector3.zero;
-        newSoda.transform.SetParent(stackRoot);
+        newSoda.transform.SetParent(currentRoot);
         newSoda.transform.DOScale(sodaTargetScale, tweenDuration).SetEase(tweenEase);
 
         sodaStack.Add(newSoda.transform);
@@ -159,6 +185,14 @@ public class SodaStack : MonoBehaviour
     {
         if (index < 0 || index >= sodaStack.Count) return null;
         return sodaStack[index];
+    }
+
+    // Eski stackRoot değişkeni için backward compatibility
+    [System.Obsolete("Use stackRoots list instead")]
+    public Transform stackRoot
+    {
+        get { return stackRoots.Count > 0 ? stackRoots[0] : null; }
+        set { if (stackRoots.Count == 0) stackRoots.Add(value); else stackRoots[0] = value; }
     }
 }
 

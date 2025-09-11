@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.17276841, g: 0.21589246, b: 0.2978262, a: 1}
+  m_IndirectSpecularColor: {r: 0.17276844, g: 0.21589246, b: 0.2978263, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -825,6 +825,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3788246166151476156, guid: c6756b0ecb3cb6248851cbc86a869d42, type: 3}
+      propertyPath: stackRoots.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3788246166151476156, guid: c6756b0ecb3cb6248851cbc86a869d42, type: 3}
       propertyPath: urunTasiyiciFiyatText
       value: 
       objectReference: {fileID: 248487064}
@@ -840,6 +844,14 @@ PrefabInstance:
       propertyPath: urunTasiyiciStackTarget
       value: 
       objectReference: {fileID: 1239918584}
+    - target: {fileID: 3788246166151476156, guid: c6756b0ecb3cb6248851cbc86a869d42, type: 3}
+      propertyPath: stackRoots.Array.data[0]
+      value: 
+      objectReference: {fileID: 1667376967}
+    - target: {fileID: 3788246166151476156, guid: c6756b0ecb3cb6248851cbc86a869d42, type: 3}
+      propertyPath: stackRoots.Array.data[1]
+      value: 
+      objectReference: {fileID: 1645059562}
     - target: {fileID: 3788246166151476156, guid: c6756b0ecb3cb6248851cbc86a869d42, type: 3}
       propertyPath: urunTasiyiciBirakmaNoktasi
       value: 
@@ -27851,7 +27863,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sodaPrefab: {fileID: 8446428039490992829, guid: 4550dbd2a4ed7bb409e5ab27431ff683, type: 3}
-  stackRoot: {fileID: 1645059562}
+  stackRoots: []
   cubeHeight: 3.7
   tweenDuration: 0.3
   tweenEase: 9
@@ -27860,7 +27872,9 @@ MonoBehaviour:
   sodaTargetScale: {x: 0.01, y: 0.01, z: 0.01}
   sodaDropTarget: {fileID: 1928210103}
   dropSpacing: 0.002
-  sodaDropList: []
+  sodaDropList:
+  - {fileID: 1645059562}
+  - {fileID: 1667376967}
 --- !u!114 &1345586629
 MonoBehaviour:
   m_ObjectHideFlags: 0

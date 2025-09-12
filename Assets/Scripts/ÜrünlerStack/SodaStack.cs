@@ -7,7 +7,7 @@ public class SodaStack : MonoBehaviour
 {
     [Header("Soda Ayarları")]
     public GameObject sodaPrefab;
-    public List<Transform> stackRoots = new List<Transform>(); // stackRoot yerine stackRoots listesi
+    public Transform stackRoot;
     public float cubeHeight = 0.005f;
     public float tweenDuration = 0.3f;
     public Ease tweenEase = Ease.OutCubic;
@@ -35,21 +35,10 @@ public class SodaStack : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
-
-        // Eski stackRoot değişkenini yeni listeye taşı (backward compatibility)
-        if (stackRoots.Count == 0 && stackRoot != null)
-        {
-            stackRoots.Add(stackRoot);
-        }
-
-        // Hala boşsa, otomatik olarak kendini ekle (fallback)
-        if (stackRoots.Count == 0)
-        {
-            stackRoots.Add(transform);
-            Debug.LogWarning("StackRoots listesi boş, otomatik olarak ana transform eklendi.");
-        }
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
     }
 
     void Update()
@@ -62,10 +51,7 @@ public class SodaStack : MonoBehaviour
         for (int i = 0; i < sodaStack.Count; i++)
         {
             Transform soda = sodaStack[i];
-            int rootIndex = i % stackRoots.Count;
-            Transform currentRoot = stackRoots[rootIndex];
-
-            Vector3 targetPos = currentRoot.position + Vector3.up * cubeHeight * (i / stackRoots.Count);
+            Vector3 targetPos = stackRoot.position + Vector3.up * cubeHeight * i;
             soda.position = Vector3.Lerp(soda.position, targetPos, Time.deltaTime * 10f);
             soda.rotation = Quaternion.identity;
         }
@@ -121,21 +107,11 @@ public class SodaStack : MonoBehaviour
 
     private void AddSoda()
     {
-        // Güvenlik kontrolü
-        if (stackRoots.Count == 0)
-        {
-            Debug.LogError("StackRoots listesi boş!");
-            return;
-        }
-
-        int rootIndex = sodaStack.Count % stackRoots.Count;
-        Transform currentRoot = stackRoots[rootIndex];
-
-        Vector3 spawnPos = currentRoot.position + Vector3.up * (cubeHeight * (sodaStack.Count / stackRoots.Count));
+        Vector3 spawnPos = stackRoot.position + Vector3.up * (cubeHeight * sodaStack.Count);
         GameObject newSoda = Instantiate(sodaPrefab, spawnPos, Quaternion.identity);
 
         newSoda.transform.localScale = Vector3.zero;
-        newSoda.transform.SetParent(currentRoot);
+        newSoda.transform.SetParent(stackRoot);
         newSoda.transform.DOScale(sodaTargetScale, tweenDuration).SetEase(tweenEase);
 
         sodaStack.Add(newSoda.transform);
@@ -150,8 +126,8 @@ public class SodaStack : MonoBehaviour
             soda.SetParent(null);
 
             sodaDropList.Add(soda);
-
             soda.tag = "SodaProduct";
+
             if (soda.GetComponent<SodaProduct>() == null)
                 soda.gameObject.AddComponent<SodaProduct>();
 
@@ -160,7 +136,10 @@ public class SodaStack : MonoBehaviour
 
             soda.DOJump(targetPos, 0.002f, 1, 0.4f)
                 .SetEase(Ease.OutQuad)
-                .OnComplete(() => { soda.rotation = Quaternion.identity; });
+                .OnComplete(() =>
+                {
+                    soda.rotation = Quaternion.identity;
+                });
 
             yield return new WaitForSeconds(0.1f);
         }
@@ -173,6 +152,7 @@ public class SodaStack : MonoBehaviour
         Transform soda = sodaDropList[sodaDropList.Count - 1];
         sodaDropList.RemoveAt(sodaDropList.Count - 1);
         Destroy(soda.gameObject);
+
         return true;
     }
 
@@ -185,14 +165,6 @@ public class SodaStack : MonoBehaviour
     {
         if (index < 0 || index >= sodaStack.Count) return null;
         return sodaStack[index];
-    }
-
-    // Eski stackRoot değişkeni için backward compatibility
-    [System.Obsolete("Use stackRoots list instead")]
-    public Transform stackRoot
-    {
-        get { return stackRoots.Count > 0 ? stackRoots[0] : null; }
-        set { if (stackRoots.Count == 0) stackRoots.Add(value); else stackRoots[0] = value; }
     }
 }
 

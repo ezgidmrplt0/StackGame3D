@@ -96,10 +96,19 @@ public class DepocuCalisan : MonoBehaviour
         if (hamCayPrefab == null || stackRoot == null) return;
         Vector3 offset = Vector3.up * stackSpacing * stack.Count;
         GameObject newLeaf = Instantiate(hamCayPrefab, stackRoot.position + offset, Quaternion.identity, stackRoot);
+
+        // Collider'larý kapat
+        Collider[] colliders = newLeaf.GetComponentsInChildren<Collider>();
+        foreach (var col in colliders)
+        {
+            col.enabled = false;
+        }
+
         newLeaf.transform.localScale = Vector3.zero;
         newLeaf.transform.DOScale(Vector3.one * 0.3f, 0.3f).SetEase(Ease.OutBack);
         stack.Add(newLeaf.transform);
     }
+
 
     void RemoveHamCayCube()
     {

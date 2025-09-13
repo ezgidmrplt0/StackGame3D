@@ -105,7 +105,7 @@ public class SodaStack : MonoBehaviour
         }
     }
 
-    private void AddSoda()
+    public void AddSoda()
     {
         Vector3 spawnPos = stackRoot.position + Vector3.up * (cubeHeight * sodaStack.Count);
         GameObject newSoda = Instantiate(sodaPrefab, spawnPos, Quaternion.identity);
@@ -117,7 +117,7 @@ public class SodaStack : MonoBehaviour
         sodaStack.Add(newSoda.transform);
     }
 
-    private IEnumerator DropSodasRoutine()
+    public IEnumerator DropSodasRoutine()
     {
         while (isInDropArea && sodaStack.Count > 0)
         {

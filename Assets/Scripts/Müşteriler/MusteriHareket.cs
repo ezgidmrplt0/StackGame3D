@@ -1,7 +1,8 @@
-﻿using UnityEngine;
-using System.Collections;
-using TMPro;
+﻿using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class MusteriHareket : MonoBehaviour
 {
@@ -50,6 +51,21 @@ public class MusteriHareket : MonoBehaviour
     private static bool dondurmaAlaniDolu = false;
     public static bool sodaAcik = false;
     public static bool dondurmaAcik = false;
+
+    [Header("UI Baloncuk")]
+    public GameObject baloncukPanel;
+    public TextMeshProUGUI productText;
+
+    // Her ürün için ayrı RawImage
+    public RawImage cayImage;
+    public RawImage sodaImage;
+    public RawImage dondurmaImage;
+
+    // Tek tip resim, geçmiş için bırakılabilir
+    public RawImage productImage;
+    public Texture cayTexture;
+    public Texture sodaTexture;
+    public Texture dondurmaTexture;
 
     void Start()
     {
@@ -127,7 +143,6 @@ public class MusteriHareket : MonoBehaviour
             return;
         }
 
-        // Dondurma müşterisi tezgaha ulaştığında para kazanma yerine bekleme başlat
         if (musteriTipi == MusteriTipi.Dondurma && isAtCounter && !paraKazanildi)
         {
             StartCoroutine(DondurmaBeklemeRutini());
@@ -154,7 +169,6 @@ public class MusteriHareket : MonoBehaviour
         }
         else if (hasBeenServed)
         {
-            // Dondurma müşterileri silinme noktasına, normal müşteriler final noktasına gitsin
             if (musteriTipi == MusteriTipi.Dondurma && dondurmaSilinmeNoktasi != null)
             {
                 hedefPozisyon = new Vector3(dondurmaSilinmeNoktasi.position.x, musteriYukseklik, dondurmaSilinmeNoktasi.position.z);
@@ -312,21 +326,40 @@ public class MusteriHareket : MonoBehaviour
 
     private void UpdateUI()
     {
-        if (urunText != null)
+        int kalan = istenenUrunSayisi - alinanUrunSayisi;
+        if (baloncukPanel == null || productText == null) return;
+
+        if (kalan <= 0)
         {
-            int kalan = istenenUrunSayisi - alinanUrunSayisi;
-            string urunAdi = "";
+            baloncukPanel.SetActive(false);
+            return;
+        }
 
-            switch (requestedProductType)
-            {
-                case 0: urunAdi = "Çay"; break;
-                case 1: urunAdi = "Soda"; break;
-                case 2: urunAdi = "Dondurma"; break;
-            }
+        baloncukPanel.SetActive(true);
 
-            urunText.text = kalan > 0 ? urunAdi + ": " + kalan.ToString() : "";
+        // Önce hepsini kapat
+        if (cayImage != null) cayImage.gameObject.SetActive(false);
+        if (sodaImage != null) sodaImage.gameObject.SetActive(false);
+        if (dondurmaImage != null) dondurmaImage.gameObject.SetActive(false);
+
+        // Sadece istenen ürünü aç
+        switch (requestedProductType)
+        {
+            case 0: // Çay
+                if (cayImage != null) cayImage.gameObject.SetActive(true);
+                productText.text = "" + kalan;
+                break;
+            case 1: // Soda
+                if (sodaImage != null) sodaImage.gameObject.SetActive(true);
+                productText.text = "" + kalan;
+                break;
+            case 2: // Dondurma
+                if (dondurmaImage != null) dondurmaImage.gameObject.SetActive(true);
+                productText.text = "" + kalan;
+                break;
         }
     }
+
 
     private void OnDestroy()
     {
@@ -341,15 +374,14 @@ public class MusteriHareket : MonoBehaviour
         }
     }
 
-    // --- Yeni eklenen kısım ---
     private IEnumerator DondurmaBeklemeRutini()
     {
-        paraKazanildi = true; // Tekrar çağrılmasın diye işaretle
+        paraKazanildi = true;
 
         if (animator != null)
             animator.SetBool("isWalking", false);
 
-        yield return new WaitForSeconds(2f); // 2 saniye bekle
+        yield return new WaitForSeconds(2f);
 
         int kazanilanPara = istenenUrunSayisi * 10;
         if (MoneyManager.Instance != null)

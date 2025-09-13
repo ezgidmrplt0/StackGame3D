@@ -4,6 +4,7 @@ using DG.Tweening;
 
 public class Skills : MonoBehaviour
 {
+    [Header("UI Elemanları")]
     public Button skillButton;
     public RectTransform panel;
     private bool isPanelOpen = false;
@@ -11,12 +12,19 @@ public class Skills : MonoBehaviour
     private Vector2 panelOpenPosition;
     private float animationDuration = 0.3f;
     private float currentButtonRotation = 0f;
+
     public GameObject panel1;
     public GameObject panel2;
     public GameObject panel3;
     public Button button1;
     public Button button2;
     public Button button3;
+
+    [Header("Sesler")]
+    public AudioSource audioSource; 
+    public AudioClip openSound;
+    public AudioClip closeSound;
+    public AudioClip buttonSound;
 
     void Start()
     {
@@ -37,15 +45,15 @@ public class Skills : MonoBehaviour
         // Yeni butonlara tıklama olaylarını ekle
         if (button1 != null)
         {
-            button1.onClick.AddListener(() => ToggleSubPanel(panel1));
+            button1.onClick.AddListener(() => { ToggleSubPanel(panel1); PlayButtonSound(); });
         }
         if (button2 != null)
         {
-            button2.onClick.AddListener(() => ToggleSubPanel(panel2));
+            button2.onClick.AddListener(() => { ToggleSubPanel(panel2); PlayButtonSound(); });
         }
         if (button3 != null)
         {
-            button3.onClick.AddListener(() => ToggleSubPanel(panel3));
+            button3.onClick.AddListener(() => { ToggleSubPanel(panel3); PlayButtonSound(); });
         }
 
         // Başlangıçta tüm alt paneller kapalı
@@ -58,16 +66,20 @@ public class Skills : MonoBehaviour
     {
         currentButtonRotation += 180f;
         skillButton.GetComponent<RectTransform>().DORotate(new Vector3(0, 0, currentButtonRotation), animationDuration, RotateMode.Fast).SetEase(Ease.InOutQuad);
+
         if (isPanelOpen)
         {
             panel.DOAnchorPosX(panelClosedPosition.x, animationDuration).SetEase(Ease.InOutQuad);
             isPanelOpen = false;
+            PlaySound(closeSound);
         }
         else
         {
             panel.DOAnchorPosX(panelOpenPosition.x, animationDuration).SetEase(Ease.InOutQuad);
             isPanelOpen = true;
+            PlaySound(openSound);
         }
+
         Debug.Log("Panel durumu: " + isPanelOpen);
     }
 
@@ -87,5 +99,19 @@ public class Skills : MonoBehaviour
         panel3.SetActive(false);
         if (panelToOpen != null)
             panelToOpen.SetActive(true);
+    }
+
+    // Ses oynatma yardımcı fonksiyonları
+    void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
+    }
+
+    void PlayButtonSound()
+    {
+        PlaySound(buttonSound);
     }
 }

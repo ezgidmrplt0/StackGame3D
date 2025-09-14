@@ -107,7 +107,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3670405753088119664, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_TagString
-      value: Depocu
+      value: Sodaci
       objectReference: {fileID: 0}
     - target: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_LocalScale.x
@@ -264,20 +264,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 5
-  kapasite: 10
+  stackLimit: 5
   toplamaAraligi: 0.3
+  calismaSuresi: 20
   sodaPrefab: {fileID: 8446428039490992829, guid: 4550dbd2a4ed7bb409e5ab27431ff683, type: 3}
   stackRoot: {fileID: 247283042468947818}
-  stackSpacing: 0.3
-  sodaDropTarget: {fileID: 0}
-  sodaAlmaNoktasi: {fileID: 0}
-  sodaBirakmaNoktasi: {fileID: 0}
   sodaBoyutu: {x: 0.3, y: 0.3, z: 0.3}
-  stackLimit: 5
-  tweenDuration: 0.3
-  tweenEase: 27
-  dropSpacing: 0.002
-  sodaDropList: []
+  stackSpacing: 0.3
+  sodaTasiyiciPrefab: {fileID: 0}
+  spawnPozisyon: {fileID: 0}
+  sodaciTag: Sodaci
+  satinAlButton: {fileID: 0}
+  fiyatText: {fileID: 0}
+  fiyat: 100
+  fiyatArtis: 0.2
+  stackAlmaNoktasi: {fileID: 0}
+  stackBirakmaNoktasi: {fileID: 0}
 --- !u!1001 &4655633083192582317
 PrefabInstance:
   m_ObjectHideFlags: 0

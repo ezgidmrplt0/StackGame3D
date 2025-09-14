@@ -25,6 +25,7 @@ TagManager:
   - SodaYolu
   - SodaAlmaNoktasi
   - SodaProduct
+  - Sodaci
   layers:
   - Default
   - TransparentFX

@@ -14148,20 +14148,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f14c2306ff22a54da799952eeda569b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 12
+  speed: 25
   stackLimit: 10
   toplamaAraligi: 0.2
   calismaSuresi: 20
+  dropTargetTransform: {fileID: 1928210103}
+  sodaScale: {x: 0.005, y: 0.005, z: 0.005}
+  stackSpacing: 1
+  jumpHeightMultiplier: 0.5
   sodaPrefab: {fileID: 0}
   stackRoot: {fileID: 0}
-  sodaBoyutu: {x: 0.003, y: 0.003, z: 0.003}
-  stackSpacing: 0.3
+  sodaTasiyiciPrefab: {fileID: 1942912675890091572, guid: a20f7dfde5230a44fa205483e818079e, type: 3}
+  spawnPozisyon: {fileID: 1811100791}
+  sodaciTag: Sodaci
   satinAlButton: {fileID: 1372465079}
   fiyatText: {fileID: 161382570}
   fiyat: 100
   fiyatArtis: 0.2
-  stackAlmaNoktasi: {fileID: 1811100791}
-  stackBirakmaNoktasi: {fileID: 443455743}
 --- !u!4 &702035099 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 0f1bfcc51f8fb344683b82a623129882, type: 3}
@@ -28815,7 +28818,7 @@ MonoBehaviour:
   tweenEase: 9
   maxStack: 5
   spawnDelay: 0.4
-  sodaTargetScale: {x: 0.01, y: 0.01, z: 0.01}
+  sodaTargetScale: {x: 0.005, y: 0.005, z: 0.005}
   sodaDropTarget: {fileID: 1928210103}
   dropSpacing: 0.002
   sodaStack: []

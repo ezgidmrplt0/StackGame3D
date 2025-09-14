@@ -22,7 +22,7 @@ public class SodaStack : MonoBehaviour
     public float dropSpacing = 0.002f;
 
     // Soda listesi (StackCollector dropList'ten bağımsız)
-    private List<Transform> sodaStack = new List<Transform>();
+    public List<Transform> sodaStack = new List<Transform>();
     public List<Transform> sodaDropList = new List<Transform>();
 
     private bool canCollect = false;

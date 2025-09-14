@@ -23,6 +23,8 @@ TagManager:
   - CayToplamaKapali
   - SodaKapi
   - SodaYolu
+  - SodaAlmaNoktasi
+  - SodaProduct
   layers:
   - Default
   - TransparentFX

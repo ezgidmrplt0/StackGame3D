@@ -1,6 +1,5 @@
 using UnityEngine;
 using TMPro;
-using Unity.VisualScripting;
 
 public class MoneyManager : MonoBehaviour
 {
@@ -22,7 +21,20 @@ public class MoneyManager : MonoBehaviour
         money += amount;
         UpdateUI();
         Debug.Log("Para eklendi: " + amount + ", Toplam: " + money);
+    }
 
+    public bool SpendMoney(int amount)
+    {
+        if (money >= amount)
+        {
+            money -= amount;
+            UpdateUI();
+            Debug.Log("Para harcandý: " + amount + ", Kalan: " + money);
+            return true;
+        }
+
+        Debug.Log("Yetersiz bakiye! Gerekli: " + amount + " Mevcut: " + money);
+        return false;
     }
 
     void UpdateUI()

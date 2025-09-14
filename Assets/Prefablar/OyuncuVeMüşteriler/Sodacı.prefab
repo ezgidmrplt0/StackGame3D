@@ -263,16 +263,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f14c2306ff22a54da799952eeda569b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  depocuPrefab: {fileID: 0}
-  spawnPoint: {fileID: 0}
-  totalDuration: 20
-  cubeHeight: 0.005
-  maxStack: 10
-  spawnDelay: 0.4
-  sodaTargetScale: {x: 0.003, y: 0.003, z: 0.003}
-  sodaPrefab: {fileID: 0}
-  dropSpacing: 0.002
+  speed: 5
+  kapasite: 10
+  toplamaAraligi: 0.3
+  sodaPrefab: {fileID: 8446428039490992829, guid: 4550dbd2a4ed7bb409e5ab27431ff683, type: 3}
   stackRoot: {fileID: 247283042468947818}
+  stackSpacing: 0.3
+  sodaDropTarget: {fileID: 0}
+  sodaAlmaNoktasi: {fileID: 0}
+  sodaBirakmaNoktasi: {fileID: 0}
+  sodaBoyutu: {x: 0.3, y: 0.3, z: 0.3}
+  stackLimit: 5
+  tweenDuration: 0.3
+  tweenEase: 27
+  dropSpacing: 0.002
+  sodaDropList: []
 --- !u!1001 &4655633083192582317
 PrefabInstance:
   m_ObjectHideFlags: 0

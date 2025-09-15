@@ -14,7 +14,7 @@ public class SodaTasiyici : MonoBehaviour
     public float calismaSuresi = 20f; // saniye
 
     [Header("Drop Ayarlarý")]
-    public Transform dropTargetTransform; // Inspector'dan sürükleyeceðin hedef
+    public Transform dropTargetTransform;
 
     [Header("Soda Boyut ve Stack Ayarlarý")]
     public Vector3 sodaScale = new Vector3(0.0025f, 0.0025f, 0.0025f);
@@ -37,7 +37,7 @@ public class SodaTasiyici : MonoBehaviour
     public float fiyatArtis = 0.2f;
 
     [Header("Hedef Noktalar (Inspector’dan ekle)")]
-    public Transform[] yolNoktalari; // Oklarla çizdiðin ara noktalar
+    public Transform[] yolNoktalari;
 
     private List<Transform> stack = new List<Transform>();
     private bool aktif = false;
@@ -133,9 +133,10 @@ public class SodaTasiyici : MonoBehaviour
     IEnumerator CalismaRutini()
     {
         Debug.Log("Çalýþma rutini baþladý");
-        float timer = 0f;
 
-        // Tek seferlik tag bulma
+        float baslangicZamani = Time.time;
+        float bitisZamani = baslangicZamani + calismaSuresi;
+
         GameObject almaObj = GameObject.FindGameObjectWithTag("SodaNoktasi");
         if (almaObj == null)
         {
@@ -144,35 +145,35 @@ public class SodaTasiyici : MonoBehaviour
         }
         Transform almaNoktasi = almaObj.transform;
 
-        while (timer < calismaSuresi)
+        while (Time.time < bitisZamani)
         {
-            timer += Time.deltaTime;
+            float kalanSure = bitisZamani - Time.time;
+            Debug.Log($"Sodacý çalýþýyor... Kalan süre: {kalanSure:F1} sn");
 
-            // 1) Alma noktasýna git
+            // Alma noktasýna git
             yield return StartCoroutine(Git(almaNoktasi.position));
 
-            // 2) stackLimit kadar soda topla
-            while (stack.Count < stackLimit)
+            // Soda topla
+            while (stack.Count < stackLimit && Time.time < bitisZamani)
             {
                 AddSoda();
                 yield return new WaitForSeconds(toplamaAraligi);
             }
 
-            // 3) Oklarla çizilen yol noktalarý üzerinden ilerle
+            // Yol noktalarýndan geç
             if (yolNoktalari != null && yolNoktalari.Length > 0)
             {
                 yield return StartCoroutine(GitSirasiyla(yolNoktalari));
             }
 
-            // 4) StackSilmeNoktasi0 tag'li alana git
+            // Drop alanýna git
             GameObject dropArea = GameObject.FindGameObjectWithTag("StackSilmeNoktasi0");
             if (dropArea != null)
             {
                 yield return StartCoroutine(Git(dropArea.transform.position));
 
-                // Drop alanýnda bekleyerek temas kontrolü
                 float waitTime = 0f;
-                while (!dropAlaniTemas && waitTime < 3f) // Maksimum 3 saniye bekleyelim
+                while (!dropAlaniTemas && waitTime < 3f && Time.time < bitisZamani)
                 {
                     waitTime += Time.deltaTime;
                     yield return null;
@@ -180,8 +181,18 @@ public class SodaTasiyici : MonoBehaviour
 
                 if (dropAlaniTemas)
                 {
-                    // 5) Stack'i belirlenen transforma býrak
                     yield return StartCoroutine(DropSequence(dropTargetTransform));
+                }
+
+                // Geri dönüþ yol noktalarý
+                if (yolNoktalari != null && yolNoktalari.Length > 0)
+                {
+                    Transform[] reversePath = new Transform[yolNoktalari.Length];
+                    for (int i = 0; i < yolNoktalari.Length; i++)
+                    {
+                        reversePath[i] = yolNoktalari[yolNoktalari.Length - 1 - i];
+                    }
+                    yield return StartCoroutine(GitSirasiyla(reversePath));
                 }
             }
             else
@@ -190,8 +201,8 @@ public class SodaTasiyici : MonoBehaviour
             }
         }
 
-        Debug.Log("Çalýþma rutini bitti");
-        aktif = false;
+        Debug.Log("Çalýþma rutini bitti. Sodacý kayboluyor...");
+        KaybolVeYokOl();
     }
 
     void AddSoda()
@@ -222,7 +233,6 @@ public class SodaTasiyici : MonoBehaviour
             if (SodaStack.Instance != null)
             {
                 SodaStack.Instance.sodaDropList.Add(soda);
-
                 int dropIndex = SodaStack.Instance.sodaDropList.Count - 1;
                 Vector3 targetPos = hedef.position + Vector3.up * (SodaStack.Instance.cubeHeight * dropIndex);
 
@@ -232,7 +242,6 @@ public class SodaTasiyici : MonoBehaviour
             }
             else
             {
-                // SodaStack yoksa doðrudan hedef pozisyona býrak
                 Vector3 targetPos = hedef.position + Vector3.up * (stackSpacing * (stack.Count));
                 soda.DOJump(targetPos, stackSpacing * jumpHeightMultiplier, 1, 0.4f)
                     .SetEase(Ease.OutQuad);
@@ -242,7 +251,7 @@ public class SodaTasiyici : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
         }
 
-        dropAlaniTemas = false; // Temas durumunu sýfýrla
+        dropAlaniTemas = false;
         Debug.Log("Drop sequence bitti");
     }
 
@@ -250,12 +259,10 @@ public class SodaTasiyici : MonoBehaviour
     {
         while (Vector3.Distance(transform.position, hedef) > 0.05f)
         {
-            transform.position = Vector3.MoveTowards(transform.position, hedef,3.5f * speed * Time.deltaTime);
-
+            transform.position = Vector3.MoveTowards(transform.position, hedef, 3.5f * speed * Time.deltaTime);
             Vector3 dir = (hedef - transform.position).normalized;
             if (dir != Vector3.zero)
                 transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(dir), Time.deltaTime * 10f);
-
 
             yield return null;
         }
@@ -270,7 +277,6 @@ public class SodaTasiyici : MonoBehaviour
         }
     }
 
-    // Collision ile temas kontrolü
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("StackSilmeNoktasi0"))
@@ -288,6 +294,36 @@ public class SodaTasiyici : MonoBehaviour
             Debug.Log("Drop alanýndan çýkýldý");
         }
     }
+
+    private void KaybolVeYokOl()
+    {
+        if (gameObject == null) return;
+
+        aktif = false;
+
+        // Collider varsa kapat
+        Collider col = GetComponent<Collider>();
+        if (col != null)
+            col.enabled = false;
+
+        // Rigidbody varsa kinematik yap
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+            rb.isKinematic = true;
+
+        // DOTween ile küçülme animasyonu
+        transform.DOScale(Vector3.zero, 0.5f)
+            .SetEase(Ease.InBack)
+            .OnStart(() => Debug.Log("Sodacý küçülmeye baþladý"))
+            .OnKill(() => Debug.Log("DOTween animasyonu iptal edildi"))
+            .OnComplete(() =>
+            {
+                Debug.Log("Sodacý tamamen yok oldu. Destroy çaðrýldý.");
+                gameObject.SetActive(false); // önce disable et
+                Destroy(gameObject);          // sonra yok et
+            });
+    }
+
 
     void OnValidate()
     {

@@ -7,7 +7,7 @@ public class OyuncuVeKamera : MonoBehaviour
     [Header("Oyuncu Ayarları")]
     public float moveSpeed = 15f;
     public float rotationSpeed = 10f;
-    public float gravity = 0f;
+    public float gravity = -9.81f;
 
     private Rigidbody rb;
     private float verticalVelocity;
@@ -16,6 +16,10 @@ public class OyuncuVeKamera : MonoBehaviour
     public Transform cameraTransform;
     public Vector3 cameraOffset = new Vector3(10f, 10f, -10f);
     public float cameraFollowSpeed = 5f;
+
+    [Header("Mobil Kontrol")]
+    public bool useMobileInput = false;
+    public FixedJoystick joystick; // Buraya mobil joystick referansı
 
     void Start()
     {
@@ -36,19 +40,30 @@ public class OyuncuVeKamera : MonoBehaviour
 
     void Update()
     {
-        // Karakter hareketi
-        float moveX = Input.GetAxisRaw("Horizontal");
-        float moveZ = Input.GetAxisRaw("Vertical");
+        Vector3 move = Vector3.zero;
 
-        Vector3 camForward = Camera.main.transform.forward;
-        Vector3 camRight = Camera.main.transform.right;
-        camForward.y = 0f;
-        camRight.y = 0f;
-        camForward.Normalize();
-        camRight.Normalize();
+        if (useMobileInput && joystick != null)
+        {
+            // Mobil joystick input
+            move = GetMobileMove();
+        }
+        else
+        {
+            // PC input
+            float moveX = Input.GetAxisRaw("Horizontal");
+            float moveZ = Input.GetAxisRaw("Vertical");
 
-        Vector3 move = (camRight * moveX + camForward * moveZ).normalized;
+            Vector3 camForward = Camera.main.transform.forward;
+            Vector3 camRight = Camera.main.transform.right;
+            camForward.y = 0f;
+            camRight.y = 0f;
+            camForward.Normalize();
+            camRight.Normalize();
 
+            move = (camRight * moveX + camForward * moveZ).normalized;
+        }
+
+        // Yerçekimi
         if (!IsGrounded())
         {
             verticalVelocity += gravity * Time.deltaTime;
@@ -58,6 +73,7 @@ public class OyuncuVeKamera : MonoBehaviour
             verticalVelocity = -2f;
         }
 
+        // Hareket
         Vector3 finalVelocity = move * moveSpeed;
         finalVelocity.y = verticalVelocity;
         rb.velocity = finalVelocity;
@@ -78,12 +94,26 @@ public class OyuncuVeKamera : MonoBehaviour
                 transform.position.z + cameraOffset.z
             );
             cameraTransform.position = Vector3.Lerp(cameraTransform.position, targetPos, cameraFollowSpeed * Time.deltaTime);
-            cameraTransform.LookAt(new Vector3(transform.position.x, transform.position.y, transform.position.z));
+            cameraTransform.LookAt(transform.position);
         }
     }
 
     bool IsGrounded()
     {
         return Physics.Raycast(transform.position, -Vector3.up, 0.2f);
+    }
+
+    Vector3 GetMobileMove()
+    {
+        Vector3 camForward = Camera.main.transform.forward;
+        Vector3 camRight = Camera.main.transform.right;
+        camForward.y = 0f;
+        camRight.y = 0f;
+        camForward.Normalize();
+        camRight.Normalize();
+
+        // Joystick inputunu kullan
+        Vector3 moveDir = (camRight * joystick.Horizontal + camForward * joystick.Vertical).normalized;
+        return moveDir;
     }
 }

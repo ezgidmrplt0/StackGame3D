@@ -26,6 +26,8 @@ TagManager:
   - SodaAlmaNoktasi
   - SodaProduct
   - Sodaci
+  - ArabaSpawn
+  - ArabaDestroy
   layers:
   - Default
   - TransparentFX

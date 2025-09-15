@@ -8,8 +8,8 @@ using UnityEngine.UI;
 public class SodaTasiyici : MonoBehaviour
 {
     [Header("Ayarlar")]
-    public float speed = 8f;
-    public int stackLimit = 10;
+    public float speed = 200f;
+    public int stackLimit = 7;
     public float toplamaAraligi = 0.2f;
     public float calismaSuresi = 20f; // saniye
 
@@ -17,7 +17,7 @@ public class SodaTasiyici : MonoBehaviour
     public Transform dropTargetTransform; // Inspector'dan sürükleyeceðin hedef
 
     [Header("Soda Boyut ve Stack Ayarlarý")]
-    public Vector3 sodaScale = new Vector3(0.005f, 0.005f, 0.005f);
+    public Vector3 sodaScale = new Vector3(0.0025f, 0.0025f, 0.0025f);
     public float stackSpacing = 0.15f;
     public float jumpHeightMultiplier = 0.5f;
 
@@ -36,8 +36,12 @@ public class SodaTasiyici : MonoBehaviour
     public int fiyat = 100;
     public float fiyatArtis = 0.2f;
 
+    [Header("Hedef Noktalar (Inspector’dan ekle)")]
+    public Transform[] yolNoktalari; // Oklarla çizdiðin ara noktalar
+
     private List<Transform> stack = new List<Transform>();
     private bool aktif = false;
+    private bool dropAlaniTemas = false;
 
     void Start()
     {
@@ -97,6 +101,8 @@ public class SodaTasiyici : MonoBehaviour
                     yeniTasiyici.sodaScale = this.sodaScale;
                     yeniTasiyici.stackSpacing = this.stackSpacing;
                     yeniTasiyici.jumpHeightMultiplier = this.jumpHeightMultiplier;
+                    yeniTasiyici.dropTargetTransform = this.dropTargetTransform;
+                    yeniTasiyici.yolNoktalari = this.yolNoktalari;
                     yeniTasiyici.StartCoroutine(yeniTasiyici.CalismaRutini());
                 }
 
@@ -138,22 +144,6 @@ public class SodaTasiyici : MonoBehaviour
         }
         Transform almaNoktasi = almaObj.transform;
 
-        // Drop hedefi için artýk Inspector'dan sürüklenen kullanýlacak
-        Transform birakmaNoktasi = dropTargetTransform;
-        if (birakmaNoktasi == null)
-        {
-            // Fallback olarak eski tag-based sistem
-            GameObject fallback = GameObject.FindGameObjectWithTag("StackSilmeNoktasi0");
-            if (fallback != null)
-                birakmaNoktasi = fallback.transform;
-        }
-
-        if (birakmaNoktasi == null)
-        {
-            Debug.LogError("Drop hedefi atanmadý!");
-            yield break;
-        }
-
         while (timer < calismaSuresi)
         {
             timer += Time.deltaTime;
@@ -168,11 +158,36 @@ public class SodaTasiyici : MonoBehaviour
                 yield return new WaitForSeconds(toplamaAraligi);
             }
 
-            // 3) Býrakma noktasýna git
-            yield return StartCoroutine(Git(birakmaNoktasi.position));
+            // 3) Oklarla çizilen yol noktalarý üzerinden ilerle
+            if (yolNoktalari != null && yolNoktalari.Length > 0)
+            {
+                yield return StartCoroutine(GitSirasiyla(yolNoktalari));
+            }
 
-            // 4) Stack'i býrak
-            yield return StartCoroutine(DropSequence(birakmaNoktasi));
+            // 4) StackSilmeNoktasi0 tag'li alana git
+            GameObject dropArea = GameObject.FindGameObjectWithTag("StackSilmeNoktasi0");
+            if (dropArea != null)
+            {
+                yield return StartCoroutine(Git(dropArea.transform.position));
+
+                // Drop alanýnda bekleyerek temas kontrolü
+                float waitTime = 0f;
+                while (!dropAlaniTemas && waitTime < 3f) // Maksimum 3 saniye bekleyelim
+                {
+                    waitTime += Time.deltaTime;
+                    yield return null;
+                }
+
+                if (dropAlaniTemas)
+                {
+                    // 5) Stack'i belirlenen transforma býrak
+                    yield return StartCoroutine(DropSequence(dropTargetTransform));
+                }
+            }
+            else
+            {
+                Debug.LogError("StackSilmeNoktasi0 bulunamadý!");
+            }
         }
 
         Debug.Log("Çalýþma rutini bitti");
@@ -227,6 +242,7 @@ public class SodaTasiyici : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
         }
 
+        dropAlaniTemas = false; // Temas durumunu sýfýrla
         Debug.Log("Drop sequence bitti");
     }
 
@@ -234,22 +250,51 @@ public class SodaTasiyici : MonoBehaviour
     {
         while (Vector3.Distance(transform.position, hedef) > 0.05f)
         {
-            transform.position = Vector3.MoveTowards(transform.position, hedef, speed * Time.deltaTime);
+            transform.position = Vector3.MoveTowards(transform.position, hedef,3.5f * speed * Time.deltaTime);
 
             Vector3 dir = (hedef - transform.position).normalized;
             if (dir != Vector3.zero)
-                transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(dir), Time.deltaTime * 5f);
+                transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(dir), Time.deltaTime * 10f);
+
 
             yield return null;
+        }
+    }
+
+    IEnumerator GitSirasiyla(Transform[] noktalar)
+    {
+        foreach (Transform hedef in noktalar)
+        {
+            if (hedef != null)
+                yield return StartCoroutine(Git(hedef.position));
+        }
+    }
+
+    // Collision ile temas kontrolü
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("StackSilmeNoktasi0"))
+        {
+            dropAlaniTemas = true;
+            Debug.Log("Drop alanýna temas edildi");
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("StackSilmeNoktasi0"))
+        {
+            dropAlaniTemas = false;
+            Debug.Log("Drop alanýndan çýkýldý");
         }
     }
 
     void OnValidate()
     {
         sodaScale = new Vector3(
-            Mathf.Max(0.0001f, sodaScale.x),
-            Mathf.Max(0.0001f, sodaScale.y),
-            Mathf.Max(0.0001f, sodaScale.z)
+            Mathf.Max(0.0025f, sodaScale.x),
+            Mathf.Max(0.0025f, sodaScale.y),
+            Mathf.Max(0.0025f, sodaScale.z)
         );
         stackSpacing = Mathf.Max(0.01f, stackSpacing);
         jumpHeightMultiplier = Mathf.Max(0.01f, jumpHeightMultiplier);

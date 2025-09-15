@@ -264,13 +264,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 5
-  stackLimit: 5
+  stackLimit: 7
   toplamaAraligi: 0.3
   calismaSuresi: 20
+  dropTargetTransform: {fileID: 0}
+  sodaScale: {x: 0.0025, y: 0.0025, z: 0.0025}
+  stackSpacing: 0.3
+  jumpHeightMultiplier: 0.5
   sodaPrefab: {fileID: 8446428039490992829, guid: 4550dbd2a4ed7bb409e5ab27431ff683, type: 3}
   stackRoot: {fileID: 247283042468947818}
-  sodaBoyutu: {x: 0.3, y: 0.3, z: 0.3}
-  stackSpacing: 0.3
   sodaTasiyiciPrefab: {fileID: 0}
   spawnPozisyon: {fileID: 0}
   sodaciTag: Sodaci
@@ -278,8 +280,7 @@ MonoBehaviour:
   fiyatText: {fileID: 0}
   fiyat: 100
   fiyatArtis: 0.2
-  stackAlmaNoktasi: {fileID: 0}
-  stackBirakmaNoktasi: {fileID: 0}
+  yolNoktalari: []
 --- !u!1001 &4655633083192582317
 PrefabInstance:
   m_ObjectHideFlags: 0

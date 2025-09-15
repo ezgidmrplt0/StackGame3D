@@ -15,7 +15,7 @@ public class SodaStack : MonoBehaviour
     public float spawnDelay = 0.4f;
 
     [Header("Büyütülebilir Ölçek")]
-    public Vector3 sodaTargetScale = new Vector3(0.003f, 0.003f, 0.003f);
+    public Vector3 sodaTargetScale = new Vector3(0.0025f, 0.0025f, 0.0025f);
 
     [Header("Bırakma Ayarları")]
     public Transform sodaDropTarget;

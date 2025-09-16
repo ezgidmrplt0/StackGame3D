@@ -28,6 +28,7 @@ TagManager:
   - Sodaci
   - ArabaSpawn
   - ArabaDestroy
+  - ArabaTurn
   layers:
   - Default
   - TransparentFX

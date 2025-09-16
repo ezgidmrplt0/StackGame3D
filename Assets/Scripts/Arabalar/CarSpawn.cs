@@ -25,6 +25,19 @@ public class CarSpawner : MonoBehaviour
             int randomIndex = Random.Range(0, carPrefabs.Length);
             GameObject car = Instantiate(carPrefabs[randomIndex], spawnPoint.position, Quaternion.identity);
 
+            // Eðer yanlýþ dönen araçlardansa düzelt
+            string prefabName = carPrefabs[randomIndex].name;
+
+            if (prefabName == "Bus")
+            {
+                // 90 derece döndür (sahneye göre ayarlayabilirsin)
+                car.transform.Rotate(0f, 90f, 0f);
+            }
+            if (prefabName == "Gray Car" || prefabName == "Orange Truck")
+            {
+                car.transform.Rotate(0f, -90f, 0);
+            }
+
             yield return new WaitForSeconds(spawnInterval);
         }
     }

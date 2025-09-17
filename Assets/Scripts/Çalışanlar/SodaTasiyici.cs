@@ -42,6 +42,25 @@ public class SodaTasiyici : MonoBehaviour
     private List<Transform> stack = new List<Transform>();
     private bool aktif = false;
     private bool dropAlaniTemas = false;
+    private Coroutine dropCoroutine = null;
+
+    private enum SodaState
+    {
+        Idle,
+        GoingToCollect,
+        Collecting,
+        GoingThroughPath,
+        GoingToDrop,
+        Dropping,
+        Returning
+    }
+
+    private SodaState currentState = SodaState.Idle;
+    private Transform almaNoktasi;
+    private Transform[] currentPath;
+    private int pathIndex;
+    private float nextCollectTime;
+    private float calismaBitisZamani;
 
     void Start()
     {
@@ -53,11 +72,163 @@ public class SodaTasiyici : MonoBehaviour
 
         if (fiyatText != null)
             fiyatText.text = fiyat.ToString();
+
+        almaNoktasi = GameObject.FindGameObjectWithTag("SodaNoktasi")?.transform;
+        if (almaNoktasi == null)
+            Debug.LogError("SodaNoktasi bulunamadý!");
     }
 
-    void Update()
+    private void Update()
     {
         UpdateStackPositions();
+
+        if (!aktif) return;
+
+        switch (currentState)
+        {
+            case SodaState.GoingToCollect:
+                MoveTowards(almaNoktasi.position);
+                RotateTowards(almaNoktasi.position);
+                if (Vector3.Distance(transform.position, almaNoktasi.position) < 0.05f)
+                {
+                    currentState = SodaState.Collecting;
+                    nextCollectTime = Time.time;
+                }
+                break;
+
+            case SodaState.Collecting:
+                if (Time.time >= nextCollectTime && stack.Count < stackLimit)
+                {
+                    AddSoda();
+                    nextCollectTime = Time.time + toplamaAraligi;
+                }
+                if (stack.Count >= stackLimit)
+                {
+                    if (yolNoktalari != null && yolNoktalari.Length > 0)
+                    {
+                        currentPath = yolNoktalari;
+                        pathIndex = 0;
+                        currentState = SodaState.GoingThroughPath;
+                    }
+                    else
+                    {
+                        currentState = SodaState.GoingToDrop;
+                    }
+                }
+                break;
+
+            case SodaState.GoingThroughPath:
+                if (currentPath != null && pathIndex < currentPath.Length)
+                {
+                    MoveTowards(currentPath[pathIndex].position);
+                    RotateTowards(currentPath[pathIndex].position);
+
+                    if (Vector3.Distance(transform.position, currentPath[pathIndex].position) < 0.05f)
+                        pathIndex++;
+                }
+                else
+                {
+                    if (currentPath == yolNoktalari)
+                    {
+                        currentState = SodaState.GoingToDrop;
+                    }
+                    else
+                    {
+                        currentState = SodaState.GoingToCollect;
+                    }
+                }
+                break;
+
+            case SodaState.GoingToDrop:
+                Transform dropArea = GameObject.FindGameObjectWithTag("StackSilmeNoktasi0")?.transform;
+                if (dropArea != null)
+                {
+                    MoveTowards(dropArea.position);
+                    RotateTowards(dropArea.position);
+
+                    if (Vector3.Distance(transform.position, dropArea.position) < 0.05f || dropAlaniTemas)
+                    {
+                        if (dropCoroutine == null)
+                        {
+                            currentState = SodaState.Dropping;
+                            dropCoroutine = StartCoroutine(DropAllSodasCoroutine());
+                        }
+                    }
+                }
+                break;
+
+            case SodaState.Dropping:
+                // This state is now managed by the coroutine, so we do nothing here.
+                break;
+
+            case SodaState.Returning:
+                if (yolNoktalari != null && yolNoktalari.Length > 0)
+                {
+                    Transform[] reversePath = new Transform[yolNoktalari.Length];
+                    for (int i = 0; i < yolNoktalari.Length; i++)
+                        reversePath[i] = yolNoktalari[yolNoktalari.Length - 1 - i];
+
+                    currentPath = reversePath;
+                    pathIndex = 0;
+                    currentState = SodaState.GoingThroughPath;
+                }
+                else
+                {
+                    currentState = SodaState.GoingToCollect;
+                }
+
+                if (Time.time >= calismaBitisZamani)
+                {
+                    KaybolVeYokOl();
+                    currentState = SodaState.Idle;
+                }
+                break;
+        }
+    }
+
+    private IEnumerator DropAllSodasCoroutine()
+    {
+        while (stack.Count > 0)
+        {
+            Transform soda = stack[stack.Count - 1];
+            stack.RemoveAt(stack.Count - 1);
+            soda.SetParent(null);
+
+            if (SodaStack.Instance != null)
+            {
+                SodaStack.Instance.sodaDropList.Add(soda);
+                int dropIndex = SodaStack.Instance.sodaDropList.Count - 1;
+                Vector3 targetPos = dropTargetTransform.position + Vector3.up * (SodaStack.Instance.cubeHeight * dropIndex);
+                soda.DOJump(targetPos, stackSpacing * jumpHeightMultiplier, 1, 0.4f)
+                    .SetEase(Ease.OutQuad)
+                    .OnComplete(() => soda.rotation = Quaternion.identity);
+            }
+            else
+            {
+                Vector3 targetPos = dropTargetTransform.position + Vector3.up * (stackSpacing * stack.Count);
+                soda.DOJump(targetPos, stackSpacing * jumpHeightMultiplier, 1, 0.4f)
+                    .SetEase(Ease.OutQuad)
+                    .OnComplete(() => soda.rotation = Quaternion.identity);
+                Debug.LogWarning("SodaStack.Instance bulunamadý! Doðrudan hedefe býrakýlýyor.");
+            }
+
+            yield return new WaitForSeconds(toplamaAraligi);
+        }
+
+        currentState = SodaState.Returning;
+        dropCoroutine = null;
+    }
+
+    private void MoveTowards(Vector3 hedef)
+    {
+        transform.position = Vector3.MoveTowards(transform.position, hedef, speed * Time.deltaTime);
+    }
+
+    private void RotateTowards(Vector3 hedef)
+    {
+        Vector3 dir = (hedef - transform.position).normalized;
+        if (dir != Vector3.zero)
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), Time.deltaTime * 5f);
     }
 
     private void UpdateStackPositions()
@@ -103,7 +274,8 @@ public class SodaTasiyici : MonoBehaviour
                     yeniTasiyici.jumpHeightMultiplier = this.jumpHeightMultiplier;
                     yeniTasiyici.dropTargetTransform = this.dropTargetTransform;
                     yeniTasiyici.yolNoktalari = this.yolNoktalari;
-                    yeniTasiyici.StartCoroutine(yeniTasiyici.CalismaRutini());
+                    yeniTasiyici.calismaBitisZamani = Time.time + calismaSuresi;
+                    yeniTasiyici.currentState = SodaState.GoingToCollect;
                 }
 
                 Debug.Log("SodaTasiyici sahneye spawn edildi.");
@@ -126,83 +298,9 @@ public class SodaTasiyici : MonoBehaviour
             if (fiyatText != null)
                 fiyatText.text = fiyat.ToString();
 
-            StartCoroutine(CalismaRutini());
+            calismaBitisZamani = Time.time + calismaSuresi;
+            currentState = SodaState.GoingToCollect;
         }
-    }
-
-    IEnumerator CalismaRutini()
-    {
-        Debug.Log("Çalýþma rutini baþladý");
-
-        float baslangicZamani = Time.time;
-        float bitisZamani = baslangicZamani + calismaSuresi;
-
-        GameObject almaObj = GameObject.FindGameObjectWithTag("SodaNoktasi");
-        if (almaObj == null)
-        {
-            Debug.LogError("SodaNoktasi bulunamadý!");
-            yield break;
-        }
-        Transform almaNoktasi = almaObj.transform;
-
-        while (Time.time < bitisZamani)
-        {
-            float kalanSure = bitisZamani - Time.time;
-            Debug.Log($"Sodacý çalýþýyor... Kalan süre: {kalanSure:F1} sn");
-
-            // Alma noktasýna git
-            yield return StartCoroutine(Git(almaNoktasi.position));
-
-            // Soda topla
-            while (stack.Count < stackLimit && Time.time < bitisZamani)
-            {
-                AddSoda();
-                yield return new WaitForSeconds(toplamaAraligi);
-            }
-
-            // Yol noktalarýndan geç
-            if (yolNoktalari != null && yolNoktalari.Length > 0)
-            {
-                yield return StartCoroutine(GitSirasiyla(yolNoktalari));
-            }
-
-            // Drop alanýna git
-            GameObject dropArea = GameObject.FindGameObjectWithTag("StackSilmeNoktasi0");
-            if (dropArea != null)
-            {
-                yield return StartCoroutine(Git(dropArea.transform.position));
-
-                float waitTime = 0f;
-                while (!dropAlaniTemas && waitTime < 3f && Time.time < bitisZamani)
-                {
-                    waitTime += Time.deltaTime;
-                    yield return null;
-                }
-
-                if (dropAlaniTemas)
-                {
-                    yield return StartCoroutine(DropSequence(dropTargetTransform));
-                }
-
-                // Geri dönüþ yol noktalarý
-                if (yolNoktalari != null && yolNoktalari.Length > 0)
-                {
-                    Transform[] reversePath = new Transform[yolNoktalari.Length];
-                    for (int i = 0; i < yolNoktalari.Length; i++)
-                    {
-                        reversePath[i] = yolNoktalari[yolNoktalari.Length - 1 - i];
-                    }
-                    yield return StartCoroutine(GitSirasiyla(reversePath));
-                }
-            }
-            else
-            {
-                Debug.LogError("StackSilmeNoktasi0 bulunamadý!");
-            }
-        }
-
-        Debug.Log("Çalýþma rutini bitti. Sodacý kayboluyor...");
-        KaybolVeYokOl();
     }
 
     void AddSoda()
@@ -218,63 +316,6 @@ public class SodaTasiyici : MonoBehaviour
 
         stack.Add(newSoda.transform);
         Debug.Log($"Soda eklendi. Toplam: {stack.Count}");
-    }
-
-    IEnumerator DropSequence(Transform hedef)
-    {
-        Debug.Log("Drop sequence baþladý");
-
-        while (stack.Count > 0)
-        {
-            Transform soda = stack[stack.Count - 1];
-            stack.RemoveAt(stack.Count - 1);
-            soda.SetParent(null);
-
-            if (SodaStack.Instance != null)
-            {
-                SodaStack.Instance.sodaDropList.Add(soda);
-                int dropIndex = SodaStack.Instance.sodaDropList.Count - 1;
-                Vector3 targetPos = hedef.position + Vector3.up * (SodaStack.Instance.cubeHeight * dropIndex);
-
-                soda.DOJump(targetPos, stackSpacing * jumpHeightMultiplier, 1, 0.4f)
-                    .SetEase(Ease.OutQuad)
-                    .OnComplete(() => { soda.rotation = Quaternion.identity; });
-            }
-            else
-            {
-                Vector3 targetPos = hedef.position + Vector3.up * (stackSpacing * (stack.Count));
-                soda.DOJump(targetPos, stackSpacing * jumpHeightMultiplier, 1, 0.4f)
-                    .SetEase(Ease.OutQuad);
-                Debug.LogWarning("SodaStack.Instance bulunamadý! Doðrudan hedefe býrakýlýyor.");
-            }
-
-            yield return new WaitForSeconds(0.1f);
-        }
-
-        dropAlaniTemas = false;
-        Debug.Log("Drop sequence bitti");
-    }
-
-    IEnumerator Git(Vector3 hedef)
-    {
-        while (Vector3.Distance(transform.position, hedef) > 0.05f)
-        {
-            transform.position = Vector3.MoveTowards(transform.position, hedef, 3.5f * speed * Time.deltaTime);
-            Vector3 dir = (hedef - transform.position).normalized;
-            if (dir != Vector3.zero)
-                transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(dir), Time.deltaTime * 10f);
-
-            yield return null;
-        }
-    }
-
-    IEnumerator GitSirasiyla(Transform[] noktalar)
-    {
-        foreach (Transform hedef in noktalar)
-        {
-            if (hedef != null)
-                yield return StartCoroutine(Git(hedef.position));
-        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -301,17 +342,14 @@ public class SodaTasiyici : MonoBehaviour
 
         aktif = false;
 
-        // Collider varsa kapat
         Collider col = GetComponent<Collider>();
         if (col != null)
             col.enabled = false;
 
-        // Rigidbody varsa kinematik yap
         Rigidbody rb = GetComponent<Rigidbody>();
         if (rb != null)
             rb.isKinematic = true;
 
-        // DOTween ile küçülme animasyonu
         transform.DOScale(Vector3.zero, 0.5f)
             .SetEase(Ease.InBack)
             .OnStart(() => Debug.Log("Sodacý küçülmeye baþladý"))
@@ -319,11 +357,10 @@ public class SodaTasiyici : MonoBehaviour
             .OnComplete(() =>
             {
                 Debug.Log("Sodacý tamamen yok oldu. Destroy çaðrýldý.");
-                gameObject.SetActive(false); // önce disable et
-                Destroy(gameObject);          // sonra yok et
+                gameObject.SetActive(false);
+                Destroy(gameObject);
             });
     }
-
 
     void OnValidate()
     {

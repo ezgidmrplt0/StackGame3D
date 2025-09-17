@@ -107,7 +107,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3670405753088119664, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_TagString
-      value: Sodaci
+      value: Untagged
       objectReference: {fileID: 0}
     - target: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_LocalScale.x
@@ -263,7 +263,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f14c2306ff22a54da799952eeda569b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 5
+  speed: 20
   stackLimit: 7
   toplamaAraligi: 0.3
   calismaSuresi: 20
@@ -281,6 +281,8 @@ MonoBehaviour:
   fiyat: 100
   fiyatArtis: 0.2
   yolNoktalari: []
+  almaNoktasi: {fileID: 0}
+  currentPath: []
 --- !u!1001 &4655633083192582317
 PrefabInstance:
   m_ObjectHideFlags: 0

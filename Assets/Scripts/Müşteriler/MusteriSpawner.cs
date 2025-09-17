@@ -15,6 +15,7 @@ public class MusteriSpawner : MonoBehaviour
 
     [Header("Spawn Ayarları")]
     public float spawnInterval = 3f;
+    public float eveningSpawnInterval = 10f; // Akşam için daha uzun aralık (daha az müşteri için)
     private float timer = 0f;
     public int maxMusteri = 15;
     public int maxDondurmaMusteri = 3;
@@ -24,9 +25,12 @@ public class MusteriSpawner : MonoBehaviour
 
     void Update()
     {
+        // Günün saatine göre doğru aralığı belirle
+        float currentSpawnInterval = GunKodlari.IsEvening() ? eveningSpawnInterval : spawnInterval;
+
         timer += Time.deltaTime;
 
-        if (timer >= spawnInterval)
+        if (timer >= currentSpawnInterval)
         {
             bool dondurmaSpawn = Random.value < dondurmaMusteriOrani;
 

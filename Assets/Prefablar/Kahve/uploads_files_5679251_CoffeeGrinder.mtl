@@ -1,0 +1,13 @@
+# Blender 4.2.0 MTL File: 'None'
+# www.blender.org
+
+newmtl CoffeeGrinder
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd E:/sitesuploads/coffee grinder/coffee-grinder/textures/CoffeGrinder_BaseColor.png
+map_Ns E:/sitesuploads/coffee grinder/coffee-grinder/textures/CoffeGrinder__Roughness.jpg
+map_refl E:/sitesuploads/coffee grinder/coffee-grinder/textures/CoffeGrinder__Metallic.jpg

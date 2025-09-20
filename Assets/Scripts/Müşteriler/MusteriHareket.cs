@@ -32,7 +32,6 @@ public class MusteriHareket : MonoBehaviour
     private bool kuyruktanCikarildi = false;
     private bool waitingAfterProduct = false;
     private float waitTimer = 0f;
-    private bool paraKazanildi = false;
 
     [Header("UI")]
     public TextMeshProUGUI urunText;
@@ -61,11 +60,9 @@ public class MusteriHareket : MonoBehaviour
     public RawImage sodaImage;
     public RawImage dondurmaImage;
 
-    // Tek tip resim, geçmiş için bırakılabilir
-    public RawImage productImage;
-    public Texture cayTexture;
-    public Texture sodaTexture;
-    public Texture dondurmaTexture;
+    // Otomatik dondurma alma için
+    private float urunAlmaAraligi = 0.5f;
+    private float dondurmaAlmaTimer = 0f;
 
     void Start()
     {
@@ -131,8 +128,8 @@ public class MusteriHareket : MonoBehaviour
                         MusteriSpawner.UpdateQueuePositions();
                     }
                     else if (musteriTipi == MusteriTipi.Dondurma &&
-                             MusteriSpawner.dondurmaMusteriKuyrugu.Count > 0 &&
-                             MusteriSpawner.dondurmaMusteriKuyrugu.Peek() == this)
+                               MusteriSpawner.dondurmaMusteriKuyrugu.Count > 0 &&
+                               MusteriSpawner.dondurmaMusteriKuyrugu.Peek() == this)
                     {
                         MusteriSpawner.dondurmaMusteriKuyrugu.Dequeue();
                         MusteriSpawner.UpdateDondurmaQueuePositions();
@@ -142,11 +139,26 @@ public class MusteriHareket : MonoBehaviour
             }
             return;
         }
-
-        if (musteriTipi == MusteriTipi.Dondurma && isAtCounter && !paraKazanildi)
+        // Dondurma müşterisi tezgâhtaysa, daha fazla ürüne ihtiyacı varsa VE KÜLAH VARSA
+        if (musteriTipi == MusteriTipi.Dondurma && IsAtCounter() && NeedsMoreProducts())
         {
-            StartCoroutine(DondurmaBeklemeRutini());
+            // Külah kalmadıysa bekle
+            if (KulahYenileme.Instance.mevcutKulahSayisi <= 0)
+            {
+                // Müşteri külah beklerken yürümeyi durdursun
+                if (animator != null)
+                    animator.SetBool("isWalking", false);
+                return; // İşlemi durdur
+            }
+
+            dondurmaAlmaTimer += Time.deltaTime;
+            if (dondurmaAlmaTimer >= urunAlmaAraligi)
+            {
+                ReceiveProduct();
+                dondurmaAlmaTimer = 0f;
+            }
         }
+
 
         Transform hedefNokta = musteriTipi == MusteriTipi.Dondurma ? dondurmaNoktasi : musteriNoktasi;
         if (hedefNokta == null) return;
@@ -313,9 +325,30 @@ public class MusteriHareket : MonoBehaviour
     {
         if (!CanReceiveProduct()) return;
 
+        // Dondurma müşterisi sadece külah varsa dondurma alsın
+        if (musteriTipi == MusteriTipi.Dondurma)
+        {
+            // Külah kalmadıysa dondurma alma işlemini durdur
+            if (KulahYenileme.Instance.mevcutKulahSayisi <= 0)
+            {
+                return;
+            }
+
+            // Külah kullan ve para kazan
+            KulahYenileme.Instance.KulahKullan();
+            if (MoneyManager.Instance != null)
+            {
+                MoneyManager.Instance.AddMoney(10);
+            }
+        }
+
+        // Alınan ürün sayısını artır
         alinanUrunSayisi++;
+
+        // UI'ı güncelle
         UpdateUI();
 
+        // Tüm ürünleri aldıysa bekleme durumuna geç
         if (alinanUrunSayisi >= istenenUrunSayisi)
         {
             waitingAfterProduct = true;
@@ -371,30 +404,6 @@ public class MusteriHareket : MonoBehaviour
                 satisAlaniDolu = false;
             else
                 dondurmaAlaniDolu = false;
-        }
-    }
-
-    private IEnumerator DondurmaBeklemeRutini()
-    {
-        paraKazanildi = true;
-
-        if (animator != null)
-            animator.SetBool("isWalking", false);
-
-        yield return new WaitForSeconds(2f);
-
-        int kazanilanPara = istenenUrunSayisi * 10;
-        if (MoneyManager.Instance != null)
-            MoneyManager.Instance.AddMoney(kazanilanPara);
-
-        hasBeenServed = true;
-
-        if (!kuyruktanCikarildi && MusteriSpawner.dondurmaMusteriKuyrugu.Count > 0 &&
-            MusteriSpawner.dondurmaMusteriKuyrugu.Peek() == this)
-        {
-            MusteriSpawner.dondurmaMusteriKuyrugu.Dequeue();
-            MusteriSpawner.UpdateDondurmaQueuePositions();
-            kuyruktanCikarildi = true;
         }
     }
 }

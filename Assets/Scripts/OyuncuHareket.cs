@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class OyuncuVeKamera : MonoBehaviour
 {
@@ -12,6 +13,8 @@ public class OyuncuVeKamera : MonoBehaviour
     private Rigidbody rb;
     private float verticalVelocity;
 
+    private float speedMultiplier = 1f; // Hız çarpanı (default 1)
+
     [Header("Kamera Ayarları")]
     public Transform cameraTransform;
     public Vector3 cameraOffset = new Vector3(10f, 10f, -10f);
@@ -19,7 +22,7 @@ public class OyuncuVeKamera : MonoBehaviour
 
     [Header("Mobil Kontrol")]
     public bool useMobileInput = false;
-    public FixedJoystick joystick; // Buraya mobil joystick referansı
+    public Joystick joystick; // ✔ Burada artık Floating/Dynamic/Variable/Fixed hepsi olur
 
     void Start()
     {
@@ -74,7 +77,7 @@ public class OyuncuVeKamera : MonoBehaviour
         }
 
         // Hareket
-        Vector3 finalVelocity = move * moveSpeed;
+        Vector3 finalVelocity = move * moveSpeed * speedMultiplier;
         finalVelocity.y = verticalVelocity;
         rb.velocity = finalVelocity;
 
@@ -115,5 +118,11 @@ public class OyuncuVeKamera : MonoBehaviour
         // Joystick inputunu kullan
         Vector3 moveDir = (camRight * joystick.Horizontal + camForward * joystick.Vertical).normalized;
         return moveDir;
+    }
+
+    // 🚀 Hız değiştirici (DOTween ile yumuşak geçiş)
+    public void SetSpeedMultiplier(float targetValue)
+    {
+        DOTween.To(() => speedMultiplier, x => speedMultiplier = x, targetValue, 0.5f);
     }
 }

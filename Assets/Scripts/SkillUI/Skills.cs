@@ -21,7 +21,7 @@ public class Skills : MonoBehaviour
     public Button button3;
 
     [Header("Sesler")]
-    public AudioSource audioSource; 
+    public AudioSource audioSource;
     public AudioClip openSound;
     public AudioClip closeSound;
     public AudioClip buttonSound;
@@ -34,8 +34,14 @@ public class Skills : MonoBehaviour
         }
         if (panel != null)
         {
+            // Panelin kapalı pozisyonunu mevcut konum olarak ayarla
             panelClosedPosition = panel.anchoredPosition;
-            panelOpenPosition = panelClosedPosition + new Vector2(panel.rect.width, 0);
+
+            // Panelin tam ekranı kaplayacak açık pozisyonunu hesapla
+            // Buradaki değerler paneli ekranın sağına hizalamak için kullanılır
+            // Panelin sağ kenarının, parent'ının (ekranın) sağ kenarına gelmesi için
+            // X pozisyonunu sıfıra yaklaştırırız.
+            panelOpenPosition = new Vector2(0, panelClosedPosition.y);
         }
         else
         {
@@ -69,12 +75,14 @@ public class Skills : MonoBehaviour
 
         if (isPanelOpen)
         {
+            // Paneli kapalı pozisyonuna (başlangıçtaki X değeri) kaydır
             panel.DOAnchorPosX(panelClosedPosition.x, animationDuration).SetEase(Ease.InOutQuad);
             isPanelOpen = false;
             PlaySound(closeSound);
         }
         else
         {
+            // Paneli açık pozisyonuna (0 X değeri) kaydır
             panel.DOAnchorPosX(panelOpenPosition.x, animationDuration).SetEase(Ease.InOutQuad);
             isPanelOpen = true;
             PlaySound(openSound);

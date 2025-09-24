@@ -14,4 +14,14 @@ public class Menu : MonoBehaviour
     {
         SceneManager.LoadScene("MainMenu");
     }
+
+    public void Çýkýþ()
+    {
+        Application.Quit();
+    }
+
+    public void Oyna()
+    {
+        SceneManager.LoadScene("MainGame");
+    }
 }

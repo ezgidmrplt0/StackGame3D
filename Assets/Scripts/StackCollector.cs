@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 using TMPro;
+using UnityEngine.UI; // UI.Button kullanabilmek için eklendi
 
 public class StackCollector : MonoBehaviour
 {
@@ -38,6 +39,9 @@ public class StackCollector : MonoBehaviour
     public float costIncreaseRate = 0.2f;
     public float kasiyerDuration = 20f;
     public TextMeshProUGUI kasiyerFiyatText;
+
+    // **Popülarite Sistemi Eklemesi:** Butona erişmek için yeni değişken
+    public Button kasiyerHiringButton;
 
     [Header("Çay Sistemi")]
     public string cayToplamaTag = "CayToplamaNoktasi";
@@ -261,8 +265,21 @@ public class StackCollector : MonoBehaviour
 
     void UpdateKasiyerUI()
     {
+        // **Popülarite Sistemi Eklemesi:** Butonu popülariteye göre etkinleştir/devre dışı bırak
+        if (kasiyerHiringButton != null)
+        {
+            if (Popularity.Instance.popularityScore >= 100)
+            {
+                kasiyerHiringButton.interactable = true;
+            }
+            else
+            {
+                kasiyerHiringButton.interactable = false;
+            }
+        }
+
         if (kasiyerFiyatText != null)
-            kasiyerFiyatText.text = $"Kasiyer Al ({kasiyerCost}$)";
+            kasiyerFiyatText.text = $"{kasiyerCost}$";
     }
 
     void UpdateStackPositions()
@@ -289,93 +306,93 @@ public class StackCollector : MonoBehaviour
     }
 
     void OnTriggerEnter(Collider other)
-{
-    // Temas edilen nesne çay toplama noktası mı kontrol et
-    if (other.CompareTag(cayToplamaTag))
     {
-        // Temas edilen objenin CayToplamaAnim script'ini almaya çalış
-        CayToplamaAnim cayAnim = other.GetComponent<CayToplamaAnim>();
-
-        // Eğer bir CayToplamaAnim script'i varsa VE toplanmaya hazırsa
-        if (cayAnim != null && cayAnim.isReadyToCollect)
+        // Temas edilen nesne çay toplama noktası mı kontrol et
+        if (other.CompareTag(cayToplamaTag))
         {
-            // Oyuncunun üzerinde ham çay taşıma limiti aşılmadıysa
-            if (uzerimdeHamCay < hamCayTasimaLimiti)
+            // Temas edilen objenin CayToplamaAnim script'ini almaya çalış
+            CayToplamaAnim cayAnim = other.GetComponent<CayToplamaAnim>();
+
+            // Eğer bir CayToplamaAnim script'i varsa VE toplanmaya hazırsa
+            if (cayAnim != null && cayAnim.isReadyToCollect)
             {
-                // Toplama animasyonunu tetikle
-                cayAnim.TriggerShrink();
-                
-                // Oyuncunun stack'ine ham çay ekle
-                uzerimdeHamCay += toplamaAdedi;
-                uzerimdeHamCay = Mathf.Min(uzerimdeHamCay, hamCayTasimaLimiti);
-                AddHamCayCube();
+                // Oyuncunun üzerinde ham çay taşıma limiti aşılmadıysa
+                if (uzerimdeHamCay < hamCayTasimaLimiti)
+                {
+                    // Toplama animasyonunu tetikle
+                    cayAnim.TriggerShrink();
+
+                    // Oyuncunun stack'ine ham çay ekle
+                    uzerimdeHamCay += toplamaAdedi;
+                    uzerimdeHamCay = Mathf.Min(uzerimdeHamCay, hamCayTasimaLimiti);
+                    AddHamCayCube();
+                }
             }
         }
-    }
 
-    // Diğer temas kontrol kodları aynı kalıyor
-    if (other.CompareTag(cayBirakmaTag))
-    {
-        birakmaAlaninda = true;
-        if (birakmaLoop == null)
-            birakmaLoop = StartCoroutine(BirakmaLoop());
-    }
-
-    if (other.CompareTag("StackNoktasi0"))
-    {
-        if (stackingLoop == null)
-            stackingLoop = StartCoroutine(SpawnLoop());
-    }
-
-    if (other.CompareTag("StackSilmeNoktasi0"))
-    {
-        isInDropArea = true;
-        if (dropLoop == null)
-            dropLoop = StartCoroutine(DropSequence());
-    }
-
-    if (other.CompareTag("SatisNoktasi"))
-    {
-        isInSalesArea = true;
-    }
-}
-
-void OnTriggerExit(Collider other)
-{
-    if (other.CompareTag(cayBirakmaTag))
-    {
-        birakmaAlaninda = false;
-        if (birakmaLoop != null)
+        // Diğer temas kontrol kodları aynı kalıyor
+        if (other.CompareTag(cayBirakmaTag))
         {
-            StopCoroutine(birakmaLoop);
-            birakmaLoop = null;
+            birakmaAlaninda = true;
+            if (birakmaLoop == null)
+                birakmaLoop = StartCoroutine(BirakmaLoop());
+        }
+
+        if (other.CompareTag("StackNoktasi0"))
+        {
+            if (stackingLoop == null)
+                stackingLoop = StartCoroutine(SpawnLoop());
+        }
+
+        if (other.CompareTag("StackSilmeNoktasi0"))
+        {
+            isInDropArea = true;
+            if (dropLoop == null)
+                dropLoop = StartCoroutine(DropSequence());
+        }
+
+        if (other.CompareTag("SatisNoktasi"))
+        {
+            isInSalesArea = true;
         }
     }
 
-    if (other.CompareTag("StackNoktasi0"))
+    void OnTriggerExit(Collider other)
     {
-        if (stackingLoop != null)
+        if (other.CompareTag(cayBirakmaTag))
         {
-            StopCoroutine(stackingLoop);
-            stackingLoop = null;
+            birakmaAlaninda = false;
+            if (birakmaLoop != null)
+            {
+                StopCoroutine(birakmaLoop);
+                birakmaLoop = null;
+            }
+        }
+
+        if (other.CompareTag("StackNoktasi0"))
+        {
+            if (stackingLoop != null)
+            {
+                StopCoroutine(stackingLoop);
+                stackingLoop = null;
+            }
+        }
+
+        if (other.CompareTag("StackSilmeNoktasi0"))
+        {
+            isInDropArea = false;
+            if (dropLoop != null)
+            {
+                StopCoroutine(dropLoop);
+                dropLoop = null;
+            }
+        }
+
+        if (other.CompareTag("SatisNoktasi"))
+        {
+            isInSalesArea = false;
         }
     }
-
-    if (other.CompareTag("StackSilmeNoktasi0"))
-    {
-        isInDropArea = false;
-        if (dropLoop != null)
-        {
-            StopCoroutine(dropLoop);
-            dropLoop = null;
-        }
-    }
-
-    if (other.CompareTag("SatisNoktasi"))
-    {
-        isInSalesArea = false;
-    }
-}
 
     IEnumerator ToplamaLoop()
     {

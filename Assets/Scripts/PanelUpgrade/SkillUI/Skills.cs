@@ -41,7 +41,8 @@ public class Skills : MonoBehaviour
             // Buradaki değerler paneli ekranın sağına hizalamak için kullanılır
             // Panelin sağ kenarının, parent'ının (ekranın) sağ kenarına gelmesi için
             // X pozisyonunu sıfıra yaklaştırırız.
-            panelOpenPosition = new Vector2(0, panelClosedPosition.y);
+            panelOpenPosition = new Vector2(panelClosedPosition.x + 262f, panelClosedPosition.y);
+
         }
         else
         {
@@ -75,14 +76,12 @@ public class Skills : MonoBehaviour
 
         if (isPanelOpen)
         {
-            // Paneli kapalı pozisyonuna (başlangıçtaki X değeri) kaydır
             panel.DOAnchorPosX(panelClosedPosition.x, animationDuration).SetEase(Ease.InOutQuad);
             isPanelOpen = false;
             PlaySound(closeSound);
         }
         else
         {
-            // Paneli açık pozisyonuna (0 X değeri) kaydır
             panel.DOAnchorPosX(panelOpenPosition.x, animationDuration).SetEase(Ease.InOutQuad);
             isPanelOpen = true;
             PlaySound(openSound);

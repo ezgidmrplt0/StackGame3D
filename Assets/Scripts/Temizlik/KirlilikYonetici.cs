@@ -2,22 +2,37 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using UnityEngine.UI; // UI bileþenlerini kullanmak için
 
 public class KirlilikYonetici : MonoBehaviour
 {
     public GameObject[] kirliAlanlar;
     public float minKirlenmeSuresi = 15f;
     public float maxKirlenmeSuresi = 45f;
-    public float olusmaAnimasyonSuresi = 1f; // Oluþum animasyonunun süresi
+    public float olusmaAnimasyonSuresi = 1f;
+
+    // Temizlik Barý deðiþkenleri
+    public Slider kirlilikBar;
+    public Image barRenkImage;
+    public Color temizRenk = Color.green;
+    public Color kirliRenk = Color.red;
+
+    private int aktifKirliAlanSayisi = 0;
 
     private void Start()
     {
-        // Baþlangýçta tüm kirli alanlarý gizle ve transparanlýklarýný sýfýrla
         foreach (GameObject kirliAlan in kirliAlanlar)
         {
-            SetObjectAlpha(kirliAlan, 0f); // Tamamen transparan yap
-            kirliAlan.SetActive(false);    // Pasif hale getir
+            SetObjectAlpha(kirliAlan, 0f);
+            kirliAlan.SetActive(false);
         }
+
+        if (kirlilikBar != null)
+        {
+            kirlilikBar.value = 0f;
+            barRenkImage.color = temizRenk;
+        }
+
         StartCoroutine(KirlenmeDöngüsü());
     }
 
@@ -42,18 +57,35 @@ public class KirlilikYonetici : MonoBehaviour
                 int rastgeleIndex = Random.Range(0, pasifAlanlar.Count);
                 GameObject yeniKirliAlan = pasifAlanlar[rastgeleIndex];
 
-                // Objenin aktif olmasýný saðla
                 yeniKirliAlan.SetActive(true);
-                // Alfa deðerini sýfýrdan bire animasyonla getirerek görünür yap
                 yeniKirliAlan.GetComponent<Renderer>().material.DOFade(1f, olusmaAnimasyonSuresi)
-                    .SetEase(Ease.OutQuad); // Oluþum animasyonu için yumuþak geçiþ
+                    .SetEase(Ease.OutQuad);
 
-                Debug.Log("Yeni bir kirli alan belirdi!");
+                aktifKirliAlanSayisi++;
+                KirlilikBariniGuncelle();
+
+                Debug.Log("Yeni bir kirli alan belirdi! Aktif kirli alan sayýsý: " + aktifKirliAlanSayisi);
             }
         }
     }
 
-    // Objenin alfa deðerini ayarlayan yardýmcý fonksiyon
+    public void KirliAlanTemizlendi()
+    {
+        aktifKirliAlanSayisi--;
+        KirlilikBariniGuncelle();
+        Debug.Log("Kirli alan temizlendi! Aktif kirli alan sayýsý: " + aktifKirliAlanSayisi);
+    }
+
+    private void KirlilikBariniGuncelle()
+    {
+        if (kirlilikBar != null)
+        {
+            float kirlilikYuzdesi = (float)aktifKirliAlanSayisi / kirliAlanlar.Length;
+            kirlilikBar.DOValue(kirlilikYuzdesi, 0.5f).SetEase(Ease.OutQuad);
+            barRenkImage.DOColor(Color.Lerp(temizRenk, kirliRenk, kirlilikYuzdesi), 0.5f);
+        }
+    }
+
     private void SetObjectAlpha(GameObject obj, float alpha)
     {
         Renderer renderer = obj.GetComponent<Renderer>();

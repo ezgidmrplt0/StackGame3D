@@ -22,14 +22,13 @@ public class OyuncuVeKamera : MonoBehaviour
 
     [Header("Mobil Kontrol")]
     public bool useMobileInput = false;
-    public Joystick joystick; // ✔ Burada artık Floating/Dynamic/Variable/Fixed hepsi olur
+    public Joystick joystick; // ✔ Floating/Dynamic/Variable/Fixed hepsi olur
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
 
-        // Kamera ortographic
         if (cameraTransform != null)
         {
             Camera cam = cameraTransform.GetComponent<Camera>();
@@ -47,12 +46,10 @@ public class OyuncuVeKamera : MonoBehaviour
 
         if (useMobileInput && joystick != null)
         {
-            // Mobil joystick input
             move = GetMobileMove();
         }
         else
         {
-            // PC input
             float moveX = Input.GetAxisRaw("Horizontal");
             float moveZ = Input.GetAxisRaw("Vertical");
 
@@ -66,7 +63,6 @@ public class OyuncuVeKamera : MonoBehaviour
             move = (camRight * moveX + camForward * moveZ).normalized;
         }
 
-        // Yerçekimi
         if (!IsGrounded())
         {
             verticalVelocity += gravity * Time.deltaTime;
@@ -76,19 +72,16 @@ public class OyuncuVeKamera : MonoBehaviour
             verticalVelocity = -2f;
         }
 
-        // Hareket
         Vector3 finalVelocity = move * moveSpeed * speedMultiplier;
         finalVelocity.y = verticalVelocity;
         rb.velocity = finalVelocity;
 
-        // Karakter dönüşü
         if (move.magnitude > 0.1f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(move);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
         }
 
-        // Kamera takibi
         if (cameraTransform != null)
         {
             Vector3 targetPos = new Vector3(
@@ -115,12 +108,11 @@ public class OyuncuVeKamera : MonoBehaviour
         camForward.Normalize();
         camRight.Normalize();
 
-        // Joystick inputunu kullan
         Vector3 moveDir = (camRight * joystick.Horizontal + camForward * joystick.Vertical).normalized;
         return moveDir;
     }
 
-    // 🚀 Hız değiştirici (DOTween ile yumuşak geçiş)
+    // Hız değiştirici (DOTween ile yumuşak geçiş)
     public void SetSpeedMultiplier(float targetValue)
     {
         DOTween.To(() => speedMultiplier, x => speedMultiplier = x, targetValue, 0.5f);

@@ -64,6 +64,12 @@ public class MusteriHareket : MonoBehaviour
     private float urunAlmaAraligi = 0.5f;
     private float dondurmaAlmaTimer = 0f;
 
+    [Header("Sinir Ayarları")]
+    public GameObject angryBubble;
+    private float angryTimer = 0f;
+    public float maxWaitTime = 10f; // Müşterinin sinirlenmesi için bekleyeceği süre
+    private bool isAngry = false;
+
     void Start()
     {
         // Ürün tipi belirleme
@@ -109,6 +115,22 @@ public class MusteriHareket : MonoBehaviour
     {
         if (isLeaving) return;
 
+        // Müşteri tezgâhta beklerken sinir zamanlayıcısını artır
+        if (IsAtCounter() && !isAngry && alinanUrunSayisi < istenenUrunSayisi)
+        {
+            angryTimer += Time.deltaTime;
+
+            if (angryTimer >= maxWaitTime)
+            {
+                SetAngryState();
+            }
+        }
+        else
+        {
+            // Müşteri servis edildiyse veya tezgâhtan ayrıldıysa zamanlayıcıyı sıfırla
+            angryTimer = 0f;
+        }
+
         if (waitingAfterProduct)
         {
             waitTimer += Time.deltaTime;
@@ -128,8 +150,8 @@ public class MusteriHareket : MonoBehaviour
                         MusteriSpawner.UpdateQueuePositions();
                     }
                     else if (musteriTipi == MusteriTipi.Dondurma &&
-                               MusteriSpawner.dondurmaMusteriKuyrugu.Count > 0 &&
-                               MusteriSpawner.dondurmaMusteriKuyrugu.Peek() == this)
+                             MusteriSpawner.dondurmaMusteriKuyrugu.Count > 0 &&
+                             MusteriSpawner.dondurmaMusteriKuyrugu.Peek() == this)
                     {
                         MusteriSpawner.dondurmaMusteriKuyrugu.Dequeue();
                         MusteriSpawner.UpdateDondurmaQueuePositions();
@@ -139,6 +161,7 @@ public class MusteriHareket : MonoBehaviour
             }
             return;
         }
+
         // Dondurma müşterisi tezgâhtaysa, daha fazla ürüne ihtiyacı varsa VE KÜLAH VARSA
         if (musteriTipi == MusteriTipi.Dondurma && IsAtCounter() && NeedsMoreProducts())
         {
@@ -159,7 +182,6 @@ public class MusteriHareket : MonoBehaviour
             }
         }
 
-
         Transform hedefNokta = musteriTipi == MusteriTipi.Dondurma ? dondurmaNoktasi : musteriNoktasi;
         if (hedefNokta == null) return;
 
@@ -179,7 +201,7 @@ public class MusteriHareket : MonoBehaviour
                 isAtCounter = true;
             }
         }
-        else if (hasBeenServed)
+        else if (hasBeenServed || isAngry)
         {
             if (musteriTipi == MusteriTipi.Dondurma && dondurmaSilinmeNoktasi != null)
             {
@@ -227,6 +249,27 @@ public class MusteriHareket : MonoBehaviour
         }
 
         HareketEt(hedefPozisyon);
+    }
+
+    private void SetAngryState()
+    {
+        isAngry = true;
+        UpdateUI(); // UI'ı sinirli duruma göre güncellemek için çağır
+        hasBeenServed = true; // Servis edilme durumunu "tamamlandı" olarak işaretle
+
+        // Müşteriyi kuyruktan çıkar
+        if (!kuyruktanCikarildi)
+        {
+            if (musteriTipi == MusteriTipi.Normal)
+            {
+                MusteriSpawner.MusteriAyrildi(this);
+            }
+            else
+            {
+                MusteriSpawner.MusteriAyrildi(this);
+            }
+            kuyruktanCikarildi = true;
+        }
     }
 
     private void HareketEt(Vector3 hedefPozisyon)
@@ -359,6 +402,21 @@ public class MusteriHareket : MonoBehaviour
 
     private void UpdateUI()
     {
+        // Önce hepsini kapat
+        if (cayImage != null) cayImage.gameObject.SetActive(false);
+        if (sodaImage != null) sodaImage.gameObject.SetActive(false);
+        if (dondurmaImage != null) dondurmaImage.gameObject.SetActive(false);
+        if (angryBubble != null) angryBubble.gameObject.SetActive(false);
+
+        // Müşteri sinirliyse sadece sinirli balonu göster
+        if (isAngry)
+        {
+            baloncukPanel.SetActive(true);
+            if (angryBubble != null) angryBubble.gameObject.SetActive(true);
+            productText.text = ""; // Metni boş bırak
+            return;
+        }
+
         int kalan = istenenUrunSayisi - alinanUrunSayisi;
         if (baloncukPanel == null || productText == null) return;
 
@@ -369,11 +427,6 @@ public class MusteriHareket : MonoBehaviour
         }
 
         baloncukPanel.SetActive(true);
-
-        // Önce hepsini kapat
-        if (cayImage != null) cayImage.gameObject.SetActive(false);
-        if (sodaImage != null) sodaImage.gameObject.SetActive(false);
-        if (dondurmaImage != null) dondurmaImage.gameObject.SetActive(false);
 
         // Sadece istenen ürünü aç
         switch (requestedProductType)

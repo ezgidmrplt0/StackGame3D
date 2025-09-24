@@ -7,51 +7,78 @@ public class TemizlemeSistemi : MonoBehaviour
     public float temizlemeSuresi = 1.5f;
 
     private Dictionary<GameObject, float> temizlemeProgress = new Dictionary<GameObject, float>();
-    private GameObject mevcutTemizlenenAlan;
+
+    // Oyuncunun temas ettiði kirli alanlarý takip etmek için liste
+    private List<GameObject> temasEdilenKirliAlanlar = new List<GameObject>();
+
+    private KirlilikYonetici kirlilikYonetici;
+    private OyuncuVeKamera oyuncu;
+
+    private void Start()
+    {
+        kirlilikYonetici = FindObjectOfType<KirlilikYonetici>();
+        oyuncu = GetComponent<OyuncuVeKamera>();
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("KirliAlan"))
+        {
+            // Yeni bir kirli alana girdiðimizde listeye ekle
+            if (!temasEdilenKirliAlanlar.Contains(other.gameObject))
+            {
+                temasEdilenKirliAlanlar.Add(other.gameObject);
+            }
+        }
+    }
 
     private void OnTriggerStay(Collider other)
     {
         if (other.CompareTag("KirliAlan"))
         {
-            mevcutTemizlenenAlan = other.gameObject;
-
-            // Oyuncu yavaþlasýn
-            OyuncuVeKamera oyuncu = GetComponent<OyuncuVeKamera>();
+            // Oyuncu en az bir kirli alanýn içindeyse yavaþla
             if (oyuncu != null)
             {
-                oyuncu.SetSpeedMultiplier(0.5f); // %50 hýz
+                oyuncu.SetSpeedMultiplier(0.5f);
             }
 
-            // Eðer bu alaný daha önce temizlemeye baþlamadýysak, progress'ini sýfýr olarak ekle
-            if (!temizlemeProgress.ContainsKey(mevcutTemizlenenAlan))
+            if (!temizlemeProgress.ContainsKey(other.gameObject))
             {
-                temizlemeProgress.Add(mevcutTemizlenenAlan, 0f);
+                temizlemeProgress.Add(other.gameObject, 0f);
             }
 
-            // Geçen zamana göre progress'i artýr
-            temizlemeProgress[mevcutTemizlenenAlan] += Time.deltaTime;
+            temizlemeProgress[other.gameObject] += Time.deltaTime;
+            temizlemeProgress[other.gameObject] = Mathf.Clamp(temizlemeProgress[other.gameObject], 0f, temizlemeSuresi);
 
-            // Progress'i maksimum temizleme süresiyle sýnýrlý tut
-            temizlemeProgress[mevcutTemizlenenAlan] = Mathf.Clamp(temizlemeProgress[mevcutTemizlenenAlan], 0f, temizlemeSuresi);
+            float temizlemeYuzdesi = temizlemeProgress[other.gameObject] / temizlemeSuresi;
+            SetObjectAlpha(other.gameObject, 1f - temizlemeYuzdesi);
 
-            // Temizleme yüzdesini hesapla
-            float temizlemeYuzdesi = temizlemeProgress[mevcutTemizlenenAlan] / temizlemeSuresi;
-
-            // Objenin alfa deðerini ayarla
-            SetObjectAlpha(mevcutTemizlenenAlan, 1f - temizlemeYuzdesi);
-
-            // Eðer temizleme tamamlandýysa
-            if (temizlemeProgress[mevcutTemizlenenAlan] >= temizlemeSuresi)
+            if (temizlemeProgress[other.gameObject] >= temizlemeSuresi)
             {
-                mevcutTemizlenenAlan.transform.DOScale(Vector3.zero, 0.5f).OnComplete(() =>
+                GameObject temizlenenAlan = other.gameObject;
+                temizlenenAlan.transform.DOScale(Vector3.zero, 0.5f).OnComplete(() =>
                 {
-                    mevcutTemizlenenAlan.SetActive(false);
-                    mevcutTemizlenenAlan.transform.localScale = Vector3.one;
-                    SetObjectAlpha(mevcutTemizlenenAlan, 1f);
+                    temizlenenAlan.SetActive(false);
+                    temizlenenAlan.transform.localScale = Vector3.one;
+                    SetObjectAlpha(temizlenenAlan, 1f);
                 });
 
-                temizlemeProgress.Remove(mevcutTemizlenenAlan);
-                mevcutTemizlenenAlan = null;
+                temizlemeProgress.Remove(temizlenenAlan);
+
+                if (kirlilikYonetici != null)
+                {
+                    kirlilikYonetici.KirliAlanTemizlendi();
+                }
+
+                // Temizlenen alaný listeden kaldýr
+                temasEdilenKirliAlanlar.Remove(temizlenenAlan);
+
+                // Eðer artýk hiçbir kirli alanla temas etmiyorsak hýzý normale döndür
+                if (temasEdilenKirliAlanlar.Count == 0 && oyuncu != null)
+                {
+                    oyuncu.SetSpeedMultiplier(1f);
+                }
+
                 Debug.Log("Kirli alan tamamen temizlendi!");
             }
         }
@@ -59,20 +86,19 @@ public class TemizlemeSistemi : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.gameObject == mevcutTemizlenenAlan)
+        if (other.CompareTag("KirliAlan"))
         {
-            mevcutTemizlenenAlan = null;
+            // Temas ettiðimiz alanlar listesinden bu alaný kaldýr
+            temasEdilenKirliAlanlar.Remove(other.gameObject);
 
-            // Oyuncu hýzýný geri normale döndür
-            OyuncuVeKamera oyuncu = GetComponent<OyuncuVeKamera>();
-            if (oyuncu != null)
+            // Eðer artýk hiçbir kirli alanla temas etmiyorsak hýzý normale döndür
+            if (temasEdilenKirliAlanlar.Count == 0 && oyuncu != null)
             {
                 oyuncu.SetSpeedMultiplier(1f);
             }
         }
     }
 
-    // Alfa deðerini ayarlayan fonksiyon
     private void SetObjectAlpha(GameObject obj, float alpha)
     {
         Renderer renderer = obj.GetComponent<Renderer>();

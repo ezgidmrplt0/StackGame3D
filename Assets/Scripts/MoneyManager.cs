@@ -45,6 +45,6 @@ public class MoneyManager : MonoBehaviour
 
     private void Start()
     {
-        AddMoney(1000);
+        AddMoney(10000);
     }
 }

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
-using UnityEngine.UI; // UI bileþenlerini kullanmak için
+using UnityEngine.UI;
 
 public class KirlilikYonetici : MonoBehaviour
 {
@@ -30,7 +30,8 @@ public class KirlilikYonetici : MonoBehaviour
         if (kirlilikBar != null)
         {
             kirlilikBar.value = 0f;
-            barRenkImage.color = temizRenk;
+            // Baþlangýçta barýn doluluk kýsmýný tamamen saydam yap
+            barRenkImage.color = new Color(temizRenk.r, temizRenk.g, temizRenk.b, 0f);
         }
 
         StartCoroutine(KirlenmeDöngüsü());
@@ -81,8 +82,21 @@ public class KirlilikYonetici : MonoBehaviour
         if (kirlilikBar != null)
         {
             float kirlilikYuzdesi = (float)aktifKirliAlanSayisi / kirliAlanlar.Length;
+
+            // Slider'ýn doluluk deðerini güncelle
             kirlilikBar.DOValue(kirlilikYuzdesi, 0.5f).SetEase(Ease.OutQuad);
-            barRenkImage.DOColor(Color.Lerp(temizRenk, kirliRenk, kirlilikYuzdesi), 0.5f);
+
+            // Eðer kirlilik yoksa saydam, varsa normal renge geçiþ yap
+            Color hedefRenk;
+            if (aktifKirliAlanSayisi == 0)
+            {
+                hedefRenk = new Color(temizRenk.r, temizRenk.g, temizRenk.b, 0f);
+            }
+            else
+            {
+                hedefRenk = Color.Lerp(temizRenk, kirliRenk, kirlilikYuzdesi);
+            }
+            barRenkImage.DOColor(hedefRenk, 0.5f);
         }
     }
 

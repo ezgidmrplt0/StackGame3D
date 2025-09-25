@@ -24,6 +24,7 @@ public class TemizlemeSistemi : MonoBehaviour
     {
         if (other.CompareTag("KirliAlan"))
         {
+            // Yeni bir kirli alana girdiðimizde listeye ekle
             if (!temasEdilenKirliAlanlar.Contains(other.gameObject))
             {
                 temasEdilenKirliAlanlar.Add(other.gameObject);
@@ -35,6 +36,7 @@ public class TemizlemeSistemi : MonoBehaviour
     {
         if (other.CompareTag("KirliAlan"))
         {
+            // Oyuncu en az bir kirli alanýn içindeyse yavaþla
             if (oyuncu != null)
             {
                 oyuncu.SetSpeedMultiplier(0.5f);
@@ -68,16 +70,14 @@ public class TemizlemeSistemi : MonoBehaviour
                     kirlilikYonetici.KirliAlanTemizlendi();
                 }
 
+                // Temizlenen alaný listeden kaldýr
                 temasEdilenKirliAlanlar.Remove(temizlenenAlan);
 
+                // Eðer artýk hiçbir kirli alanla temas etmiyorsak hýzý normale döndür
                 if (temasEdilenKirliAlanlar.Count == 0 && oyuncu != null)
                 {
                     oyuncu.SetSpeedMultiplier(1f);
                 }
-
-                // Popülarite Sistemi: Temizlik tamamlandý
-                // **Düzeltme: Singleton olduðu için artýk Popularity.Instance kullanýlýr.**
-                Popularity.Instance.IncreasePopularity(1);
 
                 Debug.Log("Kirli alan tamamen temizlendi!");
             }
@@ -88,8 +88,10 @@ public class TemizlemeSistemi : MonoBehaviour
     {
         if (other.CompareTag("KirliAlan"))
         {
+            // Temas ettiðimiz alanlar listesinden bu alaný kaldýr
             temasEdilenKirliAlanlar.Remove(other.gameObject);
 
+            // Eðer artýk hiçbir kirli alanla temas etmiyorsak hýzý normale döndür
             if (temasEdilenKirliAlanlar.Count == 0 && oyuncu != null)
             {
                 oyuncu.SetSpeedMultiplier(1f);

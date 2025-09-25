@@ -257,9 +257,6 @@ public class MusteriHareket : MonoBehaviour
         UpdateUI(); // UI'ı sinirli duruma göre güncellemek için çağır
         hasBeenServed = true; // Servis edilme durumunu "tamamlandı" olarak işaretle
 
-        // Popülarite Sistemi Eklemesi: Müşteri sinirlenip ayrılırsa puan düşür
-        Popularity.Instance.DecreasePopularity(1);
-
         // Müşteriyi kuyruktan çıkar
         if (!kuyruktanCikarildi)
         {
@@ -399,9 +396,6 @@ public class MusteriHareket : MonoBehaviour
         {
             waitingAfterProduct = true;
             waitTimer = 0f;
-
-            // Popülarite Sistemi Eklemesi: Müşteri siparişini tamamladığında puan ver
-            Popularity.Instance.IncreasePopularity(2);
         }
     }
     #endregion

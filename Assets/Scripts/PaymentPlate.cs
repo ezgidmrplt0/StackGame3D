@@ -6,11 +6,8 @@ public class PaymentPlate : MonoBehaviour
 {
     [Header("Ödeme Ayarlarý")]
     public float price = 10f;
-    public int paymentUnit = 1;
-    public float paymentInterval = 0.2f;
-
-    private int currentPaidUnits = 0;
-    private int requiredUnits;
+    public float paymentSpeed = 1f;
+    private float currentPaidAmount = 0;
 
     [Header("Görsel Ayarlarý")]
     public Transform progressBarFill;
@@ -24,20 +21,23 @@ public class PaymentPlate : MonoBehaviour
     [Header("Tamamlama Ayarlarý")]
     public GameObject objectToActivateOnComplete;
     public bool destroyPlateOnComplete = true;
-    public float completionDelay = 0.5f; // Tamamlandýktan sonraki bekleme süresi
 
     private Coroutine paymentCoroutine;
     private bool isPlayerOnPlate = false;
 
+    // Plaka üzerine bir obje girdiðinde çalýþýr
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
             isPlayerOnPlate = true;
+
+            // Oyuncu alana girdiðinde UI'ý etkinleþtir
             if (uiContainer != null)
             {
                 uiContainer.SetActive(true);
             }
+
             if (paymentCoroutine == null)
             {
                 paymentCoroutine = StartCoroutine(PayProcess());
@@ -45,18 +45,20 @@ public class PaymentPlate : MonoBehaviour
         }
     }
 
+    // Plakadan bir obje çýktýðýnda çalýþýr
     private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Player"))
         {
             isPlayerOnPlate = false;
+            // Buradaki UI'ý devre dýþý býrakma satýrý kaldýrýldý
         }
     }
 
+    // Oyun baþladýðýnda veya etkinleþtirildiðinde
     private void Start()
     {
-        requiredUnits = Mathf.CeilToInt(price / paymentUnit);
-
+        // Fiyat metnini baþlangýçta ayarla
         if (priceText != null)
         {
             priceText.text = price.ToString("F0") + "$";
@@ -64,55 +66,65 @@ public class PaymentPlate : MonoBehaviour
 
         if (progressBarFill != null)
         {
+            // Progress bar'ýn baþlangýç ölçeðini ve pozisyonunu kaydet
             initialScale = progressBarFill.localScale;
             initialPosition = progressBarFill.localPosition;
+
+            // Baþlangýçta progress bar'ý sýfýrla
             progressBarFill.localScale = new Vector3(0, initialScale.y, initialScale.z);
         }
 
+        // Baþlangýçta UI'ý gizle
         if (uiContainer != null)
         {
             uiContainer.SetActive(false);
         }
     }
 
+    // Her frame çalýþýr, sürekli kontrol için
     private void Update()
     {
-        if (!isPlayerOnPlate && paymentCoroutine != null)
+        if (isPlayerOnPlate && paymentCoroutine == null && currentPaidAmount < price)
+        {
+            paymentCoroutine = StartCoroutine(PayProcess());
+        }
+        else if (!isPlayerOnPlate && paymentCoroutine != null)
         {
             StopCoroutine(paymentCoroutine);
             paymentCoroutine = null;
         }
     }
 
+    // Ödeme sürecini adým adým yöneten coroutine
     private IEnumerator PayProcess()
     {
-        while (currentPaidUnits < requiredUnits)
+        while (currentPaidAmount < price)
         {
-            if (MoneyManager.Instance.SpendMoney(paymentUnit))
-            {
-                currentPaidUnits++;
+            float amountToPay = paymentSpeed * Time.deltaTime;
 
-                float progress = (float)currentPaidUnits / requiredUnits;
-                Update3DUI(progress);
-
-                yield return new WaitForSeconds(paymentInterval);
-            }
-            else
+            if (MoneyManager.Instance.money < amountToPay)
             {
-                // Yeterli para yoksa coroutine'i durdur ama UI'ý gizleme
-                // Oyuncu para topladýðýnda kaldýðý yerden devam edebilsin
-                yield break;
+                amountToPay = MoneyManager.Instance.money;
             }
 
-            if (!isPlayerOnPlate)
+            if (amountToPay <= 0)
             {
                 yield break;
             }
+
+            MoneyManager.Instance.money -= Mathf.RoundToInt(amountToPay);
+            currentPaidAmount += amountToPay;
+
+            float progress = Mathf.Clamp01(currentPaidAmount / price);
+            Update3DUI(progress);
+
+            yield return null;
         }
 
         OnPaymentComplete();
     }
 
+    // 3D progress bar'ý güncelleyen metod
     private void Update3DUI(float progress)
     {
         if (progressBarFill != null)
@@ -126,41 +138,30 @@ public class PaymentPlate : MonoBehaviour
 
         if (priceText != null)
         {
-            float remainingAmount = price - (currentPaidUnits * paymentUnit);
-            priceText.text = (remainingAmount > 0) ? remainingAmount.ToString("F0") + "$" : "";
+            float remainingAmount = price - currentPaidAmount;
+            priceText.text = (remainingAmount <= 0) ? "TAMAMLANDI!" : remainingAmount.ToString("F0") + "$";
         }
     }
 
+    // Ödeme tamamlandýðýnda çaðrýlýr
     private void OnPaymentComplete()
     {
         Debug.Log("Ödeme tamamlandý!");
-        StartCoroutine(HandleCompletion());
-    }
 
-    private IEnumerator HandleCompletion()
-    {
-        // Önce nesneyi aktive et
-        if (objectToActivateOnComplete != null)
-        {
-            objectToActivateOnComplete.SetActive(true);
-        }
-
-        // Eðer bir bekleme süresi varsa bekle
-        if (completionDelay > 0)
-        {
-            yield return new WaitForSeconds(completionDelay);
-        }
-
-        // UI'ý gizle
+        // Ödeme bitince UI'ý devre dýþý býrak
         if (uiContainer != null)
         {
             uiContainer.SetActive(false);
         }
 
-        // Plakayý yok et
         if (destroyPlateOnComplete)
         {
-            Destroy(gameObject);
+            Destroy(gameObject, 0.5f);
+        }
+
+        if (objectToActivateOnComplete != null)
+        {
+            objectToActivateOnComplete.SetActive(true);
         }
     }
 }

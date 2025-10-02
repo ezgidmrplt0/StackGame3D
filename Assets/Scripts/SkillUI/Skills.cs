@@ -41,7 +41,7 @@ public class Skills : MonoBehaviour
             // Buradaki değerler paneli ekranın sağına hizalamak için kullanılır
             // Panelin sağ kenarının, parent'ının (ekranın) sağ kenarına gelmesi için
             // X pozisyonunu sıfıra yaklaştırırız.
-            panelOpenPosition = new Vector2(0, panelClosedPosition.y);
+            panelOpenPosition = new Vector2(panelClosedPosition.x + 262f, panelClosedPosition.y);
         }
         else
         {

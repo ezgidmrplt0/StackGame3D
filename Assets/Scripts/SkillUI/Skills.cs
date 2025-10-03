@@ -6,10 +6,13 @@ public class Skills : MonoBehaviour
 {
     [Header("UI Elemanları")]
     public Button skillButton;
-    public RectTransform panel;
+    public RectTransform mainPanel; // Panelin adını mainPanel olarak değiştirdim
+    public RectTransform settingsPanel; // Yeni: Ayarlar paneli için RectTransform
     private bool isPanelOpen = false;
-    private Vector2 panelClosedPosition;
-    private Vector2 panelOpenPosition;
+    private Vector2 mainPanelClosedPosition;
+    private Vector2 mainPanelOpenPosition;
+    private Vector2 settingsPanelClosedPosition; // Yeni: Ayarlar panelinin kapalı konumu
+    private Vector2 settingsPanelOpenPosition; // Yeni: Ayarlar panelinin açık konumu
     private float animationDuration = 0.3f;
     private float currentButtonRotation = 0f;
 
@@ -32,21 +35,34 @@ public class Skills : MonoBehaviour
         {
             skillButton.onClick.AddListener(TogglePanel);
         }
-        if (panel != null)
-        {
-            // Panelin kapalı pozisyonunu mevcut konum olarak ayarla
-            panelClosedPosition = panel.anchoredPosition;
 
-            // Panelin tam ekranı kaplayacak açık pozisyonunu hesapla
-            // Buradaki değerler paneli ekranın sağına hizalamak için kullanılır
-            // Panelin sağ kenarının, parent'ının (ekranın) sağ kenarına gelmesi için
-            // X pozisyonunu sıfıra yaklaştırırız.
-            panelOpenPosition = new Vector2(panelClosedPosition.x + 262f, panelClosedPosition.y);
+        if (mainPanel != null)
+        {
+            // Ana panelin kapalı pozisyonunu mevcut konum olarak ayarla
+            mainPanelClosedPosition = mainPanel.anchoredPosition;
+
+            // Ana panelin açık pozisyonunu hesapla (sağa doğru kayacak)
+            mainPanelOpenPosition = new Vector2(mainPanelClosedPosition.x + 262f, mainPanelClosedPosition.y);
         }
         else
         {
-            Debug.LogError("Panel referansı atanmamış!");
+            Debug.LogError("Ana panel referansı atanmamış!");
         }
+
+        // Ayarlar paneli için başlangıç pozisyonlarını ayarla
+        if (settingsPanel != null)
+        {
+            // Kapalı pozisyon: Ana panelin sağında, görünmeyecek şekilde
+            settingsPanelClosedPosition = settingsPanel.anchoredPosition;
+
+            // Açık pozisyon: Ana panel açıldığında görüneceği konum
+            settingsPanelOpenPosition = new Vector2(settingsPanelClosedPosition.x + 313f, settingsPanelClosedPosition.y); // Bu değeri UI'nıza göre ayarlayın
+        }
+        else
+        {
+            Debug.LogWarning("Ayarlar paneli referansı atanmamış. Fonksiyon çalışmayacak.");
+        }
+
 
         // Yeni butonlara tıklama olaylarını ekle
         if (button1 != null)
@@ -70,20 +86,28 @@ public class Skills : MonoBehaviour
 
     void TogglePanel()
     {
+        // Butonun rotasyonunu animasyonla değiştir
         currentButtonRotation += 180f;
         skillButton.GetComponent<RectTransform>().DORotate(new Vector3(0, 0, currentButtonRotation), animationDuration, RotateMode.Fast).SetEase(Ease.InOutQuad);
 
+        // DO Tween Sequence (Sıralı Animasyon) oluştur
+        Sequence sequence = DOTween.Sequence();
+
         if (isPanelOpen)
         {
-            // Paneli kapalı pozisyonuna (başlangıçtaki X değeri) kaydır
-            panel.DOAnchorPosX(panelClosedPosition.x, animationDuration).SetEase(Ease.InOutQuad);
+            // PANELI KAPATMA
+            sequence.Append(mainPanel.DOAnchorPosX(mainPanelClosedPosition.x, animationDuration).SetEase(Ease.InOutQuad));
+            sequence.Join(settingsPanel.DOAnchorPosX(settingsPanelClosedPosition.x, animationDuration).SetEase(Ease.InOutQuad));
+
             isPanelOpen = false;
             PlaySound(closeSound);
         }
         else
         {
-            // Paneli açık pozisyonuna (0 X değeri) kaydır
-            panel.DOAnchorPosX(panelOpenPosition.x, animationDuration).SetEase(Ease.InOutQuad);
+            // PANELI AÇMA
+            sequence.Append(mainPanel.DOAnchorPosX(mainPanelOpenPosition.x, animationDuration).SetEase(Ease.InOutQuad));
+            sequence.Append(settingsPanel.DOAnchorPosX(settingsPanelOpenPosition.x, animationDuration).SetEase(Ease.InOutQuad)); // Ana panelden sonra gelsin
+
             isPanelOpen = true;
             PlaySound(openSound);
         }
@@ -93,7 +117,7 @@ public class Skills : MonoBehaviour
 
     public void ToggleSubPanel(GameObject panelToToggle)
     {
-        if (!isPanelOpen) return; // Ana panel kapalıysa alt panel açma
+        if (!isPanelOpen) return;
         if (panel1 != null) panel1.SetActive(panel1 == panelToToggle);
         if (panel2 != null) panel2.SetActive(panel2 == panelToToggle);
         if (panel3 != null) panel3.SetActive(panel3 == panelToToggle);
@@ -109,7 +133,6 @@ public class Skills : MonoBehaviour
             panelToOpen.SetActive(true);
     }
 
-    // Ses oynatma yardımcı fonksiyonları
     void PlaySound(AudioClip clip)
     {
         if (audioSource != null && clip != null)

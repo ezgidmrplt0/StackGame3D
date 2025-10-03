@@ -262,7 +262,7 @@ public class StackCollector : MonoBehaviour
     void UpdateKasiyerUI()
     {
         if (kasiyerFiyatText != null)
-            kasiyerFiyatText.text = $"Kasiyer Al ({kasiyerCost}$)";
+            kasiyerFiyatText.text = $"{kasiyerCost}$";
     }
 
     void UpdateStackPositions()

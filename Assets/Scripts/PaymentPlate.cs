@@ -1,13 +1,14 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
+using DG.Tweening; // Dotween kütüphanesini eklemeyi unutmayýn!
 
 public class PaymentPlate : MonoBehaviour
 {
     [Header("Ödeme Ayarlarý")]
     public float price = 10f;
     public int paymentUnit = 1;
-    public float paymentInterval = 0.2f; // Ödeme birimleri arasýndaki bekleme süresi
+    public float paymentInterval = 0.2f;
 
     private int currentPaidUnits = 0;
     private int requiredUnits;
@@ -24,6 +25,15 @@ public class PaymentPlate : MonoBehaviour
     [Header("Tamamlama Ayarlarý")]
     public GameObject objectToActivateOnComplete;
     public bool destroyPlateOnComplete = true;
+
+    [Header("Ek Tamamlama Objeleri")]
+    public GameObject extraObjectToActivate1;
+    public GameObject extraObjectToActivate2;
+
+    [Header("Animasyon Ayarlarý")]
+    public float animationDuration = 0.5f;
+    public Ease animationEase = Ease.OutBack;
+    public float destroyAnimationDuration = 0.5f; // Yeni: Yok olma animasyonunun süresi
 
     private Coroutine paymentCoroutine;
     private bool isPlayerOnPlate = false;
@@ -72,6 +82,10 @@ public class PaymentPlate : MonoBehaviour
         {
             uiContainer.SetActive(false);
         }
+
+        if (objectToActivateOnComplete != null) objectToActivateOnComplete.SetActive(false);
+        if (extraObjectToActivate1 != null) extraObjectToActivate1.SetActive(false);
+        if (extraObjectToActivate2 != null) extraObjectToActivate2.SetActive(false);
     }
 
     private void Update()
@@ -90,16 +104,12 @@ public class PaymentPlate : MonoBehaviour
             if (MoneyManager.Instance.SpendMoney(paymentUnit))
             {
                 currentPaidUnits++;
-
                 float progress = (float)currentPaidUnits / requiredUnits;
                 Update3DUI(progress);
-
                 yield return new WaitForSeconds(paymentInterval);
             }
             else
             {
-                // Yeterli para yoksa coroutine'i durdur ama UI'ý gizleme
-                // Oyuncu para topladýðýnda kaldýðý yerden devam edebilsin
                 yield break;
             }
 
@@ -108,7 +118,6 @@ public class PaymentPlate : MonoBehaviour
                 yield break;
             }
         }
-
         OnPaymentComplete();
     }
 
@@ -118,7 +127,6 @@ public class PaymentPlate : MonoBehaviour
         {
             float newScaleX = initialScale.x * progress;
             progressBarFill.localScale = new Vector3(newScaleX, initialScale.y, initialScale.z);
-
             float newPositionX = initialPosition.x - (initialScale.x - newScaleX) / 2;
             progressBarFill.localPosition = new Vector3(newPositionX, initialPosition.y, initialPosition.z);
         }
@@ -126,8 +134,6 @@ public class PaymentPlate : MonoBehaviour
         if (priceText != null)
         {
             float remainingAmount = price - (currentPaidUnits * paymentUnit);
-
-            // Fiyat metni ödeme bitene kadar kalan miktarý, bittiðinde ise boþ stringi gösterecek
             priceText.text = (remainingAmount > 0) ? remainingAmount.ToString("F0") + "$" : "";
         }
     }
@@ -141,14 +147,39 @@ public class PaymentPlate : MonoBehaviour
             uiContainer.SetActive(false);
         }
 
+        ActivateAndAnimate(objectToActivateOnComplete);
+        ActivateAndAnimate(extraObjectToActivate1);
+        ActivateAndAnimate(extraObjectToActivate2);
+
         if (destroyPlateOnComplete)
         {
-            Destroy(gameObject, 0.5f);
+            // Orijinal satýr yerine animasyonlu yok etme metodunu çaðýrýyoruz
+            AnimateAndDestroy();
         }
+    }
 
-        if (objectToActivateOnComplete != null)
+    private void ActivateAndAnimate(GameObject obj)
+    {
+        if (obj != null)
         {
-            objectToActivateOnComplete.SetActive(true);
+            Vector3 originalScale = obj.transform.localScale;
+            obj.SetActive(true);
+            obj.transform.localScale = Vector3.zero;
+
+            obj.transform.DOScale(originalScale, animationDuration)
+                .SetEase(animationEase);
         }
+    }
+
+    // Yeni Yardýmcý Metot: Objeyi animasyonla yok eder
+    private void AnimateAndDestroy()
+    {
+        // Ödeme tablasýný küçültme ve saydamlaþtýrma animasyonu
+        transform.DOScale(Vector3.zero, destroyAnimationDuration)
+            .OnComplete(() =>
+            {
+                // Animasyon bittiðinde objeyi yok et
+                Destroy(gameObject);
+            });
     }
 }

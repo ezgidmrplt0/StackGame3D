@@ -6,6 +6,7 @@ public class Skills : MonoBehaviour
 {
     [Header("UI Elemanları")]
     public Button skillButton;
+    public Button skillButton1;
     public RectTransform mainPanel; // Panelin adını mainPanel olarak değiştirdim
     public RectTransform settingsPanel; // Yeni: Ayarlar paneli için RectTransform
     private bool isPanelOpen = false;
@@ -34,6 +35,7 @@ public class Skills : MonoBehaviour
         if (skillButton != null)
         {
             skillButton.onClick.AddListener(TogglePanel);
+            skillButton1.onClick.AddListener(TogglePanel);
         }
 
         if (mainPanel != null)

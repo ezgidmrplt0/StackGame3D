@@ -16,6 +16,11 @@ public class MoneyManager : MonoBehaviour
             Destroy(gameObject);
     }
 
+    private void Start()
+    {
+        UpdateUI();
+    }
+
     public void AddMoney(int amount)
     {
         money += amount;
@@ -37,14 +42,9 @@ public class MoneyManager : MonoBehaviour
         return false;
     }
 
-    void UpdateUI()
+    public void UpdateUI()
     {
         if (moneyText != null)
             moneyText.text = money + "$";
-    }
-
-    private void Start()
-    {
-        AddMoney(1000);
     }
 }

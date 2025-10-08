@@ -12,7 +12,7 @@ public class Settings : MonoBehaviour
     public GameObject settingsPanel;
 
     // Müzik sesini ayarlayacak olan AudioSource bileşeni
-    public AudioSource backgroundMusicSource; // 👈 Unity Editor'da buraya müziğin olduğu objeyi sürükle
+    public AudioSource backgroundMusicSource;
 
     public Slider musicVolumeSlider;
     public TextMeshProUGUI musicVolumeText;
@@ -25,8 +25,8 @@ public class Settings : MonoBehaviour
         // NOT: Slider'larınızın Min=1, Max=10 olduğundan emin olun!
 
         // Kaydedilen sesleri yükle (veya varsayılanı kullan)
-        sfxVolumeSlider.value = SfxVolume * 10f;
-        musicVolumeSlider.value = MusicVolume * 10f;
+        sfxVolumeSlider.value = SfxVolume * 0f;
+        musicVolumeSlider.value = MusicVolume * 0f;
 
         // Slider'lara fonksiyonları bağla
         musicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged); // 👈 Yeni fonksiyonu bağlıyoruz

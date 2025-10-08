@@ -33,7 +33,7 @@ public class CarSpawner : MonoBehaviour
                 // 90 derece döndür (sahneye göre ayarlayabilirsin)
                 car.transform.Rotate(0f, 90f, 0f);
             }
-            if (prefabName == "Gray Car" || prefabName == "Orange Truck")
+            if (prefabName == "Gray Car" || prefabName == "Orange Truck" || prefabName == "Hatchback Car_15" || prefabName == "N_Muscle Car_10" || prefabName == "Pick Up_11" || prefabName == "Sport Car_39")
             {
                 car.transform.Rotate(0f, -90f, 0);
             }

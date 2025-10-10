@@ -253,6 +253,7 @@ RectTransform:
   - {fileID: 4764305049073883850}
   - {fileID: 6601562281812008648}
   - {fileID: 8959405902145446422}
+  - {fileID: 7327277778588343238}
   - {fileID: 4321013431851825341}
   m_Father: {fileID: 566464414533667789}
   m_LocalEulerAnglesHint: {x: 20.364, y: -231.059, z: 1.705}
@@ -346,6 +347,78 @@ MonoBehaviour:
   normalArkaPlan: {r: 1, g: 1, b: 1, a: 1}
   tamamlandiArkaPlan: {r: 0, g: 1, b: 0, a: 1}
   targetCamera: {fileID: 0}
+--- !u!1 &4647867249017555157
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7327277778588343238}
+  - component: {fileID: 3408751700352794368}
+  - component: {fileID: 7745113841850026882}
+  m_Layer: 5
+  m_Name: Kahve
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &7327277778588343238
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4647867249017555157}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.19}
+  m_LocalScale: {x: 0.041625876, y: 0.041625876, z: 0.041625876}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3294580185815845275}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 2.8200002, y: 10.47}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &3408751700352794368
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4647867249017555157}
+  m_CullTransparentMesh: 1
+--- !u!114 &7745113841850026882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4647867249017555157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Texture: {fileID: 2800000, guid: 46c0fce6d22bb5d41b6b5be7272a9f22, type: 3}
+  m_UVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
 --- !u!1 &6675828005820424685
 GameObject:
   m_ObjectHideFlags: 0
@@ -838,6 +911,7 @@ MonoBehaviour:
   cayImage: {fileID: 2474789064058542401}
   sodaImage: {fileID: 2273460895002774084}
   dondurmaImage: {fileID: 8341153708827942182}
+  kahveImage: {fileID: 7745113841850026882}
   angryBubble: {fileID: 752448277747025019}
   maxWaitTime: 45
 --- !u!1001 &5830309409946081316

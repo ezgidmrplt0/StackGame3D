@@ -86,6 +86,7 @@ public class StackCollector : MonoBehaviour
     [Header("Satış Ayarları")]
     public int cayFiyati = 2;
     public int sodaFiyati = 5;
+    public int kahveFiyati = 4; // YENİ: Kahve fiyatı 4 olarak eklendi
     private Dictionary<MusteriHareket, float> sonSatisZamanlari = new Dictionary<MusteriHareket, float>();
     private float satisCoolDown = 0.5f;
 
@@ -93,6 +94,12 @@ public class StackCollector : MonoBehaviour
     public bool sodaSatisAktif = true;
     private Dictionary<MusteriHareket, float> sonSodaSatisZamanlari = new Dictionary<MusteriHareket, float>();
     private int stackLimit = 5;
+
+    // YENİ: Kahve Satış Kontrolü
+    [Header("Kahve Satış Kontrol")]
+    public bool kahveSatisAktif = false; // Kahve satışının manuel aktifleşmesi için
+    private Dictionary<MusteriHareket, float> sonKahveSatisZamanlari = new Dictionary<MusteriHareket, float>();
+    public CoffeeStackCollector coffeeStackCollector; // Kahve stack'inden veri almak için
 
     [Header("Urun Tasiyici Ayarları")]
     public GameObject urunTasiyiciPrefab;
@@ -114,6 +121,9 @@ public class StackCollector : MonoBehaviour
             Instance = this;
         else
             Destroy(gameObject);
+
+        // YENİ: Kahve StackCollector referansını bul
+        coffeeStackCollector = FindObjectOfType<CoffeeStackCollector>();
     }
 
     void Start()
@@ -133,11 +143,121 @@ public class StackCollector : MonoBehaviour
 
             if (SodaStack.Instance != null && SodaStack.Instance.sodaDropList.Count > 0)
                 TrySellSodaToCustomer();
+
+            // YENİ: Kahve satışı kontrolü (Oyuncu)
+            if (kahveSatisAktif && coffeeStackCollector != null && coffeeStackCollector.dropList.Count > 0)
+                TrySellCoffeeToCustomer();
         }
 
         UpdateKasiyerSales();
         GuncelleUI();
     }
+
+    // ----------------------------------------------------------------------
+    // YENİ: Kahve Satış Metotları (Oyuncu)
+    // ----------------------------------------------------------------------
+
+    void TrySellCoffeeToCustomer()
+    {
+        if (!kahveSatisAktif) return;
+        if (isSelling) return;
+        if (MusteriSpawner.musteriKuyrugu.Count == 0) return;
+
+        MusteriHareket customer = MusteriSpawner.musteriKuyrugu.Peek();
+        if (customer == null || !customer.CanReceiveProduct() || !customer.IsRequestingCoffee()) return;
+
+        if (sonKahveSatisZamanlari.ContainsKey(customer) &&
+            Time.time - sonKahveSatisZamanlari[customer] < satisCoolDown) return;
+
+        StartCoroutine(GiveSingleCoffeeToCustomer(customer));
+    }
+
+    IEnumerator GiveSingleCoffeeToCustomer(MusteriHareket customer)
+    {
+        if (coffeeStackCollector == null || coffeeStackCollector.dropList.Count == 0 || isSelling)
+            yield break;
+
+        isSelling = true;
+
+        if (SellCoffeeToCustomer(customer))
+        {
+            sonKahveSatisZamanlari[customer] = Time.time;
+            lastSellTime = Time.time;
+        }
+
+        yield return new WaitForSeconds(0.1f);
+        isSelling = false;
+    }
+
+    public bool SellCoffeeToCustomer(MusteriHareket customer)
+    {
+        if (customer == null || !customer.CanReceiveProduct() || !customer.IsRequestingCoffee() ||
+            coffeeStackCollector == null || coffeeStackCollector.dropList.Count == 0)
+            return false;
+
+        // Kahve Ürününü Drop Listesinden Al
+        Transform coffeeProduct = coffeeStackCollector.dropList[coffeeStackCollector.dropList.Count - 1];
+        coffeeStackCollector.dropList.RemoveAt(coffeeStackCollector.dropList.Count - 1);
+
+        Vector3 customerPosition = customer.transform.position + Vector3.up * 1.5f;
+
+        coffeeProduct.DOMove(customerPosition, 0.2f)
+            .SetEase(Ease.OutQuad)
+            .OnComplete(() =>
+            {
+                customer.ReceiveProduct();
+                Destroy(coffeeProduct.gameObject);
+                MoneyManager.Instance.AddMoney(kahveFiyati);
+                Debug.Log($"{customer.name} için kahve satıldı! {kahveFiyati}$ kazanıldı!");
+            });
+
+        return true;
+    }
+
+    // ----------------------------------------------------------------------
+    // Kasiyer Satış Metotlarının Güncellenmesi
+    // ----------------------------------------------------------------------
+
+    void UpdateKasiyerSales()
+    {
+        foreach (var kasiyer in activeKasiyers)
+        {
+            if (kasiyer != null && kasiyer.IsAtSalesPoint())
+            {
+                if (dropList.Count > 0)
+                    TrySellWithKasiyer(kasiyer);
+
+                if (SodaStack.Instance != null && SodaStack.Instance.sodaDropList.Count > 0)
+                    TrySellSodaWithKasiyer(kasiyer);
+
+                // YENİ: Kahve satışı kontrolü (Kasiyer)
+                if (kahveSatisAktif && coffeeStackCollector != null && coffeeStackCollector.dropList.Count > 0)
+                    TrySellCoffeeWithKasiyer(kasiyer);
+            }
+        }
+    }
+
+    void TrySellCoffeeWithKasiyer(KasiyerHareket kasiyer)
+    {
+        if (!kahveSatisAktif) return;
+        if (MusteriSpawner.musteriKuyrugu.Count == 0) return;
+
+        MusteriHareket customer = MusteriSpawner.musteriKuyrugu.Peek();
+        if (customer == null || !customer.CanReceiveProduct() || !customer.IsRequestingCoffee()) return;
+
+        if (sonKahveSatisZamanlari.ContainsKey(customer) &&
+            Time.time - sonKahveSatisZamanlari[customer] < satisCoolDown) return;
+
+        if (SellCoffeeToCustomer(customer))
+        {
+            sonKahveSatisZamanlari[customer] = Time.time;
+            lastSellTime = Time.time;
+        }
+    }
+
+    // ----------------------------------------------------------------------
+    // MEVCUT METOTLAR (DEĞİŞİKLİK YAPILMADI)
+    // ----------------------------------------------------------------------
 
     void TrySellSodaToCustomer()
     {
@@ -193,21 +313,6 @@ public class StackCollector : MonoBehaviour
             });
 
         return true;
-    }
-
-    void UpdateKasiyerSales()
-    {
-        foreach (var kasiyer in activeKasiyers)
-        {
-            if (kasiyer != null && kasiyer.IsAtSalesPoint())
-            {
-                if (dropList.Count > 0)
-                    TrySellWithKasiyer(kasiyer);
-
-                if (SodaStack.Instance != null && SodaStack.Instance.sodaDropList.Count > 0)
-                    TrySellSodaWithKasiyer(kasiyer);
-            }
-        }
     }
 
     void TrySellSodaWithKasiyer(KasiyerHareket kasiyer)
@@ -289,93 +394,93 @@ public class StackCollector : MonoBehaviour
     }
 
     void OnTriggerEnter(Collider other)
-{
-    // Temas edilen nesne çay toplama noktası mı kontrol et
-    if (other.CompareTag(cayToplamaTag))
     {
-        // Temas edilen objenin CayToplamaAnim script'ini almaya çalış
-        CayToplamaAnim cayAnim = other.GetComponent<CayToplamaAnim>();
-
-        // Eğer bir CayToplamaAnim script'i varsa VE toplanmaya hazırsa
-        if (cayAnim != null && cayAnim.isReadyToCollect)
+        // Temas edilen nesne çay toplama noktası mı kontrol et
+        if (other.CompareTag(cayToplamaTag))
         {
-            // Oyuncunun üzerinde ham çay taşıma limiti aşılmadıysa
-            if (uzerimdeHamCay < hamCayTasimaLimiti)
+            // Temas edilen objenin CayToplamaAnim script'ini almaya çalış
+            CayToplamaAnim cayAnim = other.GetComponent<CayToplamaAnim>();
+
+            // Eğer bir CayToplamaAnim script'i varsa VE toplanmaya hazırsa
+            if (cayAnim != null && cayAnim.isReadyToCollect)
             {
-                // Toplama animasyonunu tetikle
-                cayAnim.TriggerShrink();
-                
-                // Oyuncunun stack'ine ham çay ekle
-                uzerimdeHamCay += toplamaAdedi;
-                uzerimdeHamCay = Mathf.Min(uzerimdeHamCay, hamCayTasimaLimiti);
-                AddHamCayCube();
+                // Oyuncunun üzerinde ham çay taşıma limiti aşılmadıysa
+                if (uzerimdeHamCay < hamCayTasimaLimiti)
+                {
+                    // Toplama animasyonunu tetikle
+                    cayAnim.TriggerShrink();
+
+                    // Oyuncunun stack'ine ham çay ekle
+                    uzerimdeHamCay += toplamaAdedi;
+                    uzerimdeHamCay = Mathf.Min(uzerimdeHamCay, hamCayTasimaLimiti);
+                    AddHamCayCube();
+                }
             }
         }
-    }
 
-    // Diğer temas kontrol kodları aynı kalıyor
-    if (other.CompareTag(cayBirakmaTag))
-    {
-        birakmaAlaninda = true;
-        if (birakmaLoop == null)
-            birakmaLoop = StartCoroutine(BirakmaLoop());
-    }
-
-    if (other.CompareTag("StackNoktasi0"))
-    {
-        if (stackingLoop == null)
-            stackingLoop = StartCoroutine(SpawnLoop());
-    }
-
-    if (other.CompareTag("StackSilmeNoktasi0"))
-    {
-        isInDropArea = true;
-        if (dropLoop == null)
-            dropLoop = StartCoroutine(DropSequence());
-    }
-
-    if (other.CompareTag("SatisNoktasi"))
-    {
-        isInSalesArea = true;
-    }
-}
-
-void OnTriggerExit(Collider other)
-{
-    if (other.CompareTag(cayBirakmaTag))
-    {
-        birakmaAlaninda = false;
-        if (birakmaLoop != null)
+        // Diğer temas kontrol kodları aynı kalıyor
+        if (other.CompareTag(cayBirakmaTag))
         {
-            StopCoroutine(birakmaLoop);
-            birakmaLoop = null;
+            birakmaAlaninda = true;
+            if (birakmaLoop == null)
+                birakmaLoop = StartCoroutine(BirakmaLoop());
+        }
+
+        if (other.CompareTag("StackNoktasi0"))
+        {
+            if (stackingLoop == null)
+                stackingLoop = StartCoroutine(SpawnLoop());
+        }
+
+        if (other.CompareTag("StackSilmeNoktasi0"))
+        {
+            isInDropArea = true;
+            if (dropLoop == null)
+                dropLoop = StartCoroutine(DropSequence());
+        }
+
+        if (other.CompareTag("SatisNoktasi"))
+        {
+            isInSalesArea = true;
         }
     }
 
-    if (other.CompareTag("StackNoktasi0"))
+    void OnTriggerExit(Collider other)
     {
-        if (stackingLoop != null)
+        if (other.CompareTag(cayBirakmaTag))
         {
-            StopCoroutine(stackingLoop);
-            stackingLoop = null;
+            birakmaAlaninda = false;
+            if (birakmaLoop != null)
+            {
+                StopCoroutine(birakmaLoop);
+                birakmaLoop = null;
+            }
+        }
+
+        if (other.CompareTag("StackNoktasi0"))
+        {
+            if (stackingLoop != null)
+            {
+                StopCoroutine(stackingLoop);
+                stackingLoop = null;
+            }
+        }
+
+        if (other.CompareTag("StackSilmeNoktasi0"))
+        {
+            isInDropArea = false;
+            if (dropLoop != null)
+            {
+                StopCoroutine(dropLoop);
+                dropLoop = null;
+            }
+        }
+
+        if (other.CompareTag("SatisNoktasi"))
+        {
+            isInSalesArea = false;
         }
     }
-
-    if (other.CompareTag("StackSilmeNoktasi0"))
-    {
-        isInDropArea = false;
-        if (dropLoop != null)
-        {
-            StopCoroutine(dropLoop);
-            dropLoop = null;
-        }
-    }
-
-    if (other.CompareTag("SatisNoktasi"))
-    {
-        isInSalesArea = false;
-    }
-}
 
     IEnumerator ToplamaLoop()
     {
@@ -507,7 +612,7 @@ void OnTriggerExit(Collider other)
 
     public bool SellProductToCustomer(MusteriHareket customer)
     {
-        if (customer == null || !customer.CanReceiveProduct() || dropList.Count == 0)
+        if (customer == null || !customer.CanReceiveProduct() || dropList.Count == 0 || !customer.IsRequestingTea())
             return false;
 
         Transform product = dropList[dropList.Count - 1];
@@ -727,6 +832,12 @@ void OnTriggerExit(Collider other)
     {
         sodaSatisAktif = true;
         Debug.Log("Soda satışı aktifleştirildi!");
+    }
+
+    public void KahveSatisiniAc()
+    {
+        kahveSatisAktif = true;
+        Debug.Log("Kahve satışı aktifleştirildi!");
     }
 
     public void SetStackLimit(int newLimit) => stackLimit = newLimit;

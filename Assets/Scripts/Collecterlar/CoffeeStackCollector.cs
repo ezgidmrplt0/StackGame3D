@@ -22,6 +22,9 @@ public class CoffeeStackCollector : MonoBehaviour
     [Header("Stok ve UI")]
     public TextMeshPro stokText;
     public int kahveStogu = 100;
+    public GameObject alan;
+    public GameObject buton;
+    public GameObject butonKahve;
 
     // Stack Listesi
     public readonly List<Transform> stack = new List<Transform>();
@@ -164,6 +167,53 @@ public class CoffeeStackCollector : MonoBehaviour
             if (dropLoop == null)
                 dropLoop = StartCoroutine(DropSequence());
         }
+    }
+
+    public void Aktifet()
+    {
+        // 1. Kahve Satýþýný Kapatan Butonu Animasyonlu Küçültme
+        // Butonun boyutunu 0'a düþür ve yok etme iþlemini planla
+        if (butonKahve != null)
+        {
+            // Butonu hemen devre dýþý býrak, böylece tekrar basýlamaz
+            if (butonKahve.TryGetComponent<UnityEngine.UI.Button>(out var buttonComponent))
+            {
+                buttonComponent.interactable = false;
+            }
+
+            // Butonu yavaþça küçült ve animasyon bitince GameObject'i kapat
+            butonKahve.transform.DOScale(Vector3.zero, 0.3f)
+                .SetEase(Ease.InBack)
+                .OnComplete(() => butonKahve.SetActive(false));
+        }
+
+        // 2. Kahve Alanýný Animasyonlu Açma
+        // Alaný hemen aktif et ve ardýndan yavaþça yukarý kaydýr veya boyutunu artýr.
+        if (alan != null)
+        {
+            alan.SetActive(true);
+
+            // Örnek Animasyon: Alaný hafifçe yukarý kaldýr
+            Vector3 originalPosition = alan.transform.localPosition;
+            alan.transform.localPosition = originalPosition + Vector3.up * 1f; // Baþlangýç pozisyonunu biraz aþaðý çek
+
+            // Yavaþça orijinal yerine kaydýr
+            alan.transform.DOLocalMove(originalPosition, 0.6f).SetEase(Ease.OutBack);
+        }
+
+        // 3. Diðer Butonu Animasyonlu Getirme
+        if (buton != null)
+        {
+            buton.SetActive(true);
+
+            // Butonu sýfýr boyuttan orijinal boyutuna getir (Fade-in gibi)
+            buton.transform.localScale = Vector3.zero;
+            buton.transform.DOScale(Vector3.one, 0.4f).SetEase(Ease.OutBack);
+        }
+
+        // 4. Oyun Mantýðýný Aktif Etme
+        MusteriHareket.kahveAcik = true;
+        StackCollector.Instance.KahveSatisiniAc();
     }
 
     void OnTriggerExit(Collider other)

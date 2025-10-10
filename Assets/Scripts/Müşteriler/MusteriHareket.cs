@@ -20,6 +20,7 @@ public class MusteriHareket : MonoBehaviour
     public int kuyruktakiSirasi;
     public int istenenUrunSayisi = 1;
     public int alinanUrunSayisi = 0;
+    // Ürün Tipleri: 0: Çay, 1: Soda, 2: Dondurma, 3: Kahve
     public int requestedProductType = 0;
 
     [Header("Random Sipariş Ayarları")]
@@ -50,6 +51,7 @@ public class MusteriHareket : MonoBehaviour
     private static bool dondurmaAlaniDolu = false;
     public static bool sodaAcik = false;
     public static bool dondurmaAcik = false;
+    public static bool kahveAcik = false; // Kahve için static değişken
 
     [Header("UI Baloncuk")]
     public GameObject baloncukPanel;
@@ -59,6 +61,7 @@ public class MusteriHareket : MonoBehaviour
     public RawImage cayImage;
     public RawImage sodaImage;
     public RawImage dondurmaImage;
+    public RawImage kahveImage; // Kahve için yeni RawImage
 
     // Otomatik dondurma alma için
     private float urunAlmaAraligi = 0.5f;
@@ -75,15 +78,35 @@ public class MusteriHareket : MonoBehaviour
         // Ürün tipi belirleme
         if (musteriTipi == MusteriTipi.Dondurma)
         {
+            // Dondurma müşterisi her zaman Dondurma (2) ister
             requestedProductType = 2;
         }
-        else if (!sodaAcik)
+        else // MusteriTipi.Normal
         {
-            requestedProductType = 0;
-        }
-        else
-        {
-            requestedProductType = Random.Range(0, 2);
+            // Normal müşterinin isteyebileceği ürün tipleri listesi
+            List<int> availableProducts = new List<int> { 0 }; // Başlangıçta her zaman Çay (0)
+
+            if (sodaAcik)
+            {
+                availableProducts.Add(1); // Soda (1) açıksa listeye ekle
+            }
+
+            if (kahveAcik) // Kahve alanı açıksa (3) listeye ekle
+            {
+                availableProducts.Add(3); // Kahve (3)
+            }
+
+            // Listeden rastgele bir ürün tipi seç
+            if (availableProducts.Count > 0)
+            {
+                int randomIndex = Random.Range(0, availableProducts.Count);
+                requestedProductType = availableProducts[randomIndex];
+            }
+            else
+            {
+                // Hiçbir şey açık değilse varsayılan olarak Çay (0) iste
+                requestedProductType = 0;
+            }
         }
 
         istenenUrunSayisi = Random.Range(minUrunSayisi, maxUrunSayisi + 1);
@@ -110,6 +133,7 @@ public class MusteriHareket : MonoBehaviour
     public bool IsRequestingSoda() => requestedProductType == 1;
     public bool IsRequestingTea() => requestedProductType == 0;
     public bool IsRequestingIceCream() => requestedProductType == 2;
+    public bool IsRequestingCoffee() => requestedProductType == 3; // Yeni kahve helper metodu
 
     void Update()
     {
@@ -150,8 +174,8 @@ public class MusteriHareket : MonoBehaviour
                         MusteriSpawner.UpdateQueuePositions();
                     }
                     else if (musteriTipi == MusteriTipi.Dondurma &&
-                             MusteriSpawner.dondurmaMusteriKuyrugu.Count > 0 &&
-                             MusteriSpawner.dondurmaMusteriKuyrugu.Peek() == this)
+                                MusteriSpawner.dondurmaMusteriKuyrugu.Count > 0 &&
+                                MusteriSpawner.dondurmaMusteriKuyrugu.Peek() == this)
                     {
                         MusteriSpawner.dondurmaMusteriKuyrugu.Dequeue();
                         MusteriSpawner.UpdateDondurmaQueuePositions();
@@ -166,7 +190,7 @@ public class MusteriHareket : MonoBehaviour
         if (musteriTipi == MusteriTipi.Dondurma && IsAtCounter() && NeedsMoreProducts())
         {
             // Külah kalmadıysa bekle
-            if (KulahYenileme.Instance.mevcutKulahSayisi <= 0)
+            if (KulahYenileme.Instance != null && KulahYenileme.Instance.mevcutKulahSayisi <= 0)
             {
                 // Müşteri külah beklerken yürümeyi durdursun
                 if (animator != null)
@@ -260,14 +284,8 @@ public class MusteriHareket : MonoBehaviour
         // Müşteriyi kuyruktan çıkar
         if (!kuyruktanCikarildi)
         {
-            if (musteriTipi == MusteriTipi.Normal)
-            {
-                MusteriSpawner.MusteriAyrildi(this);
-            }
-            else
-            {
-                MusteriSpawner.MusteriAyrildi(this);
-            }
+            // İki durumda da MusteriSpawner.MusteriAyrildi metodu çağrılabilir
+            MusteriSpawner.MusteriAyrildi(this);
             kuyruktanCikarildi = true;
         }
     }
@@ -371,8 +389,8 @@ public class MusteriHareket : MonoBehaviour
         // Dondurma müşterisi sadece külah varsa dondurma alsın
         if (musteriTipi == MusteriTipi.Dondurma)
         {
-            // Külah kalmadıysa dondurma alma işlemini durdur
-            if (KulahYenileme.Instance.mevcutKulahSayisi <= 0)
+            // KulahYenileme.Instance kontrolü eklendi
+            if (KulahYenileme.Instance == null || KulahYenileme.Instance.mevcutKulahSayisi <= 0)
             {
                 return;
             }
@@ -406,14 +424,15 @@ public class MusteriHareket : MonoBehaviour
         if (cayImage != null) cayImage.gameObject.SetActive(false);
         if (sodaImage != null) sodaImage.gameObject.SetActive(false);
         if (dondurmaImage != null) dondurmaImage.gameObject.SetActive(false);
+        if (kahveImage != null) kahveImage.gameObject.SetActive(false); // Kahveyi de kapat
         if (angryBubble != null) angryBubble.gameObject.SetActive(false);
 
         // Müşteri sinirliyse sadece sinirli balonu göster
         if (isAngry)
         {
-            baloncukPanel.SetActive(true);
+            if (baloncukPanel != null) baloncukPanel.SetActive(true);
             if (angryBubble != null) angryBubble.gameObject.SetActive(true);
-            productText.text = ""; // Metni boş bırak
+            if (productText != null) productText.text = ""; // Metni boş bırak
             return;
         }
 
@@ -443,14 +462,20 @@ public class MusteriHareket : MonoBehaviour
                 if (dondurmaImage != null) dondurmaImage.gameObject.SetActive(true);
                 productText.text = "" + kalan;
                 break;
+            case 3: // Kahve (YENİ)
+                if (kahveImage != null) kahveImage.gameObject.SetActive(true);
+                productText.text = "" + kalan;
+                break;
         }
     }
 
 
     private void OnDestroy()
     {
+        // MusteriAyrildi metodu, kuyruk temizliğini içerir.
         MusteriSpawner.MusteriAyrildi(this);
 
+        // Satış alanını boşalt
         if (musteriCollider != null && !musteriCollider.enabled)
         {
             if (musteriTipi == MusteriTipi.Normal)

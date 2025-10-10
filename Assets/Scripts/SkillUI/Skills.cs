@@ -7,13 +7,13 @@ public class Skills : MonoBehaviour
     [Header("UI Elemanları")]
     public Button skillButton;
     public Button skillButton1;
-    public RectTransform mainPanel; // Panelin adını mainPanel olarak değiştirdim
-    public RectTransform settingsPanel; // Yeni: Ayarlar paneli için RectTransform
+    public RectTransform mainPanel;
+    public RectTransform settingsPanel;
     private bool isPanelOpen = false;
     private Vector2 mainPanelClosedPosition;
     private Vector2 mainPanelOpenPosition;
-    private Vector2 settingsPanelClosedPosition; // Yeni: Ayarlar panelinin kapalı konumu
-    private Vector2 settingsPanelOpenPosition; // Yeni: Ayarlar panelinin açık konumu
+    private Vector2 settingsPanelClosedPosition;
+    private Vector2 settingsPanelOpenPosition;
     private float animationDuration = 0.3f;
     private float currentButtonRotation = 0f;
 
@@ -23,6 +23,9 @@ public class Skills : MonoBehaviour
     public Button button1;
     public Button button2;
     public Button button3;
+
+    [Header("Ses Kontrol")] // YENİ BAŞLIK
+    public Slider volumeSlider; // YENİ: Slider referansı
 
     [Header("Sesler")]
     public AudioSource audioSource;
@@ -40,10 +43,7 @@ public class Skills : MonoBehaviour
 
         if (mainPanel != null)
         {
-            // Ana panelin kapalı pozisyonunu mevcut konum olarak ayarla
             mainPanelClosedPosition = mainPanel.anchoredPosition;
-
-            // Ana panelin açık pozisyonunu hesapla (sağa doğru kayacak)
             mainPanelOpenPosition = new Vector2(mainPanelClosedPosition.x + 262f, mainPanelClosedPosition.y);
         }
         else
@@ -51,18 +51,33 @@ public class Skills : MonoBehaviour
             Debug.LogError("Ana panel referansı atanmamış!");
         }
 
-        // Ayarlar paneli için başlangıç pozisyonlarını ayarla
         if (settingsPanel != null)
         {
-            // Kapalı pozisyon: Ana panelin sağında, görünmeyecek şekilde
             settingsPanelClosedPosition = settingsPanel.anchoredPosition;
-
-            // Açık pozisyon: Ana panel açıldığında görüneceği konum
-            settingsPanelOpenPosition = new Vector2(settingsPanelClosedPosition.x + 313f, settingsPanelClosedPosition.y); // Bu değeri UI'nıza göre ayarlayın
+            settingsPanelOpenPosition = new Vector2(settingsPanelClosedPosition.x + 313f, settingsPanelClosedPosition.y);
         }
         else
         {
             Debug.LogWarning("Ayarlar paneli referansı atanmamış. Fonksiyon çalışmayacak.");
+        }
+
+        // YENİ: Volume Slider olayını ekle ve başlangıç değerlerini ayarla
+        if (volumeSlider != null)
+        {
+            float initialVolume = volumeSlider.value;
+
+            // AudioSource volume değeri 0-1 arasındadır, bu yüzden ölçekliyoruz
+            if (audioSource != null)
+            {
+                audioSource.volume = initialVolume / 10f;
+            }
+
+            // Slider değeri değiştiğinde ChangeVolume fonksiyonunu çağır
+            volumeSlider.onValueChanged.AddListener(ChangeVolume);
+        }
+        else
+        {
+            Debug.LogWarning("Volume Slider referansı atanmamış.");
         }
 
 
@@ -80,7 +95,7 @@ public class Skills : MonoBehaviour
             button3.onClick.AddListener(() => { ToggleSubPanel(panel3); PlayButtonSound(); });
         }
 
-        // Başlangıçta tüm alt paneller kapalı
+        // Başlangıçta alt panellerin durumu
         if (panel1 != null) panel1.SetActive(true);
         if (panel2 != null) panel2.SetActive(false);
         if (panel3 != null) panel3.SetActive(false);
@@ -108,7 +123,7 @@ public class Skills : MonoBehaviour
         {
             // PANELI AÇMA
             sequence.Append(mainPanel.DOAnchorPosX(mainPanelOpenPosition.x, animationDuration).SetEase(Ease.InOutQuad));
-            sequence.Append(settingsPanel.DOAnchorPosX(settingsPanelOpenPosition.x, animationDuration).SetEase(Ease.InOutQuad)); // Ana panelden sonra gelsin
+            sequence.Append(settingsPanel.DOAnchorPosX(settingsPanelOpenPosition.x, animationDuration).SetEase(Ease.InOutQuad));
 
             isPanelOpen = true;
             PlaySound(openSound);
@@ -128,9 +143,9 @@ public class Skills : MonoBehaviour
     public void OpenPanel(GameObject panelToOpen)
     {
         if (!isPanelOpen) return;
-        panel1.SetActive(false);
-        panel2.SetActive(false);
-        panel3.SetActive(false);
+        if (panel1 != null) panel1.SetActive(false);
+        if (panel2 != null) panel2.SetActive(false);
+        if (panel3 != null) panel3.SetActive(false);
         if (panelToOpen != null)
             panelToOpen.SetActive(true);
     }
@@ -146,5 +161,14 @@ public class Skills : MonoBehaviour
     void PlayButtonSound()
     {
         PlaySound(buttonSound);
+    }
+    public void ChangeVolume(float sliderValue)
+    {
+        if (audioSource != null)
+        {
+            // Slider değeri (0-10) / 10f = AudioSource Volume (0.0-1.0)
+            float newVolume = sliderValue / 10f;
+            audioSource.volume = newVolume;
+        }
     }
 }

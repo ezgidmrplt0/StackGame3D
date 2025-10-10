@@ -31,6 +31,8 @@ public class ExpandManager : MonoBehaviour
 
     private Dictionary<Button, int> buttonStepIndices = new Dictionary<Button, int>();
 
+    public GameObject gizlen;
+
     void Start()
     {
         currentPrice = basePrice;
@@ -70,6 +72,8 @@ public class ExpandManager : MonoBehaviour
 
     public void OnExpandButtonClick(int stepIndex)
     {
+        gizlen.SetActive(false);
+
         if (stepIndex < 0 || stepIndex >= expansionSteps.Count)
         {
             Debug.LogWarning("Geçersiz step index: " + stepIndex);

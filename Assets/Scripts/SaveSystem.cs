@@ -25,8 +25,8 @@ public class SaveSystem : MonoBehaviour
     public void SaveData()
     {
         PlayerPrefs.SetInt("Money", MoneyManager.Instance.money);
-        PlayerPrefs.SetInt("Day", GunKodlari.GetCurrentDay());
-        PlayerPrefs.SetFloat("TimeOfDay", GunKodlari.GetTimeOfDay());
+        //PlayerPrefs.SetInt("Day", GunKodlari.GetCurrentDay());
+        //PlayerPrefs.SetFloat("TimeOfDay", GunKodlari.GetTimeOfDay());
         PlayerPrefs.Save();
 
         Debug.Log("💾 Veriler kaydedildi!");
@@ -42,19 +42,19 @@ public class SaveSystem : MonoBehaviour
 
         if (PlayerPrefs.HasKey("Day"))
         {
-            GunKodlari.SetDay(PlayerPrefs.GetInt("Day"));
+       //     GunKodlari.SetDay(PlayerPrefs.GetInt("Day"));
         }
 
         if (PlayerPrefs.HasKey("TimeOfDay"))
         {
-            GunKodlari.SetTimeOfDay(PlayerPrefs.GetFloat("TimeOfDay"));
+       //     GunKodlari.SetTimeOfDay(PlayerPrefs.GetFloat("TimeOfDay"));
         }
 
         // 🔥 UI’yı hemen güncelle
         if (GunKodlari.Instance != null)
         {
-            GunKodlari.Instance.UpdateDayText();
-            GunKodlari.Instance.UpdateTimeText();
+           // GunKodlari.Instance.UpdateDayText();
+           // GunKodlari.Instance.UpdateTimeText();
         }
 
         Debug.Log("📂 Veriler yüklendi!");

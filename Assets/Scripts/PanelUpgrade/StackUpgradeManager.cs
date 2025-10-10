@@ -1,16 +1,16 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
 public class StackUpgradeManager : MonoBehaviour
 {
-    [Header("Upgrade Ayarlarý")]
+    [Header("Upgrade AyarlarÄ±")]
     public int basePrice = 100;
     public float priceIncreaseRate = 0.2f;
     private int currentPrice;
     private int stackMaxCount = 5;
 
-    [Header("UI Elemanlarý")]
+    [Header("UI ElemanlarÄ±")]
     public TextMeshProUGUI priceText;
     public Button upgradeButton;
 

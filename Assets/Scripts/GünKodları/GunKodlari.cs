@@ -12,7 +12,7 @@ public class GunKodlari : MonoBehaviour
     [SerializeField] private TextMeshProUGUI timeText;
 
     [Header("Cycle Settings")]
-    [SerializeField] private float dayDurationInMinutes = 5f;
+    [SerializeField] private float dayDurationInMinutes = 20f;
 
     [Header("Lighting")]
     [SerializeField] private Light sceneLight;
@@ -24,6 +24,7 @@ public class GunKodlari : MonoBehaviour
     void Awake()
     {
         Instance = this;
+        timeOfDay = 10f / 24f;
     }
 
     void Start()

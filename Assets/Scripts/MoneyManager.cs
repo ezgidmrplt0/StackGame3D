@@ -47,4 +47,9 @@ public class MoneyManager : MonoBehaviour
         if (moneyText != null)
             moneyText.text = money + "$";
     }
+
+    public void setMoney()
+    {
+        money = 0; UpdateUI();
+    }
 }

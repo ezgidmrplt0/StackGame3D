@@ -47,7 +47,7 @@ public class GunKodlari : MonoBehaviour
             UpdateDayText();
 
             // Gün değiştiğinde otomatik kaydet
-            FindObjectOfType<SaveSystem>().SaveData();
+           // FindObjectOfType<SaveSystem>().SaveData();
         }
 
         transform.rotation = Quaternion.Euler(new Vector3((timeOfDay * 360f) - 90f, 170f, 0));
@@ -63,7 +63,7 @@ public class GunKodlari : MonoBehaviour
     public void UpdateDayText()
     {
         if (dayText != null)
-            dayText.text = "Gün: " + dayCount;
+            dayText.text = "Gun: " + dayCount;
     }
 
     public void UpdateTimeText()

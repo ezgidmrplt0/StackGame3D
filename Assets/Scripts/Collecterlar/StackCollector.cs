@@ -94,6 +94,7 @@ public class StackCollector : MonoBehaviour
     public bool sodaSatisAktif = true;
     private Dictionary<MusteriHareket, float> sonSodaSatisZamanlari = new Dictionary<MusteriHareket, float>();
     private int stackLimit = 5;
+    public GameObject sodacıAktif;
 
     // YENİ: Kahve Satış Kontrolü
     [Header("Kahve Satış Kontrol")]
@@ -831,6 +832,7 @@ public class StackCollector : MonoBehaviour
     public void SodaSatisiniAc()
     {
         sodaSatisAktif = true;
+        sodacıAktif.SetActive(false);
         Debug.Log("Soda satışı aktifleştirildi!");
     }
 

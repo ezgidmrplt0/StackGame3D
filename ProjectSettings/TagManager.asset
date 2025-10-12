@@ -32,6 +32,9 @@ TagManager:
   - KirliAlan
   - kulahyenileme
   - KahveAl
+  - dondurma1
+  - KahveBirakmaNoktasi
+  - KahveToplamaNoktasi
   layers:
   - Default
   - TransparentFX

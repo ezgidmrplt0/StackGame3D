@@ -42,7 +42,7 @@ public class StackCollector : MonoBehaviour
     [Header("Çay Sistemi")]
     public string cayToplamaTag = "CayToplamaNoktasi";
     public string cayBirakmaTag = "CayBirakmaNoktasi";
-    public int hamCayTasimaLimiti = 20;
+    public int hamCayTasimaLimiti = 10;
     public float toplamaAraligi = 0.5f;
     public int toplamaAdedi = 1;
     public TextMeshPro hamCayText;

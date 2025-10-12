@@ -37336,14 +37336,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e77498d64e39a0a4788696f60004abca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  kahvePrefab: {fileID: 9156154871836098917, guid: e694ed222995d0c44ab6be42108bf211, type: 3}
+  stackRoot: {fileID: 1598196649}
+  stackHeight: 1.8
+  stackSpawnInterval: 0.2
+  stackLimit: 5
+  kahveTargetScale: {x: 6, y: 9, z: 6}
+  tweenEase: 9
+  stokText: {fileID: 0}
+  kahveStogu: 100
   alan: {fileID: 1225289572}
   buton: {fileID: 1285207842}
   butonKahve: {fileID: 2064899955}
+  dropAreaTag: StackSilmeNoktasi0
   dropList: []
-  stackAreaTarget: {fileID: 0}
+  dropAreaTarget: {fileID: 581095394}
   dropSpacing: 1.5
-  currentStock: 100
-  stockText: {fileID: 0}
 --- !u!1 &1352165498
 GameObject:
   m_ObjectHideFlags: 0
@@ -57822,8 +57830,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 32.37508, z: 1}
-  m_Center: {x: -1.4501951e-11, y: 15.687568, z: -1.2406251e-14}
+  m_Size: {x: 1, y: 40.529064, z: 1}
+  m_Center: {x: -1.2341681e-11, y: 19.765957, z: 2.33439e-13}
 --- !u!23 &2010713406
 MeshRenderer:
   m_ObjectHideFlags: 0

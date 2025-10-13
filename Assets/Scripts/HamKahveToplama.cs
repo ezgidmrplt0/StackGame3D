@@ -1,107 +1,201 @@
 using UnityEngine;
-using DG.Tweening; // DOTween kütüphanesini kullandýðýmýzdan emin olun
+using DG.Tweening;
+using System.Collections;
+using System.Collections.Generic;
 
+// NOT: Bu script'in Oyuncu/Depocu objesine baðlý olmasý GEREKÝR.
 public class HamKahveToplama : MonoBehaviour
 {
-    // Kahve prefab'ýný oyuncuya/envantere ekleyeceðimiz için bir referansa ihtiyacýmýz var.
-    // Ancak kahveyi ekleme iþini yapan baþka bir script'e (örneðin OyuncuEnvanteri) de ihtiyacýmýz var.
-    // Bu kodda, basitçe sadece prefab'ý oluþturup/yok edip, aðacý deaktif etme mantýðýný göstereceðim.
+    // --- STACK AYARLARI ---
+    [Header("STACK YÖNETÝMÝ")]
+    [Tooltip("Stack'in baþlayacaðý pivot (Oyuncu objesinde bir çocuk olmalý).")]
+    public Transform stackRoot;
+    [Tooltip("Stack'e eklenecek kahve ÇEKÝRDEÐÝ prefabý.")]
+    public GameObject kahveCekirdegiPrefab;
+    public int stackLimit = 10;
 
-    [Header("Toplanacak Eþya Ayarlarý")]
-    public GameObject kahvePrefab; // Oyuncuya eklenecek kahve prefab'ý (Stack için kullanýlacak)
+    [Header("Stack Görünüm Ayarlarý")]
+    public Vector3 kahveTargetScale = new Vector3(1f, 1f, 1f);
+    public float stackHeight = 0.5f;
+    public Ease tweenEase = Ease.OutBack;
 
-    [Header("Animasyon Ayarlarý")]
-    [Tooltip("Orijinal Y ölçeðinin bu katýna kadar küçülsün (0 - 1 arasý). 0.25 = %25")]
-    public float minYFactor = 0.1f; // Daha belirgin bir küçülme için 0.1
-    public float shrinkDuration = 0.5f; // Küçülme süresi
-    public Ease shrinkEase = Ease.OutSine; // Yumuþak bir küçülme
-    // Not: "Sarkýntýlý" bir etki isterseniz: Ease.OutElastic veya Ease.InBack deneyebilirsiniz.
+    // --- BIRAKMA AYARLARI ---
+    [Header("BIRAKMA/SATIÞ AYARLARI")]
+    [Tooltip("Stackteki ürünlerin yok olma (býrakma) hýzý (saniye aralýðý).")]
+    public float dropInterval = 0.05f;
 
-    private Vector3 originalScale;
-    private Tween activeTween;
-    private bool isReadyToCollect = true;
+    [HideInInspector] public List<Transform> stack = new List<Transform>();
 
-    // Örnek: Stacklama/Envanter sistemi için bir referans
-    // public StackManager stackManager; 
+    // --- TOPLAMA AYARLARI (Fýrlatma parametreleri kaldýrýldý) ---
+    [Header("Yeniden Canlanma (Respawn)")]
+    public float respawnDelay = 5f;
+
+    [Header("AÐAÇ SALLANMA ANÝMASYONU")]
+    public float shakeDuration = 0.2f;
+    [Tooltip("Eksen baþýna maksimum dönüþ açýsý (Örn: 5f, 0f, 5f)")]
+    public Vector3 shakeStrength = new Vector3(5f, 0f, 5f);
+    public int shakeVibrato = 10;
+    public float shakeRandomness = 90f;
+
+    // Respawn Manager'a iletmek için Statik Ayarlar (Görünmez Kalsýnlar)
+    public static float StaticShakeDuration;
+    public static Vector3 StaticShakeStrength;
+    public static int StaticShakeVibrato;
+    public static float StaticShakeRandomness;
+
+    // --- AKIÞ KONTROL DEÐÝÞKENLERÝ ---
+    private Coroutine dropLoop;
 
     private void Start()
     {
-        originalScale = transform.localScale;
-
-        // Kahve prefab'ý atanmadýysa uyarý ver
-        if (kahvePrefab == null)
+        if (stackRoot == null || kahveCekirdegiPrefab == null)
         {
-            Debug.LogError("Kahve Prefab'ý KahveToplama script'ine atanmamýþ! Stacklama yapýlamayacak.");
+            Debug.LogError(gameObject.name + " üzerindeki HamKahveToplama: Stack Root veya Prefab atanmamýþ!");
         }
-
-        // Baþlangýçta toplanabilir kahve aðacýný aktif hale getir (Eðer zaten aktif deðilse)
-        gameObject.SetActive(true);
+        if (RespawnManager.Instance == null)
+        {
+            Debug.LogError("RespawnManager sahnede bulunamýyor! Yeniden canlanma çalýþmayacak.");
+        }
+        StaticShakeDuration = shakeDuration;
+        StaticShakeStrength = shakeStrength;
+        StaticShakeVibrato = shakeVibrato;
+        StaticShakeRandomness = shakeRandomness;
     }
 
+
     /// <summary>
-    /// Toplama iþlemini baþlatan ana fonksiyon.
+    /// Kahve Aðacýný deaktif eder, respawn iþlemini baþlatýr ve stack'e direkt ekler.
     /// </summary>
-    public void TriggerCollect()
+    /// <param name="coffeeTree">Deaktif edilecek Kahve Aðacý objesi.</param>
+    private void CollectTreeAndStartRespawn(GameObject coffeeTree)
     {
-        // Eðer zaten toplanmýþ veya toplanmaya hazýr deðilse iþlem yapma
-        if (!isReadyToCollect) return;
-
-        // Aktif animasyon varsa durdur
-        if (activeTween != null && activeTween.IsActive()) activeTween.Kill();
-
-        // Objeyi toplandýðý için toplanabilirliðini kapat
-        isReadyToCollect = false;
-
-        // 1) Yavaþça küçült (Y ekseninde)
-        Vector3 targetScale = new Vector3(originalScale.x, originalScale.y * Mathf.Clamp01(minYFactor), originalScale.z);
-
-        activeTween = transform.DOScale(targetScale, shrinkDuration).SetEase(shrinkEase).OnComplete(() =>
+        // 1. Aðacý sallama animasyonunu baþlat
+        // Animasyon bitince, OnComplete içinde deaktif etme ve stackleme iþlemlerini yapýyoruz.
+        coffeeTree.transform.DOShakeRotation(
+            duration: shakeDuration,
+            strength: shakeStrength,
+            vibrato: shakeVibrato,
+            randomness: shakeRandomness,
+            fadeOut: true // Sallanma biterken yumuþakça durmasýný saðlar
+        ).OnComplete(() =>
         {
-            // 2) Küçülme animasyonu bitince yapýlmasý gerekenler:
+            // 2. Sallanma bitince: Aðacý toplanmýþ kabul et, deaktif et
+            coffeeTree.SetActive(false);
 
-            // A) Kahve objesini oyuncunun envanterine ekle (Stacklama Olayý)
-            CollectItemAndStack();
+            // 3. Respawn Manager'a bu objeyi beklemeye almasý için görev ver
+            if (RespawnManager.Instance != null)
+            {
+                RespawnManager.Instance.StartRespawn(coffeeTree, respawnDelay);
+            }
+            else
+            {
+                Debug.LogWarning("RespawnManager.Instance NULL! Aðaç geri gelmeyecek.");
+            }
 
-            // B) Aðacý deaktif et
-            gameObject.SetActive(false);
-
-            // NOT: Eðer aðacýn "toplanmýþ" versiyonunu aktif etmek istiyorsanýz,
-            // burada deaktif etmek yerine "toplanmýþ" versiyonunu aktif etme mantýðý yazýlabilir.
-            // Örn: ToplanmýþKahveAgaci.SetActive(true);
+            // 4. Stack'e hemen bir ürün ekle
+            AddOneKahveToStack();
+            Debug.Log("Kahve anýnda Stack'e eklendi.");
         });
     }
 
-    /// <summary>
-    /// Kahve objesini oluþturur ve stacklama sistemine ekler.
-    /// </summary>
-    private void CollectItemAndStack()
+    // NOT: LaunchCoffeeToStack metodu tamamen KALDIRILDI.
+
+    // --- STACK YÖNETÝM METODU (Ayný Kalýr) ---
+    public void AddOneKahveToStack()
     {
-        // Gerçek Stacklama Mantýðý buraya yazýlýr.
-        // Basitçe:
+        if (stack.Count >= stackLimit) return;
 
-        if (kahvePrefab != null)
+        float yOffset = kahveTargetScale.y * 0.5f;
+        Vector3 spawnPosition = stackRoot.position + Vector3.up * (stackHeight * stack.Count + yOffset);
+
+        GameObject newCube = Instantiate(kahveCekirdegiPrefab, spawnPosition, Quaternion.identity);
+        newCube.transform.SetParent(stackRoot);
+
+        // Y rotasyon düzeltmesi
+        newCube.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+
+        Rigidbody cubeRb = newCube.GetComponent<Rigidbody>();
+        if (cubeRb != null)
         {
-            // Eðer bir "StackManager" script'iniz varsa:
-            // stackManager.AddItem(kahvePrefab);
+            cubeRb.isKinematic = true;
+            cubeRb.useGravity = false;
+        }
 
-            // Þimdilik sadece bir Debug.Log ile stacklandýðýný varsayalým.
-            Debug.Log(gameObject.name + " objesinden Kahve toplandý ve Stack'e eklendi!");
+        newCube.transform.localScale = Vector3.zero;
+        newCube.transform.DOScale(kahveTargetScale, 0.4f).SetEase(tweenEase);
 
-            // Eðer prefab'ý dünyada instantiate edip sonra stack'e taþýyacaksanýz:
-            // GameObject collectedCoffee = Instantiate(kahvePrefab, transform.position, Quaternion.identity);
-            // collectedCoffee.GetComponent<CoffeeItem>().AddToStack(); // Örnek bir fonksiyon
+        stack.Add(newCube.transform);
+    }
+
+    // --- BIRAKMA VE TOPLAMA TETÝKLEYÝCÝSÝ (Ayný Kalýr) ---
+    private void OnTriggerEnter(Collider other)
+    {
+        // 1. Kahve Býrakma Noktasý Kontrolü
+        if (other.CompareTag("KahveBirakmaNoktasi"))
+        {
+            if (dropLoop == null && stack.Count > 0)
+            {
+                dropLoop = StartCoroutine(DropSequence());
+            }
+        }
+
+        // 2. Kahve Aðacý Toplama Kontrolü
+        if (other.CompareTag("KahveToplamaNoktasi"))
+        {
+            if (stack.Count >= stackLimit)
+            {
+                Debug.Log("Stack Dolu! Kahve toplanamýyor.");
+                return;
+            }
+
+            CollectTreeAndStartRespawn(other.gameObject);
+            CoffeeStackCollector.Instance.hamKahve++;
         }
     }
 
-
-    // Oyuncunun temasý (Trigger) ile toplama iþlemini baþlatma
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerExit(Collider other)
     {
-        // Temas eden objenin Tag'ini kontrol edin. (Örnekteki "Depocu" tag'i kullanýldý)
-        if (other.CompareTag("Player") || other.CompareTag("Depocu")) // Oyuncu Tag'ýný kontrol edin
+        if (other.CompareTag("KahveBirakmaNoktasi"))
         {
-            // Toplama iþlemini baþlat
-            TriggerCollect();
+            if (dropLoop != null)
+            {
+                StopCoroutine(dropLoop);
+                dropLoop = null;
+                Debug.Log("Býrakma noktasýndan çýkýldý. Býrakma durduruldu.");
+            }
         }
+    }
+
+    // --- DROP SEQUENCE (Ayný Kalýr) ---
+    // HamKahveToplama.cs içinde DropSequence metodunuz
+
+    IEnumerator DropSequence()
+    {
+        var wait = new WaitForSeconds(dropInterval);
+        Debug.Log("Býrakma/Satýþ iþlemi baþladý.");
+
+        while (stack.Count > 0)
+        {
+            Transform cubeToDrop = stack[stack.Count - 1];
+            stack.RemoveAt(stack.Count - 1);
+
+            cubeToDrop.DOScale(Vector3.zero, dropInterval * 0.8f)
+                      .SetEase(Ease.InQuad)
+                      .OnComplete(() =>
+                      {
+                          Destroy(cubeToDrop.gameObject);
+                      });
+
+            if (CoffeeStackCollector.Instance != null)
+            {
+                CoffeeStackCollector.Instance.kahveStogu++;
+            }
+            CoffeeStackCollector.Instance.hamKahve--;
+
+            yield return wait;
+        }
+
+        dropLoop = null;
+        Debug.Log("Stack boþaldý. Býrakma iþlemi tamamlandý.");
     }
 }

@@ -86,7 +86,7 @@ public class StackCollector : MonoBehaviour
     [Header("Satış Ayarları")]
     public int cayFiyati = 2;
     public int sodaFiyati = 5;
-    public int kahveFiyati = 4; // YENİ: Kahve fiyatı 4 olarak eklendi
+    public int kahveFiyati = 4;
     private Dictionary<MusteriHareket, float> sonSatisZamanlari = new Dictionary<MusteriHareket, float>();
     private float satisCoolDown = 0.5f;
 
@@ -96,7 +96,6 @@ public class StackCollector : MonoBehaviour
     private int stackLimit = 5;
     public GameObject sodacıAktif;
 
-    // YENİ: Kahve Satış Kontrolü
     [Header("Kahve Satış Kontrol")]
     public bool kahveSatisAktif = false; // Kahve satışının manuel aktifleşmesi için
     private Dictionary<MusteriHareket, float> sonKahveSatisZamanlari = new Dictionary<MusteriHareket, float>();
@@ -153,10 +152,6 @@ public class StackCollector : MonoBehaviour
         UpdateKasiyerSales();
         GuncelleUI();
     }
-
-    // ----------------------------------------------------------------------
-    // YENİ: Kahve Satış Metotları (Oyuncu)
-    // ----------------------------------------------------------------------
 
     void TrySellCoffeeToCustomer()
     {
@@ -255,11 +250,6 @@ public class StackCollector : MonoBehaviour
             lastSellTime = Time.time;
         }
     }
-
-    // ----------------------------------------------------------------------
-    // MEVCUT METOTLAR (DEĞİŞİKLİK YAPILMADI)
-    // ----------------------------------------------------------------------
-
     void TrySellSodaToCustomer()
     {
         if (!sodaSatisAktif) return;

@@ -21,7 +21,9 @@ public class CoffeeStackCollector : MonoBehaviour
 
     [Header("Stok ve UI")]
     public TextMeshPro stokText;
+    public TextMeshPro hamKahveText;
     public int kahveStogu = 100;
+    public int hamKahve = 10;
     public GameObject alan;
     public GameObject buton;
     public GameObject butonKahve;
@@ -247,7 +249,11 @@ public class CoffeeStackCollector : MonoBehaviour
     void GuncelleUI()
     {
         if (stokText != null)
-            stokText.text = $"Stok: {kahveStogu}";
+            stokText.text = $"{kahveStogu}";
+        if (hamKahveText != null)
+            hamKahveText.text = $"{hamKahve}/10";
+        
+
     }
 
     public int StackCount => stack.Count;

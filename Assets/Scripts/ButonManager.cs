@@ -12,6 +12,7 @@ public class ButonManager : MonoBehaviour
     // Butonlar arasýndaki boþluk
     public float buttonSpacing = 51f;
     public GameObject kahveTablo;
+    public GameObject kahveAlaný;
 
     // Bu metot, ExpandManager tarafýndan çaðrýlacak
     public void HideAndShiftButtons(RectTransform buttonToHide)
@@ -44,5 +45,6 @@ public class ButonManager : MonoBehaviour
     public void KahveTablo()
     {
         kahveTablo.SetActive(true);
+        kahveAlaný.SetActive(true);
     }
 }

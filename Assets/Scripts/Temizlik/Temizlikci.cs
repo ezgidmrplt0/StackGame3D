@@ -13,11 +13,11 @@ public class TemizlikciPanelVeNPC : MonoBehaviour
 
     [Header("UI Baðlantýlarý")]
     public Button satinAlButton;          // Satýn alma butonu
-    public TextMeshProUGUI fiyatText;    // Fiyat göstermek için TextMeshPro
+    public TextMeshProUGUI fiyatText;     // Fiyat göstermek için TextMeshPro
     public int fiyat = 1000;              // Temizlikçi ücreti
 
     [Header("Temizlik Ayarlarý")]
-    public float hareketHizi = 13f;        // Temizlikçi hareket hýzý
+    public float hareketHizi = 13f;       // Temizlikçi hareket hýzý
     public float temizlemeSuresi = 180f;  // Temizleme süresi: 3 dakika
 
     private KirlilikYonetici kirlilikYonetici;
@@ -70,6 +70,13 @@ public class TemizlikciNPC : MonoBehaviour
     [HideInInspector] public float temizlemeSuresi = 180f;
     [HideInInspector] public KirlilikYonetici kirlilikYonetici;
 
+    [Header("Rotasyon Ayarlarý")]
+    [Tooltip("Sadece Y ekseninde (yaw) döndür: top-down oyunlar için önerilir.")]
+    public bool sadeceYEkseni = true;
+
+    [Tooltip("Hedefe dönme süresi (saniye).")]
+    public float donusSuresi = 0.15f;
+
     private void Start()
     {
         StartCoroutine(TemizlikDongusu());
@@ -96,13 +103,22 @@ public class TemizlikciNPC : MonoBehaviour
             // Rastgele bir kirli alan seç
             GameObject hedefAlan = aktifKirliAlanlar[Random.Range(0, aktifKirliAlanlar.Count)];
 
-            // Temizlikçiyi hedef alana taþý
+            // Hedef pozisyon
             Vector3 hedefPozisyon = hedefAlan.transform.position;
-            yield return transform.DOMove(hedefPozisyon, Vector3.Distance(transform.position, hedefPozisyon) / hareketHizi)
+
+            // --- 1) Hedefe doðru dön (yumuþak dönüþ) ---
+            yield return Dondur(hedefPozisyon);
+
+            // --- 2) Hedefe doðru yürü ---
+            float mesafe = Vector3.Distance(transform.position, hedefPozisyon);
+            float sure = mesafe / Mathf.Max(0.01f, hareketHizi);
+
+            // Linear hareket; istersen Ease.OutQuad yapabilirsin
+            yield return transform.DOMove(hedefPozisyon, sure)
                                   .SetEase(Ease.Linear)
                                   .WaitForCompletion();
 
-            // Temizleme animasyonu (alpha düþürme)
+            // --- 3) Temizleme animasyonu (alpha düþürme) ---
             float zaman = 0f;
             Renderer renderer = hedefAlan.GetComponent<Renderer>();
             Color baslangicRengi = renderer.material.color;
@@ -124,5 +140,27 @@ public class TemizlikciNPC : MonoBehaviour
 
             Debug.Log("Temizlikçi bir alaný temizledi!");
         }
+    }
+
+    /// <summary>
+    /// NPC'yi hedef pozisyona doðru kýsa bir tween ile döndürür.
+    /// </summary>
+    private IEnumerator Dondur(Vector3 hedefPozisyon)
+    {
+        Vector3 ileri = (hedefPozisyon - transform.position);
+
+        if (sadeceYEkseni)
+            ileri.y = 0f; // sadece yaw
+
+        // Sýfýr vektör kontrolü
+        if (ileri.sqrMagnitude < 0.0001f)
+            yield break;
+
+        Quaternion hedefRot = Quaternion.LookRotation(ileri.normalized, Vector3.up);
+
+        // DOTween ile yumuþak dönüþ
+        yield return transform.DORotateQuaternion(hedefRot, Mathf.Max(0f, donusSuresi))
+                              .SetEase(Ease.OutSine)
+                              .WaitForCompletion();
     }
 }

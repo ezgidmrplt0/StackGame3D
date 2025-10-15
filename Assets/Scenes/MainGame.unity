@@ -992,7 +992,7 @@ PrefabInstance:
       objectReference: {fileID: 1764870246}
     - target: {fileID: 3788246166151476156, guid: c6756b0ecb3cb6248851cbc86a869d42, type: 3}
       propertyPath: sodaSatisAktif
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3788246166151476156, guid: c6756b0ecb3cb6248851cbc86a869d42, type: 3}
       propertyPath: depocuFiyatText

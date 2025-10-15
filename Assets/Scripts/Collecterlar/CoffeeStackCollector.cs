@@ -42,6 +42,7 @@ public class CoffeeStackCollector : MonoBehaviour
 
     private Coroutine dropLoop;
     private bool isInDropArea = false; // Býrakma alanýnda mýyýz kontrolü
+    private int currentPrice = 100;
 
     void Awake()
     {
@@ -187,6 +188,15 @@ public class CoffeeStackCollector : MonoBehaviour
             butonKahve.transform.DOScale(Vector3.zero, 0.3f)
                 .SetEase(Ease.InBack)
                 .OnComplete(() => butonKahve.SetActive(false));
+
+            if (MoneyManager.Instance.money >= currentPrice)
+            {
+                MoneyManager.Instance.AddMoney(-currentPrice);
+            }
+            else
+            {
+                Debug.Log("Yeterli paran yok!");
+            }
         }
 
         // 2. Kahve Alanýný Animasyonlu Açma

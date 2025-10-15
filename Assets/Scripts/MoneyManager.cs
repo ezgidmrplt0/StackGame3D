@@ -1,12 +1,15 @@
 using UnityEngine;
 using TMPro;
+using System;
 
 public class MoneyManager : MonoBehaviour
 {
     public static MoneyManager Instance;
+    public event Action OnMoneyChanged;
 
     public int money = 0;
     public TextMeshProUGUI moneyText;
+
 
     void Awake()
     {
@@ -25,6 +28,7 @@ public class MoneyManager : MonoBehaviour
     {
         money += amount;
         UpdateUI();
+        OnMoneyChanged?.Invoke();
         Debug.Log("Para eklendi: " + amount + ", Toplam: " + money);
     }
 

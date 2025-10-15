@@ -304,7 +304,7 @@ public class StackCollector : MonoBehaviour
             });
 
         return true;
-    }
+    } 
 
     void TrySellSodaWithKasiyer(KasiyerHareket kasiyer)
     {
@@ -408,6 +408,7 @@ public class StackCollector : MonoBehaviour
                 }
             }
         }
+
 
         // Diğer temas kontrol kodları aynı kalıyor
         if (other.CompareTag(cayBirakmaTag))

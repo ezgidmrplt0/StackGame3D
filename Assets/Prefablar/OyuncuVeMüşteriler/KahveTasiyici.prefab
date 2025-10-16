@@ -103,7 +103,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3670405753088119664, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_Name
-      value: "Sodac\u0131"
+      value: KahveTasiyici
       objectReference: {fileID: 0}
     - target: {fileID: 3670405753088119664, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_TagString
@@ -190,6 +190,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3670405753088119664, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6197443267812279840}
+    - targetCorrespondingSourceObject: {fileID: 3670405753088119664, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8754916932122686703}
   m_SourcePrefab: {fileID: 100100000, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
 --- !u!4 &1278261863749520526 stripped
 Transform:
@@ -281,8 +284,32 @@ MonoBehaviour:
   fiyat: 100
   fiyatArtis: 0.2
   yolNoktalari: []
-  almaNoktasi: {fileID: 0}
-  currentPath: []
+--- !u!114 &8754916932122686703
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1942912675890091572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31fa437d7f4583045ad00556a605f417, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  toplamaNoktasi: {fileID: 0}
+  birakmaNoktasi: {fileID: 0}
+  hareketHizi: 20
+  bekleme: 0.1
+  stackRoot: {fileID: 247283042468947818}
+  kahveCekirdegiPrefab: {fileID: 8788844503691629129, guid: 54c33b277227fa145885c9679414505e, type: 3}
+  stackLimit: 10
+  kahveTargetScale: {x: 1, y: 1, z: 1}
+  stackHeight: 0.5
+  tweenEase: 27
+  dropInterval: 0.05
+  toplamaYaricapi: 2.5
+  agacTag: KahveToplamaNoktasi
+  birakmaTag: KahveBirakmaNoktasi
 --- !u!1001 &4655633083192582317
 PrefabInstance:
   m_ObjectHideFlags: 0

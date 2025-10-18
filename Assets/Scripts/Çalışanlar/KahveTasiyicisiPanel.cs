@@ -1,111 +1,76 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using DG.Tweening;
+using System.Collections;
 
 public class KahveTasiyicisiPanel : MonoBehaviour
 {
-    [Header("UI Ögeleri")]
-    public Button satinAlButton;          // Inspector'dan bağla
-    public TextMeshProUGUI fiyatText;     // Fiyat yazısı
-    public TextMeshProUGUI durumText;     // Durum / Kalan süre
-
-    [Header("Satın Alma Ayarları")]
-    public int fiyat = 250;
-    public int oyuncuPara = 1000;         // Şimdilik test amaçlı
-
-    [Header("Spawn & NPC Ayarları")]
-    public GameObject kahveTasiyicisiPrefab;
+    [Header("NPC Ayarları")]
+    public GameObject npcPrefab;
     public Transform spawnPoint;
-    public Transform toplamaNoktasi;
-    public Transform birakmaNoktasi;
-    public float calismaSuresi = 20f;
+    public float npcCalismaSuresi = 20f;
 
-    [Header("Stack Ayarları (NPC’ye aktarılacak)")]
-    public Transform npcStackRoot;
-    public GameObject kahveCekirdegiPrefab;
-    public int stackLimit = 10;
-    public Vector3 kahveTargetScale = new Vector3(1, 1, 1);
-    public float stackHeight = 0.5f;
-    public Ease stackTweenEase = Ease.OutBack;
-    public float dropInterval = 0.05f;
+    [Header("UI Elemanları")]
+    public Button satinAlButton;
+    public TextMeshProUGUI fiyatText;
 
-    private KahveTasiyicisiNPC aktifNPC;
-    private float kalanSure = 0f;
+    [Header("Fiyat Ayarları")]
+    public int baslangicFiyati = 100;
+    public float artisOrani = 0.2f; // %20
+
+    private int mevcutFiyat;
+    private bool npcAktif = false;
 
     void Start()
     {
-        if (fiyatText) fiyatText.text = fiyat + " $";
-        if (durumText) durumText.text = "";
-
-        // Inspector'dan atamasan bile buton çalışsın diye:
-        if (satinAlButton != null)
-            satinAlButton.onClick.AddListener(SatinAl);
+        mevcutFiyat = baslangicFiyati;
+        GuncelleFiyatYazisi();
+        satinAlButton.onClick.AddListener(SatinAlNPC);
     }
 
-    void Update()
+    private void GuncelleFiyatYazisi()
     {
-        // Kalan süreyi ekrana yaz
-        if (aktifNPC != null && kalanSure > 0f)
-        {
-            kalanSure -= Time.deltaTime;
-            if (durumText)
-                durumText.text = "Kalan: " + Mathf.Max(0f, kalanSure).ToString("0.0") + " sn";
-        }
+        fiyatText.text = $"{mevcutFiyat}$";
     }
 
-    // ✅ Asıl fonksiyon (Inspector OnClick listesinde "SatinAl" olarak görünür)
-    public void SatinAl()
+    private void SatinAlNPC()
     {
-        if (aktifNPC != null)
+        if (npcAktif)
         {
-            if (durumText) durumText.text = "Zaten çalışıyor!";
+            Debug.Log("NPC zaten aktif, bekleniyor...");
             return;
         }
 
-        if (oyuncuPara < fiyat)
+        if (MoneyManager.Instance == null)
         {
-            if (durumText) durumText.text = "Yetersiz bakiye!";
+            Debug.LogError("MoneyManager sahnede yok!");
             return;
         }
 
-        oyuncuPara -= fiyat;
-        SpawnVeBaslat();
-    }
-
-    private void SpawnVeBaslat()
-    {
-        var go = Instantiate(kahveTasiyicisiPrefab, spawnPoint.position, spawnPoint.rotation);
-        aktifNPC = go.GetComponent<KahveTasiyicisiNPC>();
-
-        // Gerekli ayarları NPC'ye aktar
-        aktifNPC.stackRoot = npcStackRoot;
-        aktifNPC.kahveCekirdegiPrefab = kahveCekirdegiPrefab;
-        aktifNPC.stackLimit = stackLimit;
-        aktifNPC.kahveTargetScale = kahveTargetScale;
-        aktifNPC.stackHeight = stackHeight;
-        aktifNPC.tweenEase = stackTweenEase;
-        aktifNPC.dropInterval = dropInterval;
-        aktifNPC.toplamaNoktasi = toplamaNoktasi;
-        aktifNPC.birakmaNoktasi = birakmaNoktasi;
-
-        // Süre başlat
-        kalanSure = calismaSuresi;
-        if (satinAlButton) satinAlButton.interactable = false;
-        if (durumText) durumText.text = "Kalan: " + kalanSure.ToString("0.0") + " sn";
-
-        aktifNPC.StartWork(calismaSuresi, onFinished: () =>
+        // Para kontrol
+        if (!MoneyManager.Instance.SpendMoney(mevcutFiyat))
         {
-            if (durumText) durumText.text = "Görev tamamlandı.";
-            if (satinAlButton) satinAlButton.interactable = true;
-            aktifNPC = null;
-        });
+            Debug.Log("Yetersiz para!");
+            return;
+        }
+
+        // NPC spawn
+        GameObject npcObj = Instantiate(npcPrefab, spawnPoint.position, Quaternion.identity);
+        KahveTasiyicisiNPC npc = npcObj.GetComponent<KahveTasiyicisiNPC>();
+        npc.calismaSuresi = npcCalismaSuresi;
+        npc.ActivateNPC();
+
+        npcAktif = true;
+        StartCoroutine(ResetSatinalma(npcCalismaSuresi));
+
+        // Fiyatı %20 artır
+        mevcutFiyat = Mathf.RoundToInt(mevcutFiyat * (1f + artisOrani));
+        GuncelleFiyatYazisi();
     }
 
-    // ✅ İSTEDİĞİN "satinal" İSMİ İÇİN AYRI KÖPRÜ METOD
-    // Butonun OnClick listesinde "Satinal" olarak görünür ve SatinAl()'ı çağırır.
-    public void Satinal()
+    private IEnumerator ResetSatinalma(float sure)
     {
-        SatinAl();
+        yield return new WaitForSeconds(sure + 0.5f);
+        npcAktif = false;
     }
 }

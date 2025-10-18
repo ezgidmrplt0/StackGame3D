@@ -5,132 +5,151 @@ using DG.Tweening;
 
 public class KahveTasiyicisiNPC : MonoBehaviour
 {
-    [Header("Hareket")]
-    public Transform toplamaNoktasi;
-    public Transform birakmaNoktasi;
-    public float hareketHizi = 4f;            // DOTween ile gidip gelme hızı (m/sn)
-    public float bekleme = 0.1f;              // Varışta ufak bekleme
+    [Header("Süre Ayarları")]
+    public float calismaSuresi = 20f;
+    public float hareketHizi = 6f;         // Daha hızlı yürüsün
+    public float bekleme = 0.05f;          // Toplama arası bekleme az
 
     [Header("Stack")]
     public Transform stackRoot;
     public GameObject kahveCekirdegiPrefab;
     public int stackLimit = 10;
-    public Vector3 kahveTargetScale = new Vector3(1, 1, 1);
-    public float stackHeight = 0.5f;
+    public Vector3 kahveTargetScale = new Vector3(0.01f, 0.01f, 0.01f);
+    public float stackHeight = 0.35f;
     public Ease tweenEase = Ease.OutBack;
-    public float dropInterval = 0.05f;
+    public float dropInterval = 0.03f;
 
-    [Header("Toplama Algılama")]
-    public float toplamaYaricapi = 2.5f;      // toplamaNoktasi etrafında ağaç arama
+    [Header("Toplama Ayarları")]
     public string agacTag = "KahveToplamaNoktasi";
-    public string birakmaTag = "KahveBirakmaNoktasi";
+    public string birakmaNoktaTag = "KahveBirakmaNoktasi";
 
-    // Respawn için HamKahveToplama’daki statik ayarlara uyum
-    private float shakeDuration => HamKahveToplama.StaticShakeDuration;
-    private Vector3 shakeStrength => HamKahveToplama.StaticShakeStrength;
-    private int shakeVibrato => HamKahveToplama.StaticShakeVibrato;
-    private float shakeRandomness => HamKahveToplama.StaticShakeRandomness;
+    [Header("Ağaç Sallanma")]
+    public float shakeDuration = 0.05f;     // Daha kısa
+    public Vector3 shakeStrength = new Vector3(5f, 0f, 5f);
+    public int shakeVibrato = 10;
+    public float shakeRandomness = 90f;
 
     private readonly List<Transform> stack = new List<Transform>();
     private Tween hareketTween;
-    private bool isWorking = false;
-    private System.Action onFinishedCb;
+    private bool isWorking;
 
-    // Dışarıdan çağrılır
-    public void StartWork(float sure, System.Action onFinished)
+    private Transform birakmaNoktasi;
+    private List<Transform> kahveAgaclari = new List<Transform>();
+    private int aktifAgacIndex = 0;
+    private Vector3 spawnPoint;
+
+    void Awake()
     {
-        if (isWorking) return;
-        isWorking = true;
-        onFinishedCb = onFinished;
-        StartCoroutine(WorkLoop(sure));
+        spawnPoint = transform.position;
+
+        birakmaNoktasi = FindNearestTaggedObject(birakmaNoktaTag);
+
+        GameObject[] agaclar = GameObject.FindGameObjectsWithTag(agacTag);
+        foreach (var agac in agaclar)
+            kahveAgaclari.Add(agac.transform);
+
+        if (kahveAgaclari.Count == 0)
+            Debug.LogError("Hiç KahveToplamaNoktasi bulunamadı!");
+        if (birakmaNoktasi == null)
+            Debug.LogError("Bırakma noktası bulunamadı!");
     }
 
-    private IEnumerator WorkLoop(float sure)
+    Transform FindNearestTaggedObject(string tag)
     {
-        float endTime = Time.time + sure;
+        GameObject[] objs = GameObject.FindGameObjectsWithTag(tag);
+        if (objs.Length == 0) return null;
+
+        Transform nearest = objs[0].transform;
+        float minDist = Vector3.Distance(transform.position, nearest.position);
+
+        foreach (var o in objs)
+        {
+            float d = Vector3.Distance(transform.position, o.transform.position);
+            if (d < minDist)
+            {
+                minDist = d;
+                nearest = o.transform;
+            }
+        }
+        return nearest;
+    }
+
+    public void ActivateNPC()
+    {
+        if (isWorking) return;
+        StartCoroutine(WorkLoop());
+    }
+
+    private IEnumerator WorkLoop()
+    {
+        isWorking = true;
+        float endTime = Time.time + calismaSuresi;
 
         while (Time.time < endTime)
         {
-            // 1) Toplama noktasına git
-            yield return MoveTo(toplamaNoktasi.position);
-
-            // 2) Stack dolu değilse ağaç topla
-            if (stack.Count < stackLimit)
+            // --- 1) Bütün ağaçlardan sırayla 1’er kahve topla ---
+            while (stack.Count < stackLimit)
             {
-                TryCollectOneTree();
+                Transform hedefAgac = kahveAgaclari[aktifAgacIndex];
+                aktifAgacIndex = (aktifAgacIndex + 1) % kahveAgaclari.Count;
+
+                if (hedefAgac != null && hedefAgac.gameObject.activeInHierarchy)
+                {
+                    yield return MoveTo(hedefAgac.position);
+                    yield return CollectOneTree(hedefAgac.gameObject);
+                    yield return new WaitForSeconds(0.05f);
+                }
+                else
+                {
+                    yield return null;
+                }
             }
 
-            yield return new WaitForSeconds(bekleme);
-
-            // 3) Bırakma noktasına git
+            // --- 2) Bırakma noktasına git ---
             yield return MoveTo(birakmaNoktasi.position);
 
-            // 4) Stack boşalt
+            // --- 3) Stack'i bırak ---
             if (stack.Count > 0)
-            {
                 yield return DropSequence();
-            }
-
-            yield return new WaitForSeconds(bekleme);
         }
 
-        // Süre bitti → spawn noktasına yakınsa kal, değilse en son bulunduğu yerdeyken kapan
+        // Süre bitti → varsa kahveleri bırak, sonra spawn noktasına dön
+        if (stack.Count > 0)
+        {
+            yield return MoveTo(birakmaNoktasi.position);
+            yield return DropSequence();
+        }
+
+        yield return MoveTo(spawnPoint);
+
         isWorking = false;
-        onFinishedCb?.Invoke();
         Destroy(gameObject);
     }
 
     private IEnumerator MoveTo(Vector3 hedef)
     {
-        // Mesafeye göre süre
         float mesafe = Vector3.Distance(transform.position, hedef);
-        float sure = Mathf.Max(0.01f, mesafe / Mathf.Max(0.1f, hareketHizi));
+        float sure = Mathf.Max(0.05f, mesafe / Mathf.Max(0.1f, hareketHizi));
 
         hareketTween?.Kill();
         hareketTween = transform.DOMove(hedef, sure).SetEase(Ease.Linear);
         yield return hareketTween.WaitForCompletion();
     }
 
-    private void TryCollectOneTree()
+    private IEnumerator CollectOneTree(GameObject agac)
     {
-        // toplamaNoktasi çevresinde aktif bir ağaç bul
-        Collider[] cols = Physics.OverlapSphere(toplamaNoktasi.position, toplamaYaricapi);
-        GameObject aktifAgac = null;
+        if (agac == null) yield break;
 
-        foreach (var c in cols)
-        {
-            if (c.CompareTag(agacTag) && c.gameObject.activeInHierarchy)
-            {
-                aktifAgac = c.gameObject;
-                break;
-            }
-        }
+        Tween s = agac.transform.DOShakeRotation(
+            shakeDuration, shakeStrength, shakeVibrato, shakeRandomness, true
+        );
+        yield return s.WaitForCompletion();
 
-        if (aktifAgac == null) return;
+        agac.SetActive(false);
+        if (RespawnManager.Instance != null)
+            RespawnManager.Instance.StartRespawn(agac, 5f);
 
-        // Ağaç sallanır → deaktif → Respawn manager’a verilir → stack’e eklenir
-        aktifAgac.transform.DOShakeRotation(
-            duration: shakeDuration,
-            strength: shakeStrength,
-            vibrato: shakeVibrato,
-            randomness: shakeRandomness,
-            fadeOut: true
-        ).OnComplete(() =>
-        {
-            aktifAgac.SetActive(false);
-            if (RespawnManager.Instance != null)
-            {
-                RespawnManager.Instance.StartRespawn(aktifAgac, delay: 5f); // istersen panelden parametre geçebilirsin
-            }
-
-            AddOneKahveToStack();
-
-            // Sayaçlar: oyuncuda yaptığınla aynı davranış
-            if (CoffeeStackCollector.Instance != null)
-            {
-                CoffeeStackCollector.Instance.hamKahve++;
-            }
-        });
+        AddOneKahveToStack();
     }
 
     private void AddOneKahveToStack()
@@ -138,18 +157,20 @@ public class KahveTasiyicisiNPC : MonoBehaviour
         if (stack.Count >= stackLimit) return;
 
         float yOffset = kahveTargetScale.y * 0.5f;
-        Vector3 spawnPosition = stackRoot.position + Vector3.up * (stackHeight * stack.Count + yOffset);
+        Vector3 pos = stackRoot.position + Vector3.up * (stackHeight * stack.Count + yOffset);
 
-        GameObject newObj = Instantiate(kahveCekirdegiPrefab, spawnPosition, Quaternion.identity, stackRoot);
-        newObj.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+        GameObject cube = Instantiate(kahveCekirdegiPrefab, pos, Quaternion.identity, stackRoot);
+        cube.transform.localRotation = Quaternion.Euler(0, 90, 0);
 
-        var rb = newObj.GetComponent<Rigidbody>();
-        if (rb != null) { rb.isKinematic = true; rb.useGravity = false; }
+        if (cube.TryGetComponent<Rigidbody>(out var rb))
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
 
-        newObj.transform.localScale = Vector3.zero;
-        newObj.transform.DOScale(kahveTargetScale, 0.4f).SetEase(tweenEase);
-
-        stack.Add(newObj.transform);
+        cube.transform.localScale = Vector3.zero;
+        cube.transform.DOScale(kahveTargetScale, 0.15f).SetEase(tweenEase);
+        stack.Add(cube.transform);
     }
 
     private IEnumerator DropSequence()
@@ -158,12 +179,12 @@ public class KahveTasiyicisiNPC : MonoBehaviour
 
         while (stack.Count > 0)
         {
-            Transform cubeToDrop = stack[stack.Count - 1];
+            Transform t = stack[^1];
             stack.RemoveAt(stack.Count - 1);
 
-            cubeToDrop.DOScale(Vector3.zero, dropInterval * 0.8f)
-                .SetEase(Ease.InQuad)
-                .OnComplete(() => Destroy(cubeToDrop.gameObject));
+            t.DOScale(Vector3.zero, dropInterval * 0.8f)
+             .SetEase(Ease.InQuad)
+             .OnComplete(() => Destroy(t.gameObject));
 
             if (CoffeeStackCollector.Instance != null)
             {
@@ -171,16 +192,19 @@ public class KahveTasiyicisiNPC : MonoBehaviour
                 CoffeeStackCollector.Instance.hamKahve--;
             }
 
+            if (MoneyManager.Instance != null)
+                MoneyManager.Instance.AddMoney(5);
+
             yield return wait;
         }
+
+        if (CoffeeStackCollector.Instance != null)
+            CoffeeStackCollector.Instance.SendMessage("GuncelleUI", SendMessageOptions.DontRequireReceiver);
     }
 
     private void OnDrawGizmosSelected()
     {
-        if (toplamaNoktasi != null)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(toplamaNoktasi.position, toplamaYaricapi);
-        }
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, 0.5f);
     }
 }

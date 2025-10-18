@@ -15,7 +15,7 @@ public class MusteriSpawner : MonoBehaviour
 
     [Header("Spawn Ayarları")]
     public float spawnInterval = 3f;
-    public float eveningSpawnInterval = 10f; // Akşam için daha uzun aralık (daha az müşteri için)
+    public float eveningSpawnInterval = 10f; // Akşam için daha uzun aralık
     private float timer = 0f;
     public int maxMusteri = 15;
     public int maxDondurmaMusteri = 3;
@@ -25,7 +25,6 @@ public class MusteriSpawner : MonoBehaviour
 
     void Update()
     {
-        // Günün saatine göre doğru aralığı belirle
         float currentSpawnInterval = GunKodlari.IsEvening() ? eveningSpawnInterval : spawnInterval;
 
         timer += Time.deltaTime;
@@ -36,15 +35,11 @@ public class MusteriSpawner : MonoBehaviour
 
             // Dondurma müşterisi yalnızca dondurma açık ise spawn olur
             if (dondurmaSpawn && MusteriHareket.dondurmaAcik && dondurmaMusteriKuyrugu.Count < maxDondurmaMusteri)
-            {
                 SpawnDondurmaMusteri();
-            }
 
             // Normal müşteriler
             if (musteriKuyrugu.Count < maxMusteri)
-            {
                 SpawnNormalMusteri();
-            }
 
             timer = 0f;
         }
@@ -58,13 +53,9 @@ public class MusteriSpawner : MonoBehaviour
         Vector3 spawnPos = spawnPoint.position;
         spawnPos.y = 0f;
 
-        GameObject yeniMusteri = Instantiate(
-            musteriPrefabs[index],
-            spawnPos,
-            Quaternion.identity
-        );
+        GameObject yeniMusteri = Instantiate(musteriPrefabs[index], spawnPos, Quaternion.identity);
 
-        MusteriHareket hareket = yeniMusteri.GetComponent<MusteriHareket>();
+        var hareket = yeniMusteri.GetComponent<MusteriHareket>();
         if (hareket != null)
         {
             hareket.kuyruktakiSirasi = musteriKuyrugu.Count;
@@ -81,13 +72,9 @@ public class MusteriSpawner : MonoBehaviour
         Vector3 spawnPos = dondurmaSpawnPoint.position;
         spawnPos.y = 0f;
 
-        GameObject yeniMusteri = Instantiate(
-            dondurmaMusteriPrefabs[index],
-            spawnPos,
-            Quaternion.identity
-        );
+        GameObject yeniMusteri = Instantiate(dondurmaMusteriPrefabs[index], spawnPos, Quaternion.identity);
 
-        MusteriHareket hareket = yeniMusteri.GetComponent<MusteriHareket>();
+        var hareket = yeniMusteri.GetComponent<MusteriHareket>();
         if (hareket != null)
         {
             hareket.kuyruktakiSirasi = dondurmaMusteriKuyrugu.Count;
@@ -98,45 +85,37 @@ public class MusteriSpawner : MonoBehaviour
 
     public static void UpdateQueuePositions()
     {
-        MusteriHareket[] musteriler = musteriKuyrugu.ToArray();
+        var musteriler = musteriKuyrugu.ToArray();
         for (int i = 0; i < musteriler.Length; i++)
-        {
             musteriler[i].kuyruktakiSirasi = i;
-        }
     }
 
     public static void UpdateDondurmaQueuePositions()
     {
-        MusteriHareket[] musteriler = dondurmaMusteriKuyrugu.ToArray();
+        var musteriler = dondurmaMusteriKuyrugu.ToArray();
         for (int i = 0; i < musteriler.Length; i++)
-        {
             musteriler[i].kuyruktakiSirasi = i;
-        }
     }
 
     public static void MusteriAyrildi(MusteriHareket musteri)
     {
+        if (musteri == null) return;
+
         if (musteri.musteriTipi == MusteriHareket.MusteriTipi.Normal)
-        {
             RemoveFromQueue(musteri, ref musteriKuyrugu, UpdateQueuePositions);
-        }
         else
-        {
             RemoveFromQueue(musteri, ref dondurmaMusteriKuyrugu, UpdateDondurmaQueuePositions);
-        }
     }
 
     private static void RemoveFromQueue(MusteriHareket musteri, ref Queue<MusteriHareket> kuyruk, System.Action updateAction)
     {
         if (kuyruk.Contains(musteri))
         {
-            Queue<MusteriHareket> yeniKuyruk = new Queue<MusteriHareket>();
+            Queue<MusteriHareket> yeni = new Queue<MusteriHareket>();
             foreach (var m in kuyruk)
-            {
-                if (m != musteri)
-                    yeniKuyruk.Enqueue(m);
-            }
-            kuyruk = yeniKuyruk;
+                if (m != musteri) yeni.Enqueue(m);
+
+            kuyruk = yeni;
             updateAction?.Invoke();
         }
     }

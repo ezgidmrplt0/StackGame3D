@@ -10,16 +10,20 @@ public class MoneyManager : MonoBehaviour
     public int money = 0;
     public TextMeshProUGUI moneyText;
 
-
     void Awake()
     {
         if (Instance == null)
+        {
             Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
         else
+        {
             Destroy(gameObject);
+        }
     }
 
-    private void Start()
+    void Start()
     {
         UpdateUI();
     }
@@ -29,7 +33,7 @@ public class MoneyManager : MonoBehaviour
         money += amount;
         UpdateUI();
         OnMoneyChanged?.Invoke();
-        Debug.Log("Para eklendi: " + amount + ", Toplam: " + money);
+        Debug.Log($"Para eklendi: {amount}, Toplam: {money}");
     }
 
     public bool SpendMoney(int amount)
@@ -38,22 +42,25 @@ public class MoneyManager : MonoBehaviour
         {
             money -= amount;
             UpdateUI();
-            Debug.Log("Para harcandý: " + amount + ", Kalan: " + money);
+            Debug.Log($"Para harcandý: {amount}, Kalan: {money}");
+            OnMoneyChanged?.Invoke();
             return true;
         }
 
-        Debug.Log("Yetersiz bakiye! Gerekli: " + amount + " Mevcut: " + money);
+        Debug.LogWarning($"Yetersiz bakiye! Gerekli: {amount}, Mevcut: {money}");
         return false;
     }
 
     public void UpdateUI()
     {
         if (moneyText != null)
-            moneyText.text = money + "$";
+            moneyText.text = $"{money}$";
     }
 
-    public void setMoney()
+    public void SetMoney(int amount = 0)
     {
-        money = 0; UpdateUI();
+        money = amount;
+        UpdateUI();
+        OnMoneyChanged?.Invoke();
     }
 }

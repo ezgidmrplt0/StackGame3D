@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -973,7 +973,7 @@ PrefabInstance:
     - target: {fileID: 3788246166151476156, guid: c6756b0ecb3cb6248851cbc86a869d42, type: 3}
       propertyPath: "sodac\u0131Aktif"
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1942912675890091572, guid: a20f7dfde5230a44fa205483e818079e, type: 3}
     - target: {fileID: 3788246166151476156, guid: c6756b0ecb3cb6248851cbc86a869d42, type: 3}
       propertyPath: hamCaySpacing
       value: 1
@@ -10568,28 +10568,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62ad1a6c131b7e249a5dc4a2534f21de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  npcPrefab: {fileID: 1942912675890091572, guid: 959a442e7189c014c8ecc24ee4b3fab6, type: 3}
+  spawnPoint: {fileID: 1209744272}
+  npcCalismaSuresi: 20
   satinAlButton: {fileID: 1095203369}
   fiyatText: {fileID: 960989404}
-  durumText: {fileID: 0}
-  fiyat: 250
-  oyuncuPara: 1000
-  kahveTasiyicisiPrefab: {fileID: 1942912675890091572, guid: 959a442e7189c014c8ecc24ee4b3fab6, type: 3}
-  spawnPoint: {fileID: 1209744272}
-  toplamaNoktasi: {fileID: 1971741505}
-  birakmaNoktasi: {fileID: 666588090}
-  calismaSuresi: 20
-  npcStackRoot: {fileID: 0}
-  kahveCekirdegiPrefab: {fileID: 0}
-  stackLimit: 10
-  kahveTargetScale: {x: 1, y: 1, z: 1}
-  stackHeight: 0.5
-  stackTweenEase: 27
-  dropInterval: 0.05
---- !u!1 &379046127 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3856052218990707946, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-  m_PrefabInstance: {fileID: 1209744271}
-  m_PrefabAsset: {fileID: 0}
+  baslangicFiyati: 100
+  artisOrani: 0.2
 --- !u!1 &380159063
 GameObject:
   m_ObjectHideFlags: 0
@@ -18861,111 +18846,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 666561091}
   m_Mesh: {fileID: 3331958630026882296, guid: 0f1bfcc51f8fb344683b82a623129882, type: 3}
---- !u!1 &666588089
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 666588090}
-  - component: {fileID: 666588093}
-  - component: {fileID: 666588092}
-  - component: {fileID: 666588091}
-  m_Layer: 0
-  m_Name: "Kahve B\u0131rakma Noktas\u0131"
-  m_TagString: KahveBirakmaNoktasi
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &666588090
+--- !u!4 &666588090 stripped
 Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 5491224084881266844, guid: 1349118ac6b5edc428dbaea8232fd0c7, type: 3}
+  m_PrefabInstance: {fileID: 1251663610390562273}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 666588089}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0.0019461245, y: 0.99999815, z: -0.00014839813, w: -0.00000028880177}
-  m_LocalPosition: {x: 11.42, y: 11.51, z: 3.98}
-  m_LocalScale: {x: 5.7199526, y: 0.006154228, z: 5.971481}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1225289573}
-  m_LocalEulerAnglesHint: {x: 0.017, y: 180, z: -0.223}
---- !u!65 &666588091
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 666588089}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 55.915012, z: 1}
-  m_Center: {x: -1.2277634e-12, y: 27.457512, z: -6.9474374e-14}
---- !u!23 &666588092
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 666588089}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 2bd50ecbfa797fa4e99f7623bdd69413, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &666588093
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 666588089}
-  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1001 &669276169
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -30367,7 +30252,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -64, y: -418}
+  m_AnchoredPosition: {x: -64, y: -247}
   m_SizeDelta: {x: 306.044, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &1096086307
@@ -33809,144 +33694,11 @@ MonoBehaviour:
   shakeStrength: {x: 5, y: 0, z: 5}
   shakeVibrato: 10
   shakeRandomness: 90
---- !u!1001 &1209744271
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 1122901733}
-    m_Modifications:
-    - target: {fileID: 2872436571898668432, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_IsTrigger
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3351680190892991807, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: -3346273810761383203, guid: f10f65c36325a3744865c37b79b11861, type: 3}
-    - target: {fileID: 3351680190892991807, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_Materials.Array.data[3]
-      value: 
-      objectReference: {fileID: -541708846208547136, guid: f7bc0304a6fba4c47adf2633b5d03c12, type: 3}
-    - target: {fileID: 3856052218990707946, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_Name
-      value: Kahve (Toplanabilir)
-      objectReference: {fileID: 0}
-    - target: {fileID: 3856052218990707946, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3856052218990707946, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_TagString
-      value: KahveToplamaNoktasi
-      objectReference: {fileID: 0}
-    - target: {fileID: 4524045855807512144, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 4.06
-      objectReference: {fileID: 0}
-    - target: {fileID: 4524045855807512144, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 4.06
-      objectReference: {fileID: 0}
-    - target: {fileID: 4524045855807512144, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 4.06
-      objectReference: {fileID: 0}
-    - target: {fileID: 4524045855807512144, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4524045855807512144, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -11.12
-      objectReference: {fileID: 0}
-    - target: {fileID: 4524045855807512144, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -10
-      objectReference: {fileID: 0}
-    - target: {fileID: 4524045855807512144, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4524045855807512144, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4524045855807512144, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4524045855807512144, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4524045855807512144, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4524045855807512144, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4524045855807512144, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4524045855807512144, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_ConstrainProportionsScale
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8757516210822890573, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_Size.z
-      value: 0.7350661
-      objectReference: {fileID: 0}
-    - target: {fileID: 8757516210822890573, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_Center.z
-      value: -0.0063253744
-      objectReference: {fileID: 0}
-    - target: {fileID: 8757516210822890573, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      propertyPath: m_IsTrigger
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 3856052218990707946, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1209744278}
-  m_SourcePrefab: {fileID: 100100000, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
 --- !u!4 &1209744272 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 4524045855807512144, guid: 162a2ab64901f9746841bc0e9bf9efec, type: 3}
-  m_PrefabInstance: {fileID: 1209744271}
+  m_CorrespondingSourceObject: {fileID: 1248645056763415027, guid: daad3f92366b0984e830e3098e6a578e, type: 3}
+  m_PrefabInstance: {fileID: 8575191327336498373}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1209744278
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 379046127}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: af29a7072ab1dfc4f87f8f5ddace3243, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  stackRoot: {fileID: 1764870246}
-  kahveCekirdegiPrefab: {fileID: 8788844503691629129, guid: 54c33b277227fa145885c9679414505e, type: 3}
-  stackLimit: 10
-  kahveTargetScale: {x: 1, y: 1, z: 1}
-  stackHeight: 0.5
-  tweenEase: 9
-  dropInterval: 0.05
-  stack: []
-  respawnDelay: 5
-  shakeDuration: 0.2
-  shakeStrength: {x: 5, y: 0, z: 5}
-  shakeVibrato: 10
-  shakeRandomness: 90
 --- !u!4 &1217252296 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8351786443350714690, guid: 46d03db63e0389d40957296e65abacc9, type: 3}
@@ -63649,6 +63401,63 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e164e43bce2ab674ba557f62ac3a1932, type: 3}
+--- !u!1001 &1251663610390562273
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1225289573}
+    m_Modifications:
+    - target: {fileID: 2255510427786424987, guid: 1349118ac6b5edc428dbaea8232fd0c7, type: 3}
+      propertyPath: m_Name
+      value: "Kahve B\u0131rakma Noktas\u0131"
+      objectReference: {fileID: 0}
+    - target: {fileID: 5491224084881266844, guid: 1349118ac6b5edc428dbaea8232fd0c7, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 11.42
+      objectReference: {fileID: 0}
+    - target: {fileID: 5491224084881266844, guid: 1349118ac6b5edc428dbaea8232fd0c7, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 11.51
+      objectReference: {fileID: 0}
+    - target: {fileID: 5491224084881266844, guid: 1349118ac6b5edc428dbaea8232fd0c7, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 3.98
+      objectReference: {fileID: 0}
+    - target: {fileID: 5491224084881266844, guid: 1349118ac6b5edc428dbaea8232fd0c7, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.00000028880177
+      objectReference: {fileID: 0}
+    - target: {fileID: 5491224084881266844, guid: 1349118ac6b5edc428dbaea8232fd0c7, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.0019461245
+      objectReference: {fileID: 0}
+    - target: {fileID: 5491224084881266844, guid: 1349118ac6b5edc428dbaea8232fd0c7, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.99999815
+      objectReference: {fileID: 0}
+    - target: {fileID: 5491224084881266844, guid: 1349118ac6b5edc428dbaea8232fd0c7, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.00014839813
+      objectReference: {fileID: 0}
+    - target: {fileID: 5491224084881266844, guid: 1349118ac6b5edc428dbaea8232fd0c7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0.017
+      objectReference: {fileID: 0}
+    - target: {fileID: 5491224084881266844, guid: 1349118ac6b5edc428dbaea8232fd0c7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: 5491224084881266844, guid: 1349118ac6b5edc428dbaea8232fd0c7, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -0.223
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 1349118ac6b5edc428dbaea8232fd0c7, type: 3}
 --- !u!4 &2024675754449792331 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4120915652638769112, guid: f9ddc632c0434ac43bb8069603119324, type: 3}
@@ -64007,6 +63816,67 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 54c33b277227fa145885c9679414505e, type: 3}
+--- !u!1001 &8575191327336498373
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1122901733}
+    m_Modifications:
+    - target: {fileID: 1248645056763415027, guid: daad3f92366b0984e830e3098e6a578e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1248645056763415027, guid: daad3f92366b0984e830e3098e6a578e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -11.12
+      objectReference: {fileID: 0}
+    - target: {fileID: 1248645056763415027, guid: daad3f92366b0984e830e3098e6a578e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1248645056763415027, guid: daad3f92366b0984e830e3098e6a578e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1248645056763415027, guid: daad3f92366b0984e830e3098e6a578e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1248645056763415027, guid: daad3f92366b0984e830e3098e6a578e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1248645056763415027, guid: daad3f92366b0984e830e3098e6a578e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1248645056763415027, guid: daad3f92366b0984e830e3098e6a578e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1248645056763415027, guid: daad3f92366b0984e830e3098e6a578e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1248645056763415027, guid: daad3f92366b0984e830e3098e6a578e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1882439484627096393, guid: daad3f92366b0984e830e3098e6a578e, type: 3}
+      propertyPath: m_Name
+      value: Kahve (Toplanabilir)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6227091158159735117, guid: daad3f92366b0984e830e3098e6a578e, type: 3}
+      propertyPath: stackRoot
+      value: 
+      objectReference: {fileID: 1764870246}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: daad3f92366b0984e830e3098e6a578e, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -106,6 +106,10 @@ PrefabInstance:
       value: "Sodac\u0131"
       objectReference: {fileID: 0}
     - target: {fileID: 3670405753088119664, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3670405753088119664, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       propertyPath: m_TagString
       value: Untagged
       objectReference: {fileID: 0}
@@ -281,8 +285,6 @@ MonoBehaviour:
   fiyat: 100
   fiyatArtis: 0.2
   yolNoktalari: []
-  almaNoktasi: {fileID: 0}
-  currentPath: []
 --- !u!1001 &4655633083192582317
 PrefabInstance:
   m_ObjectHideFlags: 0

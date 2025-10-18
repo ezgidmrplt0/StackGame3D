@@ -296,20 +296,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31fa437d7f4583045ad00556a605f417, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  toplamaNoktasi: {fileID: 0}
-  birakmaNoktasi: {fileID: 0}
+  calismaSuresi: 20
   hareketHizi: 20
   bekleme: 0.1
   stackRoot: {fileID: 247283042468947818}
   kahveCekirdegiPrefab: {fileID: 8788844503691629129, guid: 54c33b277227fa145885c9679414505e, type: 3}
   stackLimit: 10
-  kahveTargetScale: {x: 1, y: 1, z: 1}
+  kahveTargetScale: {x: 0.3, y: 0.3, z: 0.3}
   stackHeight: 0.5
   tweenEase: 27
   dropInterval: 0.05
-  toplamaYaricapi: 2.5
   agacTag: KahveToplamaNoktasi
-  birakmaTag: KahveBirakmaNoktasi
+  birakmaNoktaTag: KahveBirakmaNoktasi
+  shakeDuration: 0.2
+  shakeStrength: {x: 5, y: 0, z: 5}
+  shakeVibrato: 10
+  shakeRandomness: 90
 --- !u!1001 &4655633083192582317
 PrefabInstance:
   m_ObjectHideFlags: 0

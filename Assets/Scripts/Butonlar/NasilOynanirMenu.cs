@@ -5,11 +5,8 @@ using UnityEngine.SceneManagement;
 
 public class NasilOynanirMenu : MonoBehaviour
 {
-    [SerializeField] string sahneAdi = "MainMenu";
-
     public void AnaMenuyeDon()
     {
-        Debug.Log($"[NasilOynanirMenu] Buton týklandý, {sahneAdi} yükleniyor...");
-        SceneManager.LoadScene(sahneAdi);
+        SceneManager.LoadScene("MainMenu");
     }
 }

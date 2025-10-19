@@ -109,6 +109,11 @@ public class StackCollector : MonoBehaviour
     public Transform urunTasiyiciStackTarget;
     private List<UrunTasiyici> activeTasiyicilar = new List<UrunTasiyici>();
 
+    [Header("Urun Tasiyici - Kahve Noktalari (YENI)")]
+    public Transform urunTasiyiciKahveAlmaNoktasi;      // Kahve için ALMA noktası
+    public Transform urunTasiyiciKahveBirakmaNoktasi;   // Kahve için BIRAKMA noktası
+    public Transform urunTasiyiciKahveStackTarget;      // Kahve ürünlerinin yığılacağı hedef (boşsa CoffeeStackCollector.dropAreaTarget)
+
     [Header("Urun Tasiyici Ekonomi")]
     public int urunTasiyiciCost = 100;
     public float urunTasiyiciCostIncreaseRate = 0.2f;
@@ -250,6 +255,7 @@ public class StackCollector : MonoBehaviour
             lastSellTime = Time.time;
         }
     }
+
     void TrySellSodaToCustomer()
     {
         if (!sodaSatisAktif) return;
@@ -304,7 +310,7 @@ public class StackCollector : MonoBehaviour
             });
 
         return true;
-    } 
+    }
 
     void TrySellSodaWithKasiyer(KasiyerHareket kasiyer)
     {
@@ -408,7 +414,6 @@ public class StackCollector : MonoBehaviour
                 }
             }
         }
-
 
         // Diğer temas kontrol kodları aynı kalıyor
         if (other.CompareTag(cayBirakmaTag))
@@ -781,15 +786,29 @@ public class StackCollector : MonoBehaviour
             GameObject yeniTasiyici = Instantiate(urunTasiyiciPrefab, urunTasiyiciSpawnPoint.position, urunTasiyiciSpawnPoint.rotation);
             UrunTasiyici script = yeniTasiyici.GetComponent<UrunTasiyici>();
 
+            // --- ÇAY (mevcut) ---
             script.stackAlmaNoktasi = urunTasiyiciAlmaNoktasi;
             script.stackBirakmaNoktasi = urunTasiyiciBirakmaNoktasi;
             script.stackAreaTarget = urunTasiyiciStackTarget;
             script.stackCollector = this;
 
+            // --- KAHVE (YENİ) ---
+            script.coffeeCollector = coffeeStackCollector; // CoffeeStackCollector sahnede bulunuyor
+            if (urunTasiyiciKahveAlmaNoktasi != null)
+                script.kahveAlmaNoktasi = urunTasiyiciKahveAlmaNoktasi;
+            if (urunTasiyiciKahveBirakmaNoktasi != null)
+                script.kahveBirakmaNoktasi = urunTasiyiciKahveBirakmaNoktasi;
+
+            // Kahve drop hedefi: özel hedef atanmışsa onu kullan; yoksa CoffeeStackCollector'dan al
+            script.kahveDropAreaTarget = (urunTasiyiciKahveStackTarget != null)
+                ? urunTasiyiciKahveStackTarget
+                : (coffeeStackCollector != null ? coffeeStackCollector.dropAreaTarget : null);
+
             activeTasiyicilar.Add(script);
             StartCoroutine(UrunTasiyiciSuresiBitinceYokEt(script));
         }
     }
+
 
     IEnumerator UrunTasiyiciSuresiBitinceYokEt(UrunTasiyici tasiyici)
     {

@@ -31,6 +31,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6735024914612527901}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5486149323076462078
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6524902460027829416}
+  m_Layer: 0
+  m_Name: stack (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6524902460027829416
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5486149323076462078}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.906, z: -1.315}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6735024914612527901}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1434279336022810509
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -176,6 +207,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2824748101125587799}
+    - targetCorrespondingSourceObject: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6524902460027829416}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3670405753088119664, guid: 5596175bf3917b849a95e64a67998b23, type: 3}
       insertIndex: -1
@@ -198,22 +232,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c3bd0ff1609fd64fa07b2c15b84d557, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 15
-  kapasite: 5
+  speed: 10
   toplamaAraligi: 0.2
+  toplamKapasite: 10
   urunPrefab: {fileID: 3465660891527946698, guid: feb6a9a6191bf784daa980f997d3bfab, type: 3}
   stackRoot: {fileID: 2824748101125587799}
-  stackSpacing: 2
+  stackSpacing: 0.3
   stackAreaTarget: {fileID: 0}
   stackAlmaNoktasi: {fileID: 0}
   stackBirakmaNoktasi: {fileID: 0}
   stackCollector: {fileID: 0}
   gerekliHamCayMiktari: 1
-  urunBoyutu: {x: 0.1, y: 0.1, z: 0.1}
+  urunBoyutu: {x: 0.7, y: 0.7, z: 0.7}
   stackLimit: 5
   tweenDuration: 0.3
   tweenEase: 9
-  dropSpacing: 2
+  dropSpacing: 2.6
+  coffeeCollector: {fileID: 0}
+  kahvePrefab: {fileID: 100006, guid: 8cf7e78c936024f5188a4948d67d992e, type: 3}
+  kahveStackRoot: {fileID: 6524902460027829416}
+  kahveStackSpacing: 0.4
+  kahveDropAreaTarget: {fileID: 0}
+  kahveAlmaNoktasi: {fileID: 0}
+  kahveBirakmaNoktasi: {fileID: 0}
+  gerekliHamKahveMiktari: 1
+  kahveBoyutu: {x: 6, y: 9, z: 6}
+  kahveStackLimit: 5
+  kahveTweenDuration: 0.3
+  kahveTweenEase: 27
+  kahveDropSpacing: 1.5
 --- !u!4 &6735024914612527901 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4153504376611031498, guid: 5596175bf3917b849a95e64a67998b23, type: 3}

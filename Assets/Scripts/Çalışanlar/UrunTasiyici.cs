@@ -18,7 +18,7 @@ public class UrunTasiyici : MonoBehaviour
     [Header("ÇAY Referanslar (MEVCUT)")]
     public GameObject urunPrefab;                 // ÇAY prefab
     public Transform stackRoot;                   // ÇAY stack root
-    public float stackSpacing = 0.3f;             // ÇAY dikey aralık
+    public float stackSpacing = 2.6f;             // ÇAY dikey aralık
     public Transform stackAreaTarget;             // ÇAY drop hedefi
 
     [Header("ÇAY Çalışma Noktaları")]

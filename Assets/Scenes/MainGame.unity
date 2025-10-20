@@ -21608,6 +21608,7 @@ MonoBehaviour:
   maxKulahSayisi: 10
   mevcutKulahSayisi: 10
   yenilemeMesafesi: 1
+  refillInterval: 1
   oyuncuTransform: {fileID: 1345586643}
   yenilemeNoktasi: {fileID: 788097523}
   kulahText: {fileID: 626504799}
@@ -24145,8 +24146,8 @@ Transform:
   m_GameObject: {fileID: 788097522}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 25.91, y: 0.04, z: 18.28}
-  m_LocalScale: {x: 5.4063168, y: 0.0077233096, z: 5.4063168}
+  m_LocalPosition: {x: 27.5244, y: 0.65, z: 17.088}
+  m_LocalScale: {x: 8.63497, y: 0.0077233096, z: 8.702548}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 703203465}

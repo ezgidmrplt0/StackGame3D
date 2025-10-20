@@ -1,9 +1,9 @@
 using UnityEngine;
 using TMPro;
+using System.Collections;
 
 public class KulahYenileme : MonoBehaviour
 {
-    // Singleton deseni ile diðer scriptlerden kolayca eriþim saðlarýz.
     public static KulahYenileme Instance;
 
     [Header("Külah Ayarlarý")]
@@ -11,64 +11,92 @@ public class KulahYenileme : MonoBehaviour
     public int mevcutKulahSayisi;
 
     [Header("Yenileme Ayarlarý")]
-    // Oyuncunun yenileme noktasýna olan mesafesi
+    [Tooltip("Oyuncunun yenileme noktasýna olan mesafe (yarýçap).")]
     [SerializeField] private float yenilemeMesafesi = 1f;
 
-    // Oyuncunun hareketini kontrol eden ana nesne
+    [Tooltip("Kaç saniyede bir külah eklensin? (0.1 = saniyede 10 külah)")]
+    [SerializeField] private float refillInterval = 0.1f;
+
+    [Tooltip("Oyuncu Transform'u. Boþsa Awake'te Player tag'inden bulunur.")]
     [SerializeField] private Transform oyuncuTransform;
 
-    // Oyuncunun külah yenilemek için duracaðý nokta
+    [Tooltip("Yenileme alanýnýn merkezi. Boþsa bu GameObject'in Transform'u kullanýlýr.")]
     [SerializeField] private Transform yenilemeNoktasi;
 
     [Header("UI Ayarlarý")]
-    public TextMeshPro kulahText;
+    public TMP_Text kulahText;
 
     private bool oyuncuAlanaGirdi = false;
+    private Coroutine refillCoroutine;
 
     private void Awake()
     {
-        if (Instance == null)
+        if (Instance == null) Instance = this;
+        else { Destroy(gameObject); return; }
+
+        if (oyuncuTransform == null)
         {
-            Instance = this;
+            GameObject p = GameObject.FindGameObjectWithTag("Player");
+            if (p != null) oyuncuTransform = p.transform;
         }
-        else
-        {
-            Destroy(gameObject);
-        }
+
+        if (yenilemeNoktasi == null) yenilemeNoktasi = transform;
+        if (kulahText == null) kulahText = GetComponentInChildren<TMP_Text>();
     }
 
-    void Start()
+    private void Start()
     {
-        mevcutKulahSayisi = maxKulahSayisi;
+        mevcutKulahSayisi = Mathf.Clamp(maxKulahSayisi, 0, Mathf.Max(0, maxKulahSayisi));
         UpdateUI();
     }
 
-    void Update()
+    private void Update()
     {
-        // Oyuncunun yenileme noktasýna olan mesafesini kontrol et
-        if (yenilemeNoktasi != null && oyuncuTransform != null)
-        {
-            float mesafe = Vector3.Distance(oyuncuTransform.position, yenilemeNoktasi.position);
+        if (yenilemeNoktasi == null || oyuncuTransform == null) return;
 
-            if (mesafe <= yenilemeMesafesi)
+        float mesafe = Vector3.Distance(oyuncuTransform.position, yenilemeNoktasi.position);
+
+        if (mesafe <= yenilemeMesafesi)
+        {
+            if (!oyuncuAlanaGirdi)
             {
-                // Eðer yeterince yakýnsa ve daha önce alana girilmediyse
-                if (!oyuncuAlanaGirdi)
-                {
-                    mevcutKulahSayisi = maxKulahSayisi;
-                    UpdateUI();
-                    oyuncuAlanaGirdi = true;
-                }
+                oyuncuAlanaGirdi = true;
+                StartRefill();
             }
-            else
-            {
-                // Eðer uzaklaþtýysa durumu sýfýrla
-                oyuncuAlanaGirdi = false;
-            }
+        }
+        else
+        {
+            oyuncuAlanaGirdi = false;
+            StopRefill();
         }
     }
 
-    // Oyuncunun külah kullanmasýný saðlar
+    private void StartRefill()
+    {
+        if (refillCoroutine == null)
+            refillCoroutine = StartCoroutine(RefillRoutine());
+    }
+
+    private void StopRefill()
+    {
+        if (refillCoroutine != null)
+        {
+            StopCoroutine(refillCoroutine);
+            refillCoroutine = null;
+        }
+    }
+
+    private IEnumerator RefillRoutine()
+    {
+        while (mevcutKulahSayisi < maxKulahSayisi && oyuncuAlanaGirdi)
+        {
+            mevcutKulahSayisi++;
+            UpdateUI();
+            yield return new WaitForSeconds(refillInterval);
+        }
+        refillCoroutine = null;
+    }
+
     public void KulahKullan()
     {
         if (mevcutKulahSayisi > 0)
@@ -78,12 +106,18 @@ public class KulahYenileme : MonoBehaviour
         }
     }
 
-    // Külah UI'ýný günceller
     private void UpdateUI()
     {
         if (kulahText != null)
-        {
-            kulahText.text = "Külah: " + mevcutKulahSayisi + " / " + maxKulahSayisi;
-        }
+            kulahText.text = $"Külah: {mevcutKulahSayisi} / {maxKulahSayisi}";
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Transform merkez = yenilemeNoktasi != null ? yenilemeNoktasi : transform;
+        Gizmos.color = new Color(0f, 0.6f, 1f, 0.25f);
+        Gizmos.DrawSphere(merkez.position, Mathf.Max(0.01f, yenilemeMesafesi));
+        Gizmos.color = new Color(0f, 0.6f, 1f, 1f);
+        Gizmos.DrawWireSphere(merkez.position, Mathf.Max(0.01f, yenilemeMesafesi));
     }
 }

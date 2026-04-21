@@ -6,18 +6,18 @@ using DG.Tweening;
 
 public class ButonManager : MonoBehaviour
 {
-    // Inspector'dan atayacaðýnýz tüm butonlarýn RectTransform'larý
+    // Inspector'dan atayacaÄŸÄ±nÄ±z tÃ¼m butonlarÄ±n RectTransform'larÄ±
     public List<RectTransform> allButtons;
 
-    // Butonlar arasýndaki boþluk
+    // Butonlar arasÄ±ndaki boÅŸluk
     public float buttonSpacing = 51f;
     public GameObject kahveTablo;
-    public GameObject kahveAlaný;
+    public GameObject kahveAlanÄ±;
 
-    // Bu metot, ExpandManager tarafýndan çaðrýlacak
+    // Bu metot, ExpandManager tarafÄ±ndan Ã§aÄŸrÄ±lacak
     public void HideAndShiftButtons(RectTransform buttonToHide)
     {
-        // Týklanan butonu pürüzsüz bir þekilde yok et
+        // TÄ±klanan butonu pÃ¼rÃ¼zsÃ¼z bir ÅŸekilde yok et
         buttonToHide.DOScale(Vector3.zero, 0.25f).OnComplete(() =>
         {
             // Animasyon bitince butonu tamamen pasif hale getir
@@ -27,15 +27,15 @@ public class ButonManager : MonoBehaviour
         // "Gizlenen" butonun Y pozisyonunu al
         float hiddenButtonY = buttonToHide.anchoredPosition.y;
 
-        // Gizlenen butonun altýndaki diðer butonlarý yukarý kaydýr
+        // Gizlenen butonun altÄ±ndaki diÄŸer butonlarÄ± yukarÄ± kaydÄ±r
         foreach (RectTransform buttonRect in allButtons)
         {
-            // Gizlenen butonun kendisi ve zaten gizlenmiþ olanlar hariç
+            // Gizlenen butonun kendisi ve zaten gizlenmiÅŸ olanlar hariÃ§
             if (buttonRect != buttonToHide && buttonRect.gameObject.activeSelf)
             {
                 if (buttonRect.anchoredPosition.y < hiddenButtonY)
                 {
-                    // Butonun yüksekliðini ve boþluðu al
+                    // Butonun yÃ¼ksekliÄŸini ve boÅŸluÄŸu al
                     float buttonHeight = buttonRect.sizeDelta.y;
                     buttonRect.DOAnchorPosY(buttonRect.anchoredPosition.y + buttonHeight + buttonSpacing, 0.5f).SetEase(Ease.OutSine);
                 }
@@ -45,6 +45,6 @@ public class ButonManager : MonoBehaviour
     public void KahveTablo()
     {
         kahveTablo.SetActive(true);
-        kahveAlaný.SetActive(true);
+        kahveAlanÄ±.SetActive(true);
     }
 }

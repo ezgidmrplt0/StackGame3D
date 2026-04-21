@@ -5,7 +5,7 @@ public class SodaButon : MonoBehaviour
     public void SodaAc()
     {
         MusteriHareket.sodaAcik = true;
-        StackCollector.Instance.sodacıAktif.SetActive(false);
-        Debug.Log("Soda açıldı! Artık müşteriler soda isteyebilir.");
+        StackCollector.Instance.sodacÄ±Aktif.SetActive(false);
+        Debug.Log("Soda aÃ§Ä±ldÄ±! ArtÄ±k mÃ¼ÅŸteriler soda isteyebilir.");
     }
 }

@@ -11,7 +11,7 @@ public class KirlilikYonetici : MonoBehaviour
     public float maxKirlenmeSuresi = 45f;
     public float olusmaAnimasyonSuresi = 1f;
 
-    // Temizlik Barı değişkenleri
+    // Temizlik BarÄ± deÄŸiÅŸkenleri
     public Slider kirlilikBar;
     public Image barRenkImage;
     public Color temizRenk = Color.green;
@@ -30,14 +30,14 @@ public class KirlilikYonetici : MonoBehaviour
         if (kirlilikBar != null)
         {
             kirlilikBar.value = 0f;
-            // Başlangıçta barın doluluk kısmını tamamen saydam yap
+            // BaÅŸlangÄ±Ã§ta barÄ±n doluluk kÄ±smÄ±nÄ± tamamen saydam yap
             barRenkImage.color = new Color(temizRenk.r, temizRenk.g, temizRenk.b, 0f);
         }
 
-        StartCoroutine(KirlenmeDöngüsü());
+        StartCoroutine(KirlenmeDÃ¶ngÃ¼sÃ¼());
     }
 
-    private IEnumerator KirlenmeDöngüsü()
+    private IEnumerator KirlenmeDÃ¶ngÃ¼sÃ¼()
     {
         while (true)
         {
@@ -65,7 +65,7 @@ public class KirlilikYonetici : MonoBehaviour
                 aktifKirliAlanSayisi++;
                 KirlilikBariniGuncelle();
 
-                Debug.Log("Yeni bir kirli alan belirdi! Aktif kirli alan sayısı: " + aktifKirliAlanSayisi);
+                Debug.Log("Yeni bir kirli alan belirdi! Aktif kirli alan sayÄ±sÄ±: " + aktifKirliAlanSayisi);
             }
         }
     }
@@ -74,7 +74,7 @@ public class KirlilikYonetici : MonoBehaviour
     {
         aktifKirliAlanSayisi--;
         KirlilikBariniGuncelle();
-        Debug.Log("Kirli alan temizlendi! Aktif kirli alan sayısı: " + aktifKirliAlanSayisi);
+        Debug.Log("Kirli alan temizlendi! Aktif kirli alan sayÄ±sÄ±: " + aktifKirliAlanSayisi);
     }
 
     private void KirlilikBariniGuncelle()
@@ -83,10 +83,10 @@ public class KirlilikYonetici : MonoBehaviour
         {
             float kirlilikYuzdesi = (float)aktifKirliAlanSayisi / kirliAlanlar.Length;
 
-            // Slider'ın doluluk değerini güncelle
+            // Slider'Ä±n doluluk deÄŸerini gÃ¼ncelle
             kirlilikBar.DOValue(kirlilikYuzdesi, 0.5f).SetEase(Ease.OutQuad);
 
-            // Eğer kirlilik yoksa saydam, varsa normal renge geçiş yap
+            // EÄŸer kirlilik yoksa saydam, varsa normal renge geÃ§iÅŸ yap
             Color hedefRenk;
             if (aktifKirliAlanSayisi == 0)
             {

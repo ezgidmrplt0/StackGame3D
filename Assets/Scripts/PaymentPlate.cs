@@ -1,28 +1,28 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
-using DG.Tweening; // Dotween kütüphanesini eklemeyi unutmayýn!
+using DG.Tweening; // Dotween kÃ¼tÃ¼phanesini eklemeyi unutmayÄ±n!
 
 public class PaymentPlate : MonoBehaviour
 {
-    [Header("Ödeme Ayarlarý")]
+    [Header("Ã–deme AyarlarÄ±")]
     public float price = 10f;
     public int paymentUnit = 1;
-    public float paymentInterval = 0.2f;
+    public float paymentInterval = 0.03f;
 
     private int currentPaidUnits = 0;
     private int requiredUnits;
 
-    [Header("Görsel Ayarlarý")]
+    [Header("GÃ¶rsel AyarlarÄ±")]
     public Transform progressBarFill;
     private Vector3 initialScale;
     private Vector3 initialPosition;
 
-    [Header("UI Ayarlarý")]
+    [Header("UI AyarlarÄ±")]
     public TextMeshPro priceText;
     public GameObject uiContainer;
 
-    [Header("Tamamlama Ayarlarý")]
+    [Header("Tamamlama AyarlarÄ±")]
     public GameObject objectToActivateOnComplete;
     public bool destroyPlateOnComplete = true;
 
@@ -30,20 +30,20 @@ public class PaymentPlate : MonoBehaviour
     public GameObject extraObjectToActivate1;
     public GameObject extraObjectToActivate2;
 
-    [Header("Animasyon Ayarlarý")]
+    [Header("Animasyon AyarlarÄ±")]
     public float animationDuration = 0.5f;
     public Ease animationEase = Ease.OutBack;
     public float destroyAnimationDuration = 0.5f;
 
-    // Yeni: Text Animasyon Ayarlarý
-    [Header("Text Animasyon Ayarlarý")]
-    public float textScaleDuration = 0.1f;    // Büyüme ve küçülme süresi
-    public float textScaleFactor = 1.05f;      // Ne kadar büyüyeceði
-    private Vector3 priceTextInitialScale;    // Text'in baþlangýç boyutu
+    // Yeni: Text Animasyon AyarlarÄ±
+    [Header("Text Animasyon AyarlarÄ±")]
+    public float textScaleDuration = 0.1f;    // BÃ¼yÃ¼me ve kÃ¼Ã§Ã¼lme sÃ¼resi
+    public float textScaleFactor = 1.05f;      // Ne kadar bÃ¼yÃ¼yeceÄŸi
+    private Vector3 priceTextInitialScale;    // Text'in baÅŸlangÄ±Ã§ boyutu
                                               // ----------------------------
 
-    // Ses Ayarlarý (Önceki düzeltmelerden kalan)
-    [Header("Ses Ayarlarý")]
+    // Ses AyarlarÄ± (Ã¶nceki dÃ¼zeltmelerden kalan)
+    [Header("Ses AyarlarÄ±")]
     public AudioSource audioSource;
     public AudioClip paymentSound;
     public float basePitch = 1.0f;
@@ -83,7 +83,7 @@ public class PaymentPlate : MonoBehaviour
         if (priceText != null)
         {
             priceText.text = price.ToString("F0") + "$";
-            // Yeni: Text'in baþlangýç boyutunu kaydet
+            // Yeni: Text'in baÅŸlangÄ±Ã§ boyutunu kaydet
             priceTextInitialScale = priceText.transform.localScale;
         }
 
@@ -122,8 +122,8 @@ public class PaymentPlate : MonoBehaviour
     {
         while (currentPaidUnits < requiredUnits)
         {
-            // MoneyManager.Instance'ýn harcama iþlemini kontrol etmeden önce 
-            // oyuncunun hala plakada olup olmadýðýný kontrol etmek önemlidir.
+            // MoneyManager.Instance'Ä±n harcama iÅŸlemini kontrol etmeden Ã¶nce 
+            // oyuncunun hala plakada olup olmadÄ±ÄŸÄ±nÄ± kontrol etmek Ã¶nemlidir.
             if (!isPlayerOnPlate)
             {
                 yield break;
@@ -134,8 +134,8 @@ public class PaymentPlate : MonoBehaviour
                 currentPaidUnits++;
                 float progress = (float)currentPaidUnits / requiredUnits;
 
-                // Animasyon ve Ses Çaðrýsý
-                AnimatePriceText(); // Yeni: Text animasyonunu çaðýr
+                // Animasyon ve Ses Ã‡aÄŸrÄ±sÄ±
+                AnimatePriceText(); // Yeni: Text animasyonunu Ã§aÄŸÄ±r
                 PlayPaymentSound(progress);
 
                 Update3DUI(progress);
@@ -143,24 +143,24 @@ public class PaymentPlate : MonoBehaviour
             }
             else
             {
-                // Yetersiz bakiye varsa döngüyü kýr
+                // Yetersiz bakiye varsa dÃ¶ngÃ¼yÃ¼ kÄ±r
                 yield break;
             }
         }
         OnPaymentComplete();
     }
 
-    // Yeni Yardýmcý Metot: Price Text'i Büyüt ve Küçült
+    // Yeni YardÄ±mcÄ± Metot: Price Text'i BÃ¼yÃ¼t ve KÃ¼Ã§Ã¼lt
     private void AnimatePriceText()
     {
         if (priceText == null) return;
 
-        // Önceki Tween'i durdur (hýzlý ödemelerde karýþýklýðý önler)
+        // Ã–nceki Tween'i durdur (hÄ±zlÄ± Ã¶demelerde karÄ±ÅŸÄ±klÄ±ÄŸÄ± Ã¶nler)
         priceText.transform.DOKill();
 
-        // 1. Büyütme Animasyonu
+        // 1. BÃ¼yÃ¼tme Animasyonu
         priceText.transform.DOScale(priceTextInitialScale * textScaleFactor, textScaleDuration)
-            // 2. Büyütme bitince hemen geri küçültme animasyonunu baþlat
+            // 2. BÃ¼yÃ¼tme bitince hemen geri kÃ¼Ã§Ã¼ltme animasyonunu baÅŸlat
             .OnComplete(() =>
             {
                 priceText.transform.DOScale(priceTextInitialScale, textScaleDuration);
@@ -171,22 +171,22 @@ public class PaymentPlate : MonoBehaviour
     {
         if (audioSource != null && paymentSound != null)
         {
-            // ÖNEMLÝ EKLEME: Volume'ü Settings script'inden alýyoruz
-            // Eðer Settings.SfxVolume statik deðiþkeni yoksa (Örn: sahneye Settings objesi eklenmediyse) 1f kullan.
+            // Ã–NEMLÄ° EKLEME: Volume'Ä± Settings script'inden alÄ±yoruz
+            // EÄŸer Settings.SfxVolume statik deÄŸiÅŸkeni yoksa (Ã¶rn: sahneye Settings objesi eklenmediyse) 1f kullan.
             float volume = Settings.SfxVolume;
 
-            // 1. Volume'ü Ayarla
+            // 1. Volume'Ä± Ayarla
             audioSource.volume = volume;
 
             // 2. Pitch'i Hesapla ve Ayarla
             float currentPitch = Mathf.Lerp(basePitch, maxPitch, progress);
             audioSource.pitch = currentPitch;
 
-            // 3. Sesi Çal
+            // 3. Sesi Ã‡al
             audioSource.PlayOneShot(paymentSound);
         }
     }
-    // ... (Kalan metodlar: Update3DUI, OnPaymentComplete, ActivateAndAnimate, AnimateAndDestroy ayný kalýr)
+    // ... (Kalan metodlar: Update3DUI, OnPaymentComplete, ActivateAndAnimate, AnimateAndDestroy aynÄ± kalÄ±r)
 
     private void Update3DUI(float progress)
     {
@@ -207,7 +207,7 @@ public class PaymentPlate : MonoBehaviour
 
     private void OnPaymentComplete()
     {
-        Debug.Log("Ödeme tamamlandý!");
+        Debug.Log("Ã–deme tamamlandÄ±!");
 
         if (uiContainer != null)
         {

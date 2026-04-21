@@ -18,7 +18,7 @@ public class UrunTasiyici : MonoBehaviour
     [Header("ÇAY Referanslar (MEVCUT)")]
     public GameObject urunPrefab;                 // ÇAY prefab
     public Transform stackRoot;                   // ÇAY stack root
-    public float stackSpacing = 2.6f;             // ÇAY dikey aralık
+    public float stackSpacing = 0.05f;             // ÇAY item'lar arası ekstra boşluk (boyut.y üzerine eklenir)
     public Transform stackAreaTarget;             // ÇAY drop hedefi
 
     [Header("ÇAY Çalışma Noktaları")]
@@ -43,7 +43,7 @@ public class UrunTasiyici : MonoBehaviour
     public CoffeeStackCollector coffeeCollector;  // KAHVE collector
     public GameObject kahvePrefab;                // KAHVE prefab
     public Transform kahveStackRoot;              // KAHVE stack root
-    public float kahveStackSpacing = 0.4f;        // KAHVE dikey aralık
+    public float kahveStackSpacing = 0.05f;        // KAHVE item'lar arası ekstra boşluk (kahveBoyutu.y üzerine eklenir)
     public Transform kahveDropAreaTarget;         // KAHVE drop hedefi
 
     [Header("KAHVE Çalışma Noktaları (YENİ)")]
@@ -211,7 +211,8 @@ public class UrunTasiyici : MonoBehaviour
         int mevcutIndex = (tur == UrunTuru.Cay) ? stackCay.Count : stackKahve.Count;
 
         float yOffset = boyut.y * 0.5f;
-        Vector3 spawnPosition = root.position + Vector3.up * (spacing * mevcutIndex + yOffset);
+        float perItem = boyut.y + spacing;
+        Vector3 spawnPosition = root.position + Vector3.up * (perItem * mevcutIndex + yOffset);
         GameObject newObj = Instantiate(prefab, spawnPosition, Quaternion.identity, root);
 
         if (newObj.TryGetComponent<Rigidbody>(out var rb))
@@ -220,8 +221,14 @@ public class UrunTasiyici : MonoBehaviour
         if (newObj.TryGetComponent<Collider>(out var col) && col is BoxCollider box)
             box.size = boyut * 0.9f;
 
+        Vector3 parentScale = root.lossyScale;
+        Vector3 localBoyut = new Vector3(
+            boyut.x / parentScale.x,
+            boyut.y / parentScale.y,
+            boyut.z / parentScale.z
+        );
         newObj.transform.localScale = Vector3.zero;
-        newObj.transform.DOScale(boyut, dur).SetEase(ease);
+        newObj.transform.DOScale(localBoyut, dur).SetEase(ease);
 
         if (tur == UrunTuru.Cay) stackCay.Add(newObj.transform);
         else stackKahve.Add(newObj.transform);

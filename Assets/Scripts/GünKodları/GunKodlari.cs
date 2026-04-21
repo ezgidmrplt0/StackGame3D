@@ -16,6 +16,8 @@ public class GunKodlari : MonoBehaviour
 
     [Header("Lighting")]
     [SerializeField] private Light sceneLight;
+    [SerializeField] private float minLightIntensity = 0f;
+    [SerializeField] private float maxLightIntensity = 0.8f;
 
     private static float timeOfDay;
     private int dayCount = 1;
@@ -51,6 +53,12 @@ public class GunKodlari : MonoBehaviour
         }
 
         transform.rotation = Quaternion.Euler(new Vector3((timeOfDay * 360f) - 90f, 170f, 0));
+
+        if (sceneLight != null)
+        {
+            float sunHeight = Mathf.Sin(timeOfDay * Mathf.PI);
+            sceneLight.intensity = Mathf.Lerp(minLightIntensity, maxLightIntensity, sunHeight);
+        }
 
         int currentMinute = Mathf.FloorToInt((timeOfDay * 24f * 60f) % 60f);
         if (currentMinute % 10 == 0 && currentMinute != lastDisplayedMinute)

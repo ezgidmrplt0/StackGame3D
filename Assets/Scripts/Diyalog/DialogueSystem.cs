@@ -26,13 +26,13 @@ public class DialogueSystem : MonoBehaviour
 
     [Header("Input Lock Settings")]
 #if ENABLE_INPUT_SYSTEM
-    // Yeni Input System kullanýyorsan PlayerInput baðlanýr (opsiyonel)
+    // Yeni Input System kullanï¿½yorsan PlayerInput baï¿½lanï¿½r (opsiyonel)
     [SerializeField] private PlayerInput playerInput;
     [SerializeField] private string gameplayActionMap = "Gameplay";
     [SerializeField] private string uiActionMap = "UI";
 #endif
 
-    // Diyalog açýkken devre dýþý býrakýlacak scriptler (mesela PlayerMovement, Joystick vb.)
+    // Diyalog aï¿½ï¿½kken devre dï¿½ï¿½ï¿½ bï¿½rakï¿½lacak scriptler (mesela PlayerMovement, Joystick vb.)
     [SerializeField] private List<Behaviour> disableWhileOpen = new List<Behaviour>();
 
     [Header("Story")]
@@ -146,11 +146,11 @@ public class DialogueSystem : MonoBehaviour
     {
         story = new List<Line>
         {
-            new Line{ text = "Evlat… sonunda geldin. Bu çay ocagý artýk sana emanet." },
-            new Line{ text = "Bu ocak yýllardýr mahalleye sadece çay degil; emek, saygý ve sýcaklýk dagýtmýþtýr." },
-            new Line{ text = "Zaman degiþmiþ olabilir ama çayýn bereketi degiþmez." },
-            new Line{ text = "Sen bu mirasý modern çaga taþýyacaksýn. Düzeni kur, musteriyi memnun et, emegi unutma." },
-            new Line{ text = "Hazýrsan baslýyoruz… ocagý yakmanýn vakti geldi!" }
+            new Line{ text = "Evlat sonunda geldin. Bu cay ocagi artik sana emanet." },
+            new Line{ text = "Bu ocak yillardir mahalleye sadece cay degil; emek, saygi ve sicaklik dagitmistir." },
+            new Line{ text = "Zaman degismis olabilir ama cayin bereketi degismez." },
+            new Line{ text = "Sen bu mirasi modern caga tasiyacaksin. Duzeni kur, musteriyi memnun et, emegi unutma." },
+            new Line{ text = "Hazirsan basliyoruz... ocagi yakmanin vakti geldi!" }
         };
     }
 }

@@ -15,6 +15,7 @@ public class MoneyManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            transform.SetParent(null); // DontDestroyOnLoad sadece root objelerde çalışır
             DontDestroyOnLoad(gameObject);
         }
         else
@@ -42,7 +43,7 @@ public class MoneyManager : MonoBehaviour
         {
             money -= amount;
             UpdateUI();
-            Debug.Log($"Para harcand�: {amount}, Kalan: {money}");
+            Debug.Log($"Para harcand�: {amount}, Kalan: {money}");
             OnMoneyChanged?.Invoke();
             return true;
         }

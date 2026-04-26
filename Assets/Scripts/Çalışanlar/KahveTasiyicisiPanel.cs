@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
@@ -20,12 +20,20 @@ public class KahveTasiyicisiPanel : MonoBehaviour
 
     private int mevcutFiyat;
     private bool npcAktif = false;
+    private bool alaniAcildi = false;
 
     void Start()
     {
         mevcutFiyat = baslangicFiyati;
         GuncelleFiyatYazisi();
         satinAlButton.onClick.AddListener(SatinAlNPC);
+        satinAlButton.interactable = false;
+    }
+
+    public void KahveAlaniAc()
+    {
+        alaniAcildi = true;
+        satinAlButton.interactable = true;
     }
 
     private void GuncelleFiyatYazisi()
@@ -35,6 +43,12 @@ public class KahveTasiyicisiPanel : MonoBehaviour
 
     private void SatinAlNPC()
     {
+        if (!alaniAcildi)
+        {
+            Debug.Log("Kahve alanı henüz satın alınmadı!");
+            return;
+        }
+
         if (npcAktif)
         {
             Debug.Log("NPC zaten aktif, bekleniyor...");
@@ -47,23 +61,21 @@ public class KahveTasiyicisiPanel : MonoBehaviour
             return;
         }
 
-        // Para kontrol
         if (!MoneyManager.Instance.SpendMoney(mevcutFiyat))
         {
             Debug.Log("Yetersiz para!");
             return;
         }
 
-        // NPC spawn
         GameObject npcObj = Instantiate(npcPrefab, spawnPoint.position, Quaternion.identity);
         KahveTasiyicisiNPC npc = npcObj.GetComponent<KahveTasiyicisiNPC>();
         npc.calismaSuresi = npcCalismaSuresi;
         npc.ActivateNPC();
 
         npcAktif = true;
+        satinAlButton.interactable = false;
         StartCoroutine(ResetSatinalma(npcCalismaSuresi));
 
-        // Fiyatı %20 artır
         mevcutFiyat = Mathf.RoundToInt(mevcutFiyat * (1f + artisOrani));
         GuncelleFiyatYazisi();
     }
@@ -72,5 +84,6 @@ public class KahveTasiyicisiPanel : MonoBehaviour
     {
         yield return new WaitForSeconds(sure + 0.5f);
         npcAktif = false;
+        satinAlButton.interactable = true;
     }
 }

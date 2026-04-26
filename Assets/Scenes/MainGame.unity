@@ -18922,11 +18922,65 @@ MonoBehaviour:
     objectsToActivate:
     - {fileID: 630889359}
     - {fileID: 0}
+    onComplete:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 374672685}
+          m_TargetAssemblyTypeName: KahveTasiyicisiPanel, Assembly-CSharp
+          m_MethodName: KahveAlaniAc
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 697721246}
+          m_TargetAssemblyTypeName: SodaTasiyici, Assembly-CSharp
+          m_MethodName: SodaAlaniAc
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
   - objectsToDestroy: []
     objectsToActivate:
     - {fileID: 2137928514}
     - {fileID: 1676069704}
     - {fileID: 1471091046}
+    onComplete:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 374672685}
+          m_TargetAssemblyTypeName: KahveTasiyicisiPanel, Assembly-CSharp
+          m_MethodName: KahveAlaniAc
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 697721246}
+          m_TargetAssemblyTypeName: SodaTasiyici, Assembly-CSharp
+          m_MethodName: SodaAlaniAc
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
   - objectsToDestroy:
     - {fileID: 0}
     objectsToActivate:
@@ -18934,6 +18988,33 @@ MonoBehaviour:
     - {fileID: 2093212108}
     - {fileID: 564631228}
     - {fileID: 1784282059}
+    onComplete:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 374672685}
+          m_TargetAssemblyTypeName: KahveTasiyicisiPanel, Assembly-CSharp
+          m_MethodName: KahveAlaniAc
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 697721246}
+          m_TargetAssemblyTypeName: SodaTasiyici, Assembly-CSharp
+          m_MethodName: SodaAlaniAc
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
   basePrice: 100
   priceIncreaseRate: 0.5
   priceText: {fileID: 0}
@@ -21390,6 +21471,8 @@ MonoBehaviour:
   timeText: {fileID: 2094142689}
   dayDurationInMinutes: 20
   sceneLight: {fileID: 0}
+  minLightIntensity: 0
+  maxLightIntensity: 0.8
 --- !u!114 &697721248
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -34806,6 +34889,8 @@ MonoBehaviour:
   timeText: {fileID: 0}
   dayDurationInMinutes: 5
   sceneLight: {fileID: 1169693692}
+  minLightIntensity: 0
+  maxLightIntensity: 0.8
 --- !u!4 &1170955036 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 0f1bfcc51f8fb344683b82a623129882, type: 3}
@@ -40726,15 +40811,11 @@ MonoBehaviour:
   coffeeCollector: {fileID: 1345586650}
   kahvePrefab: {fileID: 919132149155446097, guid: 41f0becb11d63cf46bf526826443712f, type: 3}
   kahveStackRoot: {fileID: 0}
-  kahveStackSpacing: 0.4
   kahveDropAreaTarget: {fileID: 581095394}
   kahveAlmaNoktasi: {fileID: 666588090}
   kahveBirakmaNoktasi: {fileID: 443455743}
   gerekliHamKahveMiktari: 1
-  kahveBoyutu: {x: 6, y: 9, z: 6}
   kahveStackLimit: 5
-  kahveTweenDuration: 0.3
-  kahveTweenEase: 27
   kahveDropSpacing: 1.5
 --- !u!114 &1345586620
 MonoBehaviour:

@@ -113,14 +113,12 @@ public class KahveTasiyicisiNPC : MonoBehaviour
                 yield return DropSequence();
         }
 
-        // Süre bitti → varsa kahveleri bırak, sonra spawn noktasına dön
+        // Süre bitti → varsa kahveleri bırak, sonra anında yok ol
         if (stack.Count > 0)
         {
             yield return MoveTo(birakmaNoktasi.position);
             yield return DropSequence();
         }
-
-        yield return MoveTo(spawnPoint);
 
         isWorking = false;
         Destroy(gameObject);

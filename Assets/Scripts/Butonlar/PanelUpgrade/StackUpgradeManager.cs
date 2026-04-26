@@ -19,7 +19,10 @@ public class StackUpgradeManager : MonoBehaviour
     {
         currentPrice = basePrice;
         UpdateUI();
-        upgradeButton.onClick.AddListener(BuyUpgrade);
+        if (upgradeButton != null)
+            upgradeButton.onClick.AddListener(BuyUpgrade);
+        else
+            Debug.LogError("StackUpgradeManager: upgradeButton Inspector'da atanmamış!", this);
     }
 
     public void BuyUpgrade()

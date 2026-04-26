@@ -13,7 +13,8 @@ public class OyuncuVeKamera : MonoBehaviour
     private Rigidbody rb;
     private float verticalVelocity;
 
-    private float speedMultiplier = 1f; // Hız çarpanı (default 1)
+    private float speedMultiplier = 1f;
+    private Tween speedTween;
 
     [Header("Kamera Ayarları")]
     public Transform cameraTransform;
@@ -112,9 +113,12 @@ public class OyuncuVeKamera : MonoBehaviour
         return moveDir;
     }
 
-    // Hız değiştirici (DOTween ile yumuşak geçiş)
     public void SetSpeedMultiplier(float targetValue)
     {
-        DOTween.To(() => speedMultiplier, x => speedMultiplier = x, targetValue, 0.5f);
+        if (Mathf.Approximately(speedMultiplier, targetValue) && (speedTween == null || !speedTween.IsActive()))
+            return;
+
+        speedTween?.Kill();
+        speedTween = DOTween.To(() => speedMultiplier, x => speedMultiplier = x, targetValue, 0.3f);
     }
 }

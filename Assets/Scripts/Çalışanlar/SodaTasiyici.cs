@@ -13,10 +13,10 @@ public class SodaTasiyici : MonoBehaviour
     public float toplamaAraligi = 0.2f;
     public float calismaSuresi = 20f; // saniye
 
-    [Header("Drop Ayarlarý")]
+    [Header("Drop Ayarlarï¿½")]
     public Transform dropTargetTransform;
 
-    [Header("Soda Boyut ve Stack Ayarlarý")]
+    [Header("Soda Boyut ve Stack Ayarlarï¿½")]
     public Vector3 sodaScale = new Vector3(0.0025f, 0.0025f, 0.0025f);
     public float stackSpacing = 0.15f;
     public float jumpHeightMultiplier = 0.5f;
@@ -36,7 +36,9 @@ public class SodaTasiyici : MonoBehaviour
     public int fiyat = 100;
     public float fiyatArtis = 0.2f;
 
-    [Header("Hedef Noktalar (Inspector’dan ekle)")]
+    private bool alaniAcildi = false;
+
+    [Header("Hedef Noktalar (Inspectorï¿½dan ekle)")]
     public Transform[] yolNoktalari;
 
     private List<Transform> stack = new List<Transform>();
@@ -68,14 +70,23 @@ public class SodaTasiyici : MonoBehaviour
             stackRoot = transform;
 
         if (satinAlButton != null)
+        {
             satinAlButton.onClick.AddListener(SatinAl);
+            satinAlButton.interactable = false;
+        }
 
         if (fiyatText != null)
             fiyatText.text = fiyat.ToString();
 
+        // Panel versiyonunda SodaNoktasi olmayabilir; NPC aktif olunca lazy lookup yapÄ±lÄ±r
         almaNoktasi = GameObject.FindGameObjectWithTag("SodaNoktasi")?.transform;
-        if (almaNoktasi == null)
-            Debug.LogError("SodaNoktasi bulunamadý!");
+    }
+
+    public void SodaAlaniAc()
+    {
+        alaniAcildi = true;
+        if (satinAlButton != null)
+            satinAlButton.interactable = true;
     }
 
     private void Update()
@@ -84,9 +95,19 @@ public class SodaTasiyici : MonoBehaviour
 
         if (!aktif) return;
 
+        // SÃ¼re dolduÄŸunda hangi state'de olursa olsun yok ol
+        if (currentState != SodaState.Idle && Time.time >= calismaBitisZamani)
+        {
+            KaybolVeYokOl();
+            return;
+        }
+
         switch (currentState)
         {
             case SodaState.GoingToCollect:
+                if (almaNoktasi == null)
+                    almaNoktasi = GameObject.FindGameObjectWithTag("SodaNoktasi")?.transform;
+                if (almaNoktasi == null) break;
                 MoveTowards(almaNoktasi.position);
                 RotateTowards(almaNoktasi.position);
                 if (Vector3.Distance(transform.position, almaNoktasi.position) < 0.05f)
@@ -201,15 +222,17 @@ public class SodaTasiyici : MonoBehaviour
                 Vector3 targetPos = dropTargetTransform.position + Vector3.up * (SodaStack.Instance.cubeHeight * dropIndex);
                 soda.DOJump(targetPos, stackSpacing * jumpHeightMultiplier, 1, 0.4f)
                     .SetEase(Ease.OutQuad)
-                    .OnComplete(() => soda.rotation = Quaternion.identity);
+                    .SetLink(soda.gameObject)
+                    .OnComplete(() => { if (soda != null) soda.rotation = Quaternion.identity; });
             }
             else
             {
                 Vector3 targetPos = dropTargetTransform.position + Vector3.up * (stackSpacing * stack.Count);
                 soda.DOJump(targetPos, stackSpacing * jumpHeightMultiplier, 1, 0.4f)
                     .SetEase(Ease.OutQuad)
-                    .OnComplete(() => soda.rotation = Quaternion.identity);
-                Debug.LogWarning("SodaStack.Instance bulunamadý! Doðrudan hedefe býrakýlýyor.");
+                    .SetLink(soda.gameObject)
+                    .OnComplete(() => { if (soda != null) soda.rotation = Quaternion.identity; });
+                Debug.LogWarning("SodaStack.Instance bulunamadï¿½! Doï¿½rudan hedefe bï¿½rakï¿½lï¿½yor.");
             }
 
             yield return new WaitForSeconds(toplamaAraligi);
@@ -244,9 +267,21 @@ public class SodaTasiyici : MonoBehaviour
 
     public void SatinAl()
     {
+        if (!alaniAcildi)
+        {
+            Debug.Log("Soda alanÄ± henÃ¼z satÄ±n alÄ±nmadÄ±!");
+            return;
+        }
+
+        if (aktif)
+        {
+            Debug.Log("SodacÄ± zaten Ã§alÄ±ÅŸÄ±yor, bekleniyor...");
+            return;
+        }
+
         if (MoneyManager.Instance == null)
         {
-            Debug.LogError("MoneyManager bulunamadý! Sahneye ekleyin.");
+            Debug.LogError("MoneyManager bulunamadï¿½! Sahneye ekleyin.");
             return;
         }
 
@@ -256,51 +291,44 @@ public class SodaTasiyici : MonoBehaviour
             return;
         }
 
-        GameObject existingSodaci = GameObject.FindWithTag(sodaciTag);
-        if (existingSodaci == null)
+        if (sodaTasiyiciPrefab == null || spawnPozisyon == null)
         {
-            if (sodaTasiyiciPrefab != null && spawnPozisyon != null)
-            {
-                GameObject obj = Instantiate(sodaTasiyiciPrefab, spawnPozisyon.position, Quaternion.identity);
-                obj.SetActive(true);
-                obj.tag = sodaciTag;
-
-                SodaTasiyici yeniTasiyici = obj.GetComponent<SodaTasiyici>();
-                if (yeniTasiyici != null)
-                {
-                    yeniTasiyici.aktif = true;
-                    yeniTasiyici.sodaScale = this.sodaScale;
-                    yeniTasiyici.stackSpacing = this.stackSpacing;
-                    yeniTasiyici.jumpHeightMultiplier = this.jumpHeightMultiplier;
-                    yeniTasiyici.dropTargetTransform = this.dropTargetTransform;
-                    yeniTasiyici.yolNoktalari = this.yolNoktalari;
-                    yeniTasiyici.calismaBitisZamani = Time.time + calismaSuresi;
-                    yeniTasiyici.currentState = SodaState.GoingToCollect;
-                }
-
-                Debug.Log("SodaTasiyici sahneye spawn edildi.");
-            }
-            else
-            {
-                Debug.LogError("sodaTasiyiciPrefab veya spawnPozisyon null!");
-                return;
-            }
-        }
-        else
-        {
-            Debug.Log("Zaten bir Sodaci var: " + existingSodaci.name);
+            Debug.LogError("sodaTasiyiciPrefab veya spawnPozisyon null!");
+            return;
         }
 
-        if (!aktif)
-        {
-            aktif = true;
-            fiyat = Mathf.RoundToInt(fiyat * (1 + fiyatArtis));
-            if (fiyatText != null)
-                fiyatText.text = fiyat.ToString();
+        GameObject obj = Instantiate(sodaTasiyiciPrefab, spawnPozisyon.position, Quaternion.identity);
+        obj.SetActive(true);
+        obj.tag = sodaciTag;
 
-            calismaBitisZamani = Time.time + calismaSuresi;
-            currentState = SodaState.GoingToCollect;
+        SodaTasiyici yeniTasiyici = obj.GetComponent<SodaTasiyici>();
+        if (yeniTasiyici != null)
+        {
+            yeniTasiyici.aktif = true;
+            yeniTasiyici.sodaScale = this.sodaScale;
+            yeniTasiyici.stackSpacing = this.stackSpacing;
+            yeniTasiyici.jumpHeightMultiplier = this.jumpHeightMultiplier;
+            yeniTasiyici.dropTargetTransform = this.dropTargetTransform;
+            yeniTasiyici.yolNoktalari = this.yolNoktalari;
+            yeniTasiyici.calismaBitisZamani = Time.time + calismaSuresi;
+            yeniTasiyici.currentState = SodaState.GoingToCollect;
         }
+
+        aktif = true;
+        if (satinAlButton != null) satinAlButton.interactable = false;
+        fiyat = Mathf.RoundToInt(fiyat * (1 + fiyatArtis));
+        if (fiyatText != null)
+            fiyatText.text = fiyat.ToString();
+
+        StartCoroutine(SodaciCalismasiResetla());
+        Debug.Log("SodaTasiyici sahneye spawn edildi.");
+    }
+
+    private IEnumerator SodaciCalismasiResetla()
+    {
+        yield return new WaitForSeconds(calismaSuresi + 1f);
+        aktif = false;
+        if (satinAlButton != null) satinAlButton.interactable = true;
     }
 
     void AddSoda()
@@ -309,6 +337,13 @@ public class SodaTasiyici : MonoBehaviour
         if (sodaPrefab == null || stackRoot == null) return;
 
         GameObject newSoda = Instantiate(sodaPrefab, stackRoot);
+
+        foreach (var rb in newSoda.GetComponentsInChildren<Rigidbody>(true))
+        { rb.isKinematic = true; rb.useGravity = false; }
+
+        foreach (var col in newSoda.GetComponentsInChildren<Collider>(true))
+            col.enabled = false;
+
         newSoda.transform.localPosition = Vector3.up * stackSpacing * stack.Count;
         newSoda.transform.localRotation = Quaternion.identity;
         newSoda.transform.localScale = Vector3.zero;
@@ -323,7 +358,7 @@ public class SodaTasiyici : MonoBehaviour
         if (other.CompareTag("StackSilmeNoktasi0"))
         {
             dropAlaniTemas = true;
-            Debug.Log("Drop alanýna temas edildi");
+            Debug.Log("Drop alanï¿½na temas edildi");
         }
     }
 
@@ -332,7 +367,7 @@ public class SodaTasiyici : MonoBehaviour
         if (other.CompareTag("StackSilmeNoktasi0"))
         {
             dropAlaniTemas = false;
-            Debug.Log("Drop alanýndan çýkýldý");
+            Debug.Log("Drop alanï¿½ndan ï¿½ï¿½kï¿½ldï¿½");
         }
     }
 
@@ -352,11 +387,11 @@ public class SodaTasiyici : MonoBehaviour
 
         transform.DOScale(Vector3.zero, 0.5f)
             .SetEase(Ease.InBack)
-            .OnStart(() => Debug.Log("Sodacý küçülmeye baþladý"))
+            .OnStart(() => Debug.Log("Sodacï¿½ kï¿½ï¿½ï¿½lmeye baï¿½ladï¿½"))
             .OnKill(() => Debug.Log("DOTween animasyonu iptal edildi"))
             .OnComplete(() =>
             {
-                Debug.Log("Sodacý tamamen yok oldu. Destroy çaðrýldý.");
+                Debug.Log("Sodacï¿½ tamamen yok oldu. Destroy ï¿½aï¿½rï¿½ldï¿½.");
                 gameObject.SetActive(false);
                 Destroy(gameObject);
             });

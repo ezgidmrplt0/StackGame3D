@@ -43,7 +43,6 @@ public class UrunTasiyici : MonoBehaviour
     public CoffeeStackCollector coffeeCollector;  // KAHVE collector
     public GameObject kahvePrefab;                // KAHVE prefab
     public Transform kahveStackRoot;              // KAHVE stack root
-    public float kahveStackSpacing = 0.05f;        // KAHVE item'lar arası ekstra boşluk (kahveBoyutu.y üzerine eklenir)
     public Transform kahveDropAreaTarget;         // KAHVE drop hedefi
 
     [Header("KAHVE Çalışma Noktaları (YENİ)")]
@@ -53,13 +52,8 @@ public class UrunTasiyici : MonoBehaviour
     [Header("Ham Kahve Kontrolü (YENİ)")]
     public int gerekliHamKahveMiktari = 1;        // 1 kahve ürünü için tüketim
 
-    [Header("KAHVE Ürün Boyutu (YENİ)")]
-    public Vector3 kahveBoyutu = new Vector3(0.5f, 0.5f, 0.5f);
-
     [Header("KAHVE Stack Ayarları (YENİ)")]
     public int kahveStackLimit = 5;               // KAHVE’ye özel üst limit
-    public float kahveTweenDuration = 0.3f;       // KAHVE scale anim süresi
-    public Ease kahveTweenEase = Ease.OutBack;    // KAHVE ease
     public float kahveDropSpacing = 2f;           // KAHVE drop aralığı
 
     // ------------------ Dahili ------------------
@@ -69,6 +63,27 @@ public class UrunTasiyici : MonoBehaviour
 
     private bool calisiyor = true;
     private bool isInDropArea = false;
+
+    void Update()
+    {
+        UpdateKahveStackPositions();
+    }
+
+    void UpdateKahveStackPositions()
+    {
+        if (coffeeCollector == null || kahveStackRoot == null) return;
+
+        float stackHeight = coffeeCollector.stackHeight;
+        Vector3 targetScale = coffeeCollector.kahveTargetScale;
+        float yOffset = targetScale.y * 0.5f;
+
+        for (int i = 0; i < stackKahve.Count; i++)
+        {
+            if (stackKahve[i] == null) continue;
+            stackKahve[i].position = kahveStackRoot.position + Vector3.up * (stackHeight * i + yOffset);
+            stackKahve[i].rotation = Quaternion.identity;
+        }
+    }
 
     void Start()
     {
@@ -198,40 +213,81 @@ public class UrunTasiyici : MonoBehaviour
 
     void AddUrun(UrunTuru tur)
     {
-        GameObject prefab = (tur == UrunTuru.Cay) ? urunPrefab : kahvePrefab;
-        Transform root = (tur == UrunTuru.Cay) ? stackRoot : kahveStackRoot;
+        if (tur == UrunTuru.Cay)
+        {
+            AddCay();
+        }
+        else
+        {
+            AddKahve();
+        }
+    }
 
-        if (prefab == null || root == null) return;
+    void AddCay()
+    {
+        if (urunPrefab == null || stackRoot == null) return;
 
-        Vector3 boyut = (tur == UrunTuru.Cay) ? urunBoyutu : kahveBoyutu;
-        float spacing = (tur == UrunTuru.Cay) ? stackSpacing : kahveStackSpacing;
-        float dur = (tur == UrunTuru.Cay) ? tweenDuration : kahveTweenDuration;
-        Ease ease = (tur == UrunTuru.Cay) ? tweenEase : kahveTweenEase;
-
-        int mevcutIndex = (tur == UrunTuru.Cay) ? stackCay.Count : stackKahve.Count;
-
-        float yOffset = boyut.y * 0.5f;
-        float perItem = boyut.y + spacing;
-        Vector3 spawnPosition = root.position + Vector3.up * (perItem * mevcutIndex + yOffset);
-        GameObject newObj = Instantiate(prefab, spawnPosition, Quaternion.identity, root);
+        int index = stackCay.Count;
+        float yOffset = urunBoyutu.y * 0.5f;
+        float perItem = urunBoyutu.y + stackSpacing;
+        Vector3 spawnPos = stackRoot.position + Vector3.up * (perItem * index + yOffset);
+        GameObject newObj = Instantiate(urunPrefab, spawnPos, Quaternion.identity, stackRoot);
 
         if (newObj.TryGetComponent<Rigidbody>(out var rb))
         { rb.isKinematic = true; rb.useGravity = false; rb.drag = 10f; }
 
         if (newObj.TryGetComponent<Collider>(out var col) && col is BoxCollider box)
-            box.size = boyut * 0.9f;
+            box.size = urunBoyutu * 0.9f;
 
-        Vector3 parentScale = root.lossyScale;
+        Vector3 parentScale = stackRoot.lossyScale;
         Vector3 localBoyut = new Vector3(
-            boyut.x / parentScale.x,
-            boyut.y / parentScale.y,
-            boyut.z / parentScale.z
+            urunBoyutu.x / parentScale.x,
+            urunBoyutu.y / parentScale.y,
+            urunBoyutu.z / parentScale.z
         );
         newObj.transform.localScale = Vector3.zero;
-        newObj.transform.DOScale(localBoyut, dur).SetEase(ease);
+        newObj.transform.DOScale(localBoyut, tweenDuration).SetEase(tweenEase);
 
-        if (tur == UrunTuru.Cay) stackCay.Add(newObj.transform);
-        else stackKahve.Add(newObj.transform);
+        stackCay.Add(newObj.transform);
+    }
+
+    void AddKahve()
+    {
+        if (kahvePrefab == null || kahveStackRoot == null || coffeeCollector == null) return;
+
+        // Oyuncuyla birebir aynı değerleri kullan
+        float stackHeight = coffeeCollector.stackHeight;
+        Vector3 targetScale = coffeeCollector.kahveTargetScale;
+        Ease ease = coffeeCollector.tweenEase;
+
+        int index = stackKahve.Count;
+        float yOffset = targetScale.y * 0.5f;
+        Vector3 spawnPos = kahveStackRoot.position + Vector3.up * (stackHeight * index + yOffset);
+        GameObject newObj = Instantiate(kahvePrefab, spawnPos, Quaternion.identity, kahveStackRoot);
+
+        foreach (var rb in newObj.GetComponentsInChildren<Rigidbody>(true))
+        { rb.isKinematic = true; rb.useGravity = false; }
+
+        foreach (var col in newObj.GetComponentsInChildren<Collider>(true))
+            col.enabled = false;
+
+        // Oyuncunun stackRoot'undaki world scale'i hesapla, NPC parent'ına göre local scale bul
+        Vector3 playerParent = coffeeCollector.stackRoot.lossyScale;
+        Vector3 hedefWorldScale = new Vector3(
+            targetScale.x * playerParent.x,
+            targetScale.y * playerParent.y,
+            targetScale.z * playerParent.z
+        );
+        Vector3 npcParent = kahveStackRoot.lossyScale;
+        Vector3 localHedefScale = new Vector3(
+            hedefWorldScale.x / npcParent.x,
+            hedefWorldScale.y / npcParent.y,
+            hedefWorldScale.z / npcParent.z
+        );
+        newObj.transform.localScale = Vector3.zero;
+        newObj.transform.DOScale(localHedefScale, 0.4f).SetEase(ease);
+
+        stackKahve.Add(newObj.transform);
     }
 
     // ---------- BIRAKMA ----------
@@ -241,12 +297,6 @@ public class UrunTasiyici : MonoBehaviour
         {
             Transform cube = stackCay[stackCay.Count - 1];
             stackCay.RemoveAt(stackCay.Count - 1);
-
-            if (cube.TryGetComponent<Rigidbody>(out var cubeRb))
-            { cubeRb.isKinematic = false; cubeRb.useGravity = true; cubeRb.drag = 1f; }
-
-            if (cube.TryGetComponent<Collider>(out var col) && col is BoxCollider boxCollider)
-                boxCollider.size = Vector3.one;
 
             cube.SetParent(null);
 
@@ -274,12 +324,6 @@ public class UrunTasiyici : MonoBehaviour
         {
             Transform cup = stackKahve[stackKahve.Count - 1];
             stackKahve.RemoveAt(stackKahve.Count - 1);
-
-            if (cup.TryGetComponent<Rigidbody>(out var rb))
-            { rb.isKinematic = false; rb.useGravity = true; rb.drag = 1f; }
-
-            if (cup.TryGetComponent<Collider>(out var col) && col is BoxCollider boxCollider)
-                boxCollider.size = Vector3.one;
 
             cup.SetParent(null);
 

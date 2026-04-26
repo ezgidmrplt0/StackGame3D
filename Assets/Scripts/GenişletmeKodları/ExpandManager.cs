@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 
@@ -9,20 +10,21 @@ public class ExpansionStep
 {
     public List<GameObject> objectsToDestroy;
     public List<GameObject> objectsToActivate;
+    public UnityEvent onComplete;
 }
 
 public class ExpandManager : MonoBehaviour
 {
-    [Header("Geniþletme Adýmlarý")]
+    [Header("Geniï¿½letme Adï¿½mlarï¿½")]
     public List<ExpansionStep> expansionSteps = new List<ExpansionStep>();
 
-    [Header("Fiyat Ayarlarý")]
+    [Header("Fiyat Ayarlarï¿½")]
     public int basePrice = 100;
     public float priceIncreaseRate = 0.5f;
     private int currentPrice;
     private int currentStep = 0;
 
-    [Header("UI Elemanlarý")]
+    [Header("UI Elemanlarï¿½")]
     public TextMeshProUGUI priceText;
     public List<Button> expandButtons = new List<Button>();
 
@@ -76,25 +78,25 @@ public class ExpandManager : MonoBehaviour
 
         if (stepIndex < 0 || stepIndex >= expansionSteps.Count)
         {
-            Debug.LogWarning("Geçersiz step index: " + stepIndex);
+            Debug.LogWarning("Geï¿½ersiz step index: " + stepIndex);
             return;
         }
 
         if (stepIndex < currentStep)
         {
-            Debug.Log("Bu geniþletme adýmý zaten tamamlandý.");
+            Debug.Log("Bu geniï¿½letme adï¿½mï¿½ zaten tamamlandï¿½.");
             return;
         }
 
         if (stepIndex != currentStep)
         {
-            Debug.Log("Önce önceki geniþletme adýmlarýný tamamlamalýsýn. Þu anki step: " + currentStep);
+            Debug.Log("ï¿½nce ï¿½nceki geniï¿½letme adï¿½mlarï¿½nï¿½ tamamlamalï¿½sï¿½n. ï¿½u anki step: " + currentStep);
             return;
         }
 
         if (MoneyManager.Instance.money < currentPrice)
         {
-            Debug.Log("Yeterli paran yok! Geniþletme fiyatý: " + currentPrice);
+            Debug.Log("Yeterli paran yok! Geniï¿½letme fiyatï¿½: " + currentPrice);
             return;
         }
 
@@ -112,7 +114,7 @@ public class ExpandManager : MonoBehaviour
             if (obj != null) obj.SetActive(true);
         }
 
-        // ButonManager'ý bilgilendir ve ilgili butonu gizle
+        // ButonManager'ï¿½ bilgilendir ve ilgili butonu gizle
         if (butonManager != null && stepIndex < expandButtons.Count)
         {
             RectTransform buttonRect = expandButtons[stepIndex].GetComponent<RectTransform>();
@@ -121,6 +123,8 @@ public class ExpandManager : MonoBehaviour
                 butonManager.HideAndShiftButtons(buttonRect);
             }
         }
+
+        step.onComplete?.Invoke();
 
         currentStep++;
         currentPrice = Mathf.RoundToInt(currentPrice * (1f + priceIncreaseRate));
@@ -132,18 +136,18 @@ public class ExpandManager : MonoBehaviour
         if (priceText != null)
             priceText.text = currentPrice + "$";
 
-        // Bu döngü, sadece ve sadece mevcut adýma ait butonu týklanabilir yapar.
-        // Diðer tüm butonlarý kilitler.
+        // Bu dï¿½ngï¿½, sadece ve sadece mevcut adï¿½ma ait butonu tï¿½klanabilir yapar.
+        // Diï¿½er tï¿½m butonlarï¿½ kilitler.
         for (int i = 0; i < expandButtons.Count; i++)
         {
-            // Eðer butonun adým indeksi, mevcut adýmýmýzla aynýysa
+            // Eï¿½er butonun adï¿½m indeksi, mevcut adï¿½mï¿½mï¿½zla aynï¿½ysa
             if (buttonStepIndices.ContainsKey(expandButtons[i]) && buttonStepIndices[expandButtons[i]] == currentStep)
             {
-                expandButtons[i].interactable = true; // Sadece bu butonu aç.
+                expandButtons[i].interactable = true; // Sadece bu butonu aï¿½.
             }
             else
             {
-                expandButtons[i].interactable = false; // Diðer hepsini kitle.
+                expandButtons[i].interactable = false; // Diï¿½er hepsini kitle.
             }
         }
     }

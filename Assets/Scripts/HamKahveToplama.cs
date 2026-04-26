@@ -3,58 +3,58 @@ using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 
-// NOT: Bu script'in Oyuncu/Depocu objesine baðlý olmasý GEREKÝR.
+// NOT: Bu script'in Oyuncu/Depocu objesine baï¿½lï¿½ olmasï¿½ GEREKï¿½R.
 public class HamKahveToplama : MonoBehaviour
 {
     // --- STACK AYARLARI ---
-    [Header("STACK YÖNETÝMÝ")]
-    [Tooltip("Stack'in baþlayacaðý pivot (Oyuncu objesinde bir çocuk olmalý).")]
+    [Header("STACK Yï¿½NETï¿½Mï¿½")]
+    [Tooltip("Stack'in baï¿½layacaï¿½ï¿½ pivot (Oyuncu objesinde bir ï¿½ocuk olmalï¿½).")]
     public Transform stackRoot;
-    [Tooltip("Stack'e eklenecek kahve ÇEKÝRDEÐÝ prefabý.")]
+    [Tooltip("Stack'e eklenecek kahve ï¿½EKï¿½RDEï¿½ï¿½ prefabï¿½.")]
     public GameObject kahveCekirdegiPrefab;
     public int stackLimit = 10;
 
-    [Header("Stack Görünüm Ayarlarý")]
+    [Header("Stack Gï¿½rï¿½nï¿½m Ayarlarï¿½")]
     public Vector3 kahveTargetScale = new Vector3(1f, 1f, 1f);
     public float stackHeight = 0.5f;
     public Ease tweenEase = Ease.OutBack;
 
     // --- BIRAKMA AYARLARI ---
-    [Header("BIRAKMA/SATIÞ AYARLARI")]
-    [Tooltip("Stackteki ürünlerin yok olma (býrakma) hýzý (saniye aralýðý).")]
+    [Header("BIRAKMA/SATIï¿½ AYARLARI")]
+    [Tooltip("Stackteki ï¿½rï¿½nlerin yok olma (bï¿½rakma) hï¿½zï¿½ (saniye aralï¿½ï¿½ï¿½).")]
     public float dropInterval = 0.05f;
 
     [HideInInspector] public List<Transform> stack = new List<Transform>();
 
-    // --- TOPLAMA AYARLARI (Fýrlatma parametreleri kaldýrýldý) ---
+    // --- TOPLAMA AYARLARI (Fï¿½rlatma parametreleri kaldï¿½rï¿½ldï¿½) ---
     [Header("Yeniden Canlanma (Respawn)")]
     public float respawnDelay = 5f;
 
-    [Header("AÐAÇ SALLANMA ANÝMASYONU")]
+    [Header("Aï¿½Aï¿½ SALLANMA ANï¿½MASYONU")]
     public float shakeDuration = 0.2f;
-    [Tooltip("Eksen baþýna maksimum dönüþ açýsý (Örn: 5f, 0f, 5f)")]
+    [Tooltip("Eksen baï¿½ï¿½na maksimum dï¿½nï¿½ï¿½ aï¿½ï¿½sï¿½ (ï¿½rn: 5f, 0f, 5f)")]
     public Vector3 shakeStrength = new Vector3(5f, 0f, 5f);
     public int shakeVibrato = 10;
     public float shakeRandomness = 90f;
 
-    // Respawn Manager'a iletmek için Statik Ayarlar (Görünmez Kalsýnlar)
+    // Respawn Manager'a iletmek iï¿½in Statik Ayarlar (Gï¿½rï¿½nmez Kalsï¿½nlar)
     public static float StaticShakeDuration;
     public static Vector3 StaticShakeStrength;
     public static int StaticShakeVibrato;
     public static float StaticShakeRandomness;
 
-    // --- AKIÞ KONTROL DEÐÝÞKENLERÝ ---
+    // --- AKIï¿½ KONTROL DEï¿½ï¿½ï¿½KENLERï¿½ ---
     private Coroutine dropLoop;
 
     private void Start()
     {
         if (stackRoot == null || kahveCekirdegiPrefab == null)
         {
-            Debug.LogError(gameObject.name + " üzerindeki HamKahveToplama: Stack Root veya Prefab atanmamýþ!");
+            Debug.LogError(gameObject.name + " ï¿½zerindeki HamKahveToplama: Stack Root veya Prefab atanmamï¿½ï¿½!");
         }
         if (RespawnManager.Instance == null)
         {
-            Debug.LogError("RespawnManager sahnede bulunamýyor! Yeniden canlanma çalýþmayacak.");
+            Debug.LogError("RespawnManager sahnede bulunamï¿½yor! Yeniden canlanma ï¿½alï¿½ï¿½mayacak.");
         }
         StaticShakeDuration = shakeDuration;
         StaticShakeStrength = shakeStrength;
@@ -64,43 +64,44 @@ public class HamKahveToplama : MonoBehaviour
 
 
     /// <summary>
-    /// Kahve Aðacýný deaktif eder, respawn iþlemini baþlatýr ve stack'e direkt ekler.
+    /// Kahve Aï¿½acï¿½nï¿½ deaktif eder, respawn iï¿½lemini baï¿½latï¿½r ve stack'e direkt ekler.
     /// </summary>
-    /// <param name="coffeeTree">Deaktif edilecek Kahve Aðacý objesi.</param>
+    /// <param name="coffeeTree">Deaktif edilecek Kahve Aï¿½acï¿½ objesi.</param>
     private void CollectTreeAndStartRespawn(GameObject coffeeTree)
     {
-        // 1. Aðacý sallama animasyonunu baþlat
-        // Animasyon bitince, OnComplete içinde deaktif etme ve stackleme iþlemlerini yapýyoruz.
+        // AynÄ± aÄŸaÃ§ Ã¼zerinde Ã¶nceki bir shake tween'i varsa Ã¶ldÃ¼r
+        coffeeTree.transform.DOKill();
+
         coffeeTree.transform.DOShakeRotation(
             duration: shakeDuration,
             strength: shakeStrength,
             vibrato: shakeVibrato,
             randomness: shakeRandomness,
-            fadeOut: true // Sallanma biterken yumuþakça durmasýný saðlar
+            fadeOut: true
         ).OnComplete(() =>
         {
-            // 2. Sallanma bitince: Aðacý toplanmýþ kabul et, deaktif et
+            // 2. Sallanma bitince: Aï¿½acï¿½ toplanmï¿½ï¿½ kabul et, deaktif et
             coffeeTree.SetActive(false);
 
-            // 3. Respawn Manager'a bu objeyi beklemeye almasý için görev ver
+            // 3. Respawn Manager'a bu objeyi beklemeye almasï¿½ iï¿½in gï¿½rev ver
             if (RespawnManager.Instance != null)
             {
                 RespawnManager.Instance.StartRespawn(coffeeTree, respawnDelay);
             }
             else
             {
-                Debug.LogWarning("RespawnManager.Instance NULL! Aðaç geri gelmeyecek.");
+                Debug.LogWarning("RespawnManager.Instance NULL! Aï¿½aï¿½ geri gelmeyecek.");
             }
 
-            // 4. Stack'e hemen bir ürün ekle
+            // 4. Stack'e hemen bir ï¿½rï¿½n ekle
             AddOneKahveToStack();
-            Debug.Log("Kahve anýnda Stack'e eklendi.");
+            Debug.Log("Kahve anï¿½nda Stack'e eklendi.");
         });
     }
 
     // NOT: LaunchCoffeeToStack metodu tamamen KALDIRILDI.
 
-    // --- STACK YÖNETÝM METODU (Ayný Kalýr) ---
+    // --- STACK Yï¿½NETï¿½M METODU (Aynï¿½ Kalï¿½r) ---
     public void AddOneKahveToStack()
     {
         if (stack.Count >= stackLimit) return;
@@ -111,14 +112,21 @@ public class HamKahveToplama : MonoBehaviour
         GameObject newCube = Instantiate(kahveCekirdegiPrefab, spawnPosition, Quaternion.identity);
         newCube.transform.SetParent(stackRoot);
 
-        // Y rotasyon düzeltmesi
+        // Y rotasyon dï¿½zeltmesi
         newCube.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
 
-        Rigidbody cubeRb = newCube.GetComponent<Rigidbody>();
-        if (cubeRb != null)
+        // TÃ¼m alt Rigidbody'leri ve Collider'larÄ± devre dÄ±ÅŸÄ± bÄ±rak.
+        // PW_espresso_cup gibi prefab'larÄ±n alt objelerinde non-kinematic Rigidbody
+        // ve non-convex MeshCollider olmasÄ± sonsuz fizik kuvvetine ve yanlÄ±ÅŸ
+        // trigger tetiklenmelerine yol aÃ§Ä±yor.
+        foreach (var rb in newCube.GetComponentsInChildren<Rigidbody>(true))
         {
-            cubeRb.isKinematic = true;
-            cubeRb.useGravity = false;
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
+        foreach (var col in newCube.GetComponentsInChildren<Collider>(true))
+        {
+            col.enabled = false;
         }
 
         newCube.transform.localScale = Vector3.zero;
@@ -127,10 +135,10 @@ public class HamKahveToplama : MonoBehaviour
         stack.Add(newCube.transform);
     }
 
-    // --- BIRAKMA VE TOPLAMA TETÝKLEYÝCÝSÝ (Ayný Kalýr) ---
+    // --- BIRAKMA VE TOPLAMA TETï¿½KLEYï¿½Cï¿½Sï¿½ (Aynï¿½ Kalï¿½r) ---
     private void OnTriggerEnter(Collider other)
     {
-        // 1. Kahve Býrakma Noktasý Kontrolü
+        // 1. Kahve Bï¿½rakma Noktasï¿½ Kontrolï¿½
         if (other.CompareTag("KahveBirakmaNoktasi"))
         {
             if (dropLoop == null && stack.Count > 0)
@@ -139,12 +147,12 @@ public class HamKahveToplama : MonoBehaviour
             }
         }
 
-        // 2. Kahve Aðacý Toplama Kontrolü
+        // 2. Kahve Aï¿½acï¿½ Toplama Kontrolï¿½
         if (other.CompareTag("KahveToplamaNoktasi"))
         {
             if (stack.Count >= stackLimit)
             {
-                Debug.Log("Stack Dolu! Kahve toplanamýyor.");
+                Debug.Log("Stack Dolu! Kahve toplanamï¿½yor.");
                 return;
             }
 
@@ -161,18 +169,18 @@ public class HamKahveToplama : MonoBehaviour
             {
                 StopCoroutine(dropLoop);
                 dropLoop = null;
-                Debug.Log("Býrakma noktasýndan çýkýldý. Býrakma durduruldu.");
+                Debug.Log("Bï¿½rakma noktasï¿½ndan ï¿½ï¿½kï¿½ldï¿½. Bï¿½rakma durduruldu.");
             }
         }
     }
 
-    // --- DROP SEQUENCE (Ayný Kalýr) ---
-    // HamKahveToplama.cs içinde DropSequence metodunuz
+    // --- DROP SEQUENCE (Aynï¿½ Kalï¿½r) ---
+    // HamKahveToplama.cs iï¿½inde DropSequence metodunuz
 
     IEnumerator DropSequence()
     {
         var wait = new WaitForSeconds(dropInterval);
-        Debug.Log("Býrakma/Satýþ iþlemi baþladý.");
+        Debug.Log("Bï¿½rakma/Satï¿½ï¿½ iï¿½lemi baï¿½ladï¿½.");
 
         while (stack.Count > 0)
         {
@@ -196,6 +204,6 @@ public class HamKahveToplama : MonoBehaviour
         }
 
         dropLoop = null;
-        Debug.Log("Stack boþaldý. Býrakma iþlemi tamamlandý.");
+        Debug.Log("Stack boï¿½aldï¿½. Bï¿½rakma iï¿½lemi tamamlandï¿½.");
     }
 }

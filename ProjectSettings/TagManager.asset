@@ -35,6 +35,7 @@ TagManager:
   - dondurma1
   - KahveBirakmaNoktasi
   - KahveToplamaNoktasi
+  - MusteriSatis
   layers:
   - Default
   - TransparentFX

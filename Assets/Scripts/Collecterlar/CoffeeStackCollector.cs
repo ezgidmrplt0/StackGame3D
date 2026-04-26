@@ -76,8 +76,15 @@ public class CoffeeStackCollector : MonoBehaviour
         Vector3 spawnPosition = stackRoot.position + Vector3.up * (stackHeight * stack.Count + yOffset);
         GameObject newCube = Instantiate(kahvePrefab, spawnPosition, Quaternion.identity);
         newCube.transform.SetParent(stackRoot);
-        Rigidbody cubeRb = newCube.GetComponent<Rigidbody>();
-        if (cubeRb != null) { cubeRb.isKinematic = true; cubeRb.useGravity = false; }
+        foreach (var rb in newCube.GetComponentsInChildren<Rigidbody>(true))
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
+        foreach (var col in newCube.GetComponentsInChildren<Collider>(true))
+        {
+            col.enabled = false;
+        }
         newCube.transform.localScale = Vector3.zero;
         newCube.transform.DOScale(kahveTargetScale, 0.4f).SetEase(tweenEase);
         stack.Add(newCube.transform);
@@ -101,8 +108,8 @@ public class CoffeeStackCollector : MonoBehaviour
             Transform cube = stack[stack.Count - 1];
             stack.RemoveAt(stack.Count - 1);
             cube.SetParent(null);
-            Rigidbody cubeRb = cube.GetComponent<Rigidbody>();
-            if (cubeRb != null) { cubeRb.isKinematic = false; cubeRb.useGravity = true; cubeRb.drag = 1f; }
+            // DOJump animasyonu Transform üzerinden çalışır; fizik motoru açık olursa
+            // çakışır ve sonsuz kuvvetlere yol açar — kinematic kalmalı.
             int targetIndex = dropList.Count;
             Vector3 targetPos = dropAreaTarget.position + Vector3.up * (dropSpacing * targetIndex);
             cube.DOJump(targetPos, 0.5f, 1, 0.4f).SetEase(Ease.OutQuad);

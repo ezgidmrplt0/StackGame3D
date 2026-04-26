@@ -110,6 +110,16 @@ public class SodaStack : MonoBehaviour
         Vector3 spawnPos = stackRoot.position + Vector3.up * (cubeHeight * sodaStack.Count);
         GameObject newSoda = Instantiate(sodaPrefab, spawnPos, Quaternion.identity);
 
+        foreach (var rb in newSoda.GetComponentsInChildren<Rigidbody>(true))
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
+        foreach (var col in newSoda.GetComponentsInChildren<Collider>(true))
+        {
+            col.enabled = false;
+        }
+
         newSoda.transform.localScale = Vector3.zero;
         newSoda.transform.SetParent(stackRoot);
         newSoda.transform.DOScale(sodaTargetScale, tweenDuration).SetEase(tweenEase);

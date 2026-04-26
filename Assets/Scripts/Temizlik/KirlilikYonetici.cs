@@ -72,7 +72,7 @@ public class KirlilikYonetici : MonoBehaviour
 
     public void KirliAlanTemizlendi()
     {
-        aktifKirliAlanSayisi--;
+        aktifKirliAlanSayisi = Mathf.Max(0, aktifKirliAlanSayisi - 1);
         KirlilikBariniGuncelle();
         Debug.Log("Kirli alan temizlendi! Aktif kirli alan sayısı: " + aktifKirliAlanSayisi);
     }

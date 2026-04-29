@@ -6,24 +6,24 @@ public class KulahYenileme : MonoBehaviour
 {
     public static KulahYenileme Instance;
 
-    [Header("K�lah Ayarlar�")]
+    [Header("Külah Ayarları")]
     [SerializeField] private int maxKulahSayisi = 10;
     public int mevcutKulahSayisi;
 
-    [Header("Yenileme Ayarlar�")]
-    [Tooltip("Oyuncunun yenileme noktas�na olan mesafe (yar��ap).")]
+    [Header("Yenileme Ayarları")]
+    [Tooltip("Oyuncunun yenileme noktasına olan mesafe (yarıçap).")]
     [SerializeField] private float yenilemeMesafesi = 1f;
 
-    [Tooltip("Ka� saniyede bir k�lah eklensin? (0.1 = saniyede 10 k�lah)")]
+    [Tooltip("Kaç saniyede bir külah eklensin? (0.1 = saniyede 10 külah)")]
     [SerializeField] private float refillInterval = 0.1f;
 
-    [Tooltip("Oyuncu Transform'u. Bo�sa Awake'te Player tag'inden bulunur.")]
+    [Tooltip("Oyuncu Transform'u. Boşsa Awake'te Player tag'inden bulunur.")]
     [SerializeField] private Transform oyuncuTransform;
 
-    [Tooltip("Yenileme alan�n�n merkezi. Bo�sa bu GameObject'in Transform'u kullan�l�r.")]
+    [Tooltip("Yenileme alanının merkezi. Boşsa bu GameObject'in Transform'u kullanılır.")]
     [SerializeField] private Transform yenilemeNoktasi;
 
-    [Header("UI Ayarlar�")]
+    [Header("UI Ayarları")]
     public TMP_Text kulahText;
 
     private bool oyuncuAlanaGirdi = false;
@@ -54,17 +54,60 @@ public class KulahYenileme : MonoBehaviour
     {
         if (yenilemeNoktasi == null || oyuncuTransform == null) return;
 
-        float mesafe = Vector3.Distance(oyuncuTransform.position, yenilemeNoktasi.position);
+        // Bazen Y (yükseklik) farkından dolayı mesafe uzak çıkabiliyor, bu yüzden Y eksenini sıfırlıyoruz.
+        Vector3 playerPos = oyuncuTransform.position;
+        Vector3 targetPos = yenilemeNoktasi.position;
+        playerPos.y = 0f;
+        targetPos.y = 0f;
 
+        float mesafe = Vector3.Distance(playerPos, targetPos);
+
+        // Ya mesafeden ya da trigger'dan tetiklenmesi için kontrol
         if (mesafe <= yenilemeMesafesi)
         {
-            if (!oyuncuAlanaGirdi)
-            {
-                oyuncuAlanaGirdi = true;
-                StartRefill();
-            }
+            AlanaGir();
         }
         else
+        {
+            // Eğer trigger'da değilse alandan çık
+            if (oyuncuAlanaGirdi && !triggerIcerisinde)
+            {
+                AlanaCik();
+            }
+        }
+    }
+
+    private bool triggerIcerisinde = false;
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            triggerIcerisinde = true;
+            AlanaGir();
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            triggerIcerisinde = false;
+        }
+    }
+
+    private void AlanaGir()
+    {
+        if (!oyuncuAlanaGirdi)
+        {
+            oyuncuAlanaGirdi = true;
+            StartRefill();
+        }
+    }
+
+    private void AlanaCik()
+    {
+        if (oyuncuAlanaGirdi)
         {
             oyuncuAlanaGirdi = false;
             StopRefill();
@@ -88,11 +131,19 @@ public class KulahYenileme : MonoBehaviour
 
     private IEnumerator RefillRoutine()
     {
-        while (mevcutKulahSayisi < maxKulahSayisi && oyuncuAlanaGirdi)
+        while (oyuncuAlanaGirdi)
         {
-            mevcutKulahSayisi++;
-            UpdateUI();
-            yield return new WaitForSeconds(refillInterval);
+            if (mevcutKulahSayisi < maxKulahSayisi)
+            {
+                mevcutKulahSayisi++;
+                UpdateUI();
+                yield return new WaitForSeconds(refillInterval);
+            }
+            else
+            {
+                // Külahlar maksimumdaysa çıkma, sadece bekle (kullanıldığında tekrar dolsun diye)
+                yield return null;
+            }
         }
         refillCoroutine = null;
     }
@@ -109,7 +160,7 @@ public class KulahYenileme : MonoBehaviour
     private void UpdateUI()
     {
         if (kulahText != null)
-            kulahText.text = $"K�lah: {mevcutKulahSayisi} / {maxKulahSayisi}";
+            kulahText.text = $"Külah: {mevcutKulahSayisi} / {maxKulahSayisi}";
     }
 
     private void OnDrawGizmosSelected()

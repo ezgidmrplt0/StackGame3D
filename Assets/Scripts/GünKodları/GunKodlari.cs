@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
@@ -17,7 +17,11 @@ public class GunKodlari : MonoBehaviour
     [Header("Lighting")]
     [SerializeField] private Light sceneLight;
     [SerializeField] private float minLightIntensity = 0f;
-    [SerializeField] private float maxLightIntensity = 0.8f;
+    [SerializeField] private float maxLightIntensity = 0.5f;
+
+    [Header("Lighting Colors")]
+    [SerializeField] private Color dayColor = Color.white;
+    [SerializeField] private Color nightColor = new Color(0.15f, 0.15f, 0.25f); // Koyu lacivert/gri gece rengi
 
     private static float timeOfDay;
     private int dayCount = 1;
@@ -47,17 +51,24 @@ public class GunKodlari : MonoBehaviour
             timeOfDay = 0f;
             dayCount++;
             UpdateDayText();
-
-            // Gün değiştiğinde otomatik kaydet
-           // FindObjectOfType<SaveSystem>().SaveData();
         }
 
-        transform.rotation = Quaternion.Euler(new Vector3((timeOfDay * 360f) - 90f, 170f, 0));
+        // Güneş rotasyonunu sildik, ışık hep sabit bir açıda kalacak (böylece yansıma yapmayacak)
+        // transform.rotation = ...
 
         if (sceneLight != null)
         {
-            float sunHeight = Mathf.Sin(timeOfDay * Mathf.PI);
-            sceneLight.intensity = Mathf.Lerp(minLightIntensity, maxLightIntensity, sunHeight);
+            // Saat 06:00 (0.25) ile 18:00 (0.75) arasını gündüz olarak hesapla
+            float dayRatio = Mathf.Clamp01(Mathf.Sin((timeOfDay - 0.25f) * Mathf.PI * 2f));
+
+            // Işığın rengini gündüzden geceye doğru yavaşça değiştir
+            sceneLight.color = Color.Lerp(nightColor, dayColor, dayRatio);
+            
+            // Işığın şiddetini de yavaşça azaltıp artır
+            sceneLight.intensity = Mathf.Lerp(minLightIntensity, maxLightIntensity, dayRatio);
+            
+            // Işık objesi hep açık, çünkü artık rotasyonu sabit ve rengi geceye uygun
+            sceneLight.enabled = true;
         }
 
         int currentMinute = Mathf.FloorToInt((timeOfDay * 24f * 60f) % 60f);

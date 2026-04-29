@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
@@ -49,9 +49,9 @@ public class StackCollector : MonoBehaviour
     public TextMeshPro uretimStoguText;
     private int uzerimdeHamCay = 0;
     public int uretimStogu = 0;
-    private int toplamaTriggerSayaci = 0;
+    // private int toplamaTriggerSayaci = 0;
     private bool birakmaAlaninda = false;
-    private Coroutine toplamaLoop;
+    // private Coroutine toplamaLoop;
     private Coroutine birakmaLoop;
 
     [Header("Ham Yaprak Stack")]
@@ -134,6 +134,8 @@ public class StackCollector : MonoBehaviour
     void Start()
     {
         UpdateKasiyerUI();
+        if (depocuFiyatText != null) depocuFiyatText.text = $"{depocuCost}$";
+        if (urunTasiyiciFiyatText != null) urunTasiyiciFiyatText.text = $"{urunTasiyiciCost}$";
     }
 
     void Update()
@@ -479,6 +481,7 @@ public class StackCollector : MonoBehaviour
         }
     }
 
+    /*
     IEnumerator ToplamaLoop()
     {
         var wait = new WaitForSeconds(toplamaAraligi);
@@ -499,6 +502,7 @@ public class StackCollector : MonoBehaviour
 
         toplamaLoop = null;
     }
+    */
 
     IEnumerator BirakmaLoop()
     {
@@ -548,6 +552,12 @@ public class StackCollector : MonoBehaviour
 
     public void KasiyerAktifEt()
     {
+        if (kasiyerPrefab == null || kasiyerSpawnPoint == null)
+        {
+            Debug.LogWarning("Kasiyer Prefab veya Kasiyer Spawn Point Inspector'da atanmamış!");
+            return;
+        }
+
         if (MoneyManager.Instance.money < kasiyerCost)
         {
             Debug.Log("Yetersiz para! Gerekli: " + kasiyerCost);
@@ -558,25 +568,22 @@ public class StackCollector : MonoBehaviour
         kasiyerCost = Mathf.CeilToInt(kasiyerCost * (1 + costIncreaseRate));
         UpdateKasiyerUI();
 
-        if (kasiyerPrefab != null && kasiyerSpawnPoint != null)
+        GameObject yeniKasiyer = Instantiate(kasiyerPrefab, kasiyerSpawnPoint.position, kasiyerSpawnPoint.rotation);
+        KasiyerHareket kasiyerScript = yeniKasiyer.GetComponent<KasiyerHareket>();
+
+        if (kasiyerScript != null)
         {
-            GameObject yeniKasiyer = Instantiate(kasiyerPrefab, kasiyerSpawnPoint.position, kasiyerSpawnPoint.rotation);
-            KasiyerHareket kasiyerScript = yeniKasiyer.GetComponent<KasiyerHareket>();
-
-            if (kasiyerScript != null)
+            if (kasiyerSalesPoint != null)
+                kasiyerScript.satisNoktasi = kasiyerSalesPoint;
+            else
             {
-                if (kasiyerSalesPoint != null)
-                    kasiyerScript.satisNoktasi = kasiyerSalesPoint;
-                else
-                {
-                    GameObject hedefObj = GameObject.FindGameObjectWithTag("SatisNoktasi");
-                    if (hedefObj != null)
-                        kasiyerScript.satisNoktasi = hedefObj.transform;
-                }
-
-                activeKasiyers.Add(kasiyerScript);
-                StartCoroutine(KasiyerSuresiBitinceYokEt(yeniKasiyer, kasiyerScript));
+                GameObject hedefObj = GameObject.FindGameObjectWithTag("SatisNoktasi");
+                if (hedefObj != null)
+                    kasiyerScript.satisNoktasi = hedefObj.transform;
             }
+
+            activeKasiyers.Add(kasiyerScript);
+            StartCoroutine(KasiyerSuresiBitinceYokEt(yeniKasiyer, kasiyerScript));
         }
     }
 
@@ -711,6 +718,12 @@ public class StackCollector : MonoBehaviour
 
     public void DepocuAktifEt()
     {
+        if (depocuPrefab == null || depocuSpawnPoint == null)
+        {
+            Debug.LogWarning("Depocu Prefab veya Depocu Spawn Point Inspector'da atanmamış!");
+            return;
+        }
+
         if (MoneyManager.Instance.money < depocuCost)
         {
             Debug.Log("Yetersiz para! Gerekli: " + depocuCost);
@@ -721,24 +734,21 @@ public class StackCollector : MonoBehaviour
         depocuCost = Mathf.CeilToInt(depocuCost * (1 + depocuCostIncreaseRate));
 
         if (depocuFiyatText != null)
-            depocuFiyatText.text = $"Depocu Al ({depocuCost}$)";
+            depocuFiyatText.text = $"{depocuCost}$";
 
-        if (depocuPrefab != null && depocuSpawnPoint != null)
+        Quaternion spawnRotation = depocuSpawnPoint.rotation * Quaternion.Euler(0, 90, 0);
+        GameObject yeniDepocu = Instantiate(depocuPrefab, depocuSpawnPoint.position, spawnRotation);
+
+        DepocuCalisan depocuScript = yeniDepocu.GetComponent<DepocuCalisan>();
+        if (depocuScript != null)
         {
-            Quaternion spawnRotation = depocuSpawnPoint.rotation * Quaternion.Euler(0, 90, 0);
-            GameObject yeniDepocu = Instantiate(depocuPrefab, depocuSpawnPoint.position, spawnRotation);
+            depocuScript.toplamaNoktasi = cayToplamaNoktasi;
+            depocuScript.birakmaNoktasi = cayBirakmaNoktasi;
+            depocuScript.hamCayPrefab = hamCayPrefab;
+            depocuScript.stackRoot = yeniDepocu.transform;
 
-            DepocuCalisan depocuScript = yeniDepocu.GetComponent<DepocuCalisan>();
-            if (depocuScript != null)
-            {
-                depocuScript.toplamaNoktasi = cayToplamaNoktasi;
-                depocuScript.birakmaNoktasi = cayBirakmaNoktasi;
-                depocuScript.hamCayPrefab = hamCayPrefab;
-                depocuScript.stackRoot = yeniDepocu.transform;
-
-                activeDepocular.Add(depocuScript);
-                StartCoroutine(DepocuSuresiBitinceYokEt(depocuScript));
-            }
+            activeDepocular.Add(depocuScript);
+            StartCoroutine(DepocuSuresiBitinceYokEt(depocuScript));
         }
     }
 
@@ -769,6 +779,12 @@ public class StackCollector : MonoBehaviour
 
     public void UrunTasiyiciAktifEt()
     {
+        if (urunTasiyiciPrefab == null || urunTasiyiciSpawnPoint == null)
+        {
+            Debug.LogWarning("Urun Tasiyici Prefab veya Urun Tasiyici Spawn Point Inspector'da atanmamış!");
+            return;
+        }
+
         if (MoneyManager.Instance.money < urunTasiyiciCost)
         {
             Debug.Log("Yetersiz para! Gerekli: " + urunTasiyiciCost);
@@ -779,34 +795,31 @@ public class StackCollector : MonoBehaviour
         urunTasiyiciCost = Mathf.CeilToInt(urunTasiyiciCost * (1 + urunTasiyiciCostIncreaseRate));
 
         if (urunTasiyiciFiyatText != null)
-            urunTasiyiciFiyatText.text = $"Taşıyıcı Al ({urunTasiyiciCost}$)";
+            urunTasiyiciFiyatText.text = $"{urunTasiyiciCost}$";
 
-        if (urunTasiyiciPrefab != null && urunTasiyiciSpawnPoint != null)
-        {
-            GameObject yeniTasiyici = Instantiate(urunTasiyiciPrefab, urunTasiyiciSpawnPoint.position, urunTasiyiciSpawnPoint.rotation);
-            UrunTasiyici script = yeniTasiyici.GetComponent<UrunTasiyici>();
+        GameObject yeniTasiyici = Instantiate(urunTasiyiciPrefab, urunTasiyiciSpawnPoint.position, urunTasiyiciSpawnPoint.rotation);
+        UrunTasiyici script = yeniTasiyici.GetComponent<UrunTasiyici>();
 
-            // --- ÇAY (mevcut) ---
-            script.stackAlmaNoktasi = urunTasiyiciAlmaNoktasi;
-            script.stackBirakmaNoktasi = urunTasiyiciBirakmaNoktasi;
-            script.stackAreaTarget = urunTasiyiciStackTarget;
-            script.stackCollector = this;
+        // --- ÇAY (mevcut) ---
+        script.stackAlmaNoktasi = urunTasiyiciAlmaNoktasi;
+        script.stackBirakmaNoktasi = urunTasiyiciBirakmaNoktasi;
+        script.stackAreaTarget = urunTasiyiciStackTarget;
+        script.stackCollector = this;
 
-            // --- KAHVE (YENİ) ---
-            script.coffeeCollector = coffeeStackCollector; // CoffeeStackCollector sahnede bulunuyor
-            if (urunTasiyiciKahveAlmaNoktasi != null)
-                script.kahveAlmaNoktasi = urunTasiyiciKahveAlmaNoktasi;
-            if (urunTasiyiciKahveBirakmaNoktasi != null)
-                script.kahveBirakmaNoktasi = urunTasiyiciKahveBirakmaNoktasi;
+        // --- KAHVE (YENİ) ---
+        script.coffeeCollector = coffeeStackCollector; // CoffeeStackCollector sahnede bulunuyor
+        if (urunTasiyiciKahveAlmaNoktasi != null)
+            script.kahveAlmaNoktasi = urunTasiyiciKahveAlmaNoktasi;
+        if (urunTasiyiciKahveBirakmaNoktasi != null)
+            script.kahveBirakmaNoktasi = urunTasiyiciKahveBirakmaNoktasi;
 
-            // Kahve drop hedefi: özel hedef atanmışsa onu kullan; yoksa CoffeeStackCollector'dan al
-            script.kahveDropAreaTarget = (urunTasiyiciKahveStackTarget != null)
-                ? urunTasiyiciKahveStackTarget
-                : (coffeeStackCollector != null ? coffeeStackCollector.dropAreaTarget : null);
+        // Kahve drop hedefi: özel hedef atanmışsa onu kullan; yoksa CoffeeStackCollector'dan al
+        script.kahveDropAreaTarget = (urunTasiyiciKahveStackTarget != null)
+            ? urunTasiyiciKahveStackTarget
+            : (coffeeStackCollector != null ? coffeeStackCollector.dropAreaTarget : null);
 
-            activeTasiyicilar.Add(script);
-            StartCoroutine(UrunTasiyiciSuresiBitinceYokEt(script));
-        }
+        activeTasiyicilar.Add(script);
+        StartCoroutine(UrunTasiyiciSuresiBitinceYokEt(script));
     }
 
 

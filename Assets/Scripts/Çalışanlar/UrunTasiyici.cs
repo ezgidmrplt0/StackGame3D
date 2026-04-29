@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
@@ -182,7 +182,9 @@ public class UrunTasiyici : MonoBehaviour
 
     bool KahveToplanabilir()
     {
-        return kahveAlmaNoktasi && coffeeCollector && kahvePrefab && kahveStackRoot
+        bool kahveSatisAcik = (stackCollector != null && stackCollector.kahveSatisAktif);
+
+        return kahveSatisAcik && kahveAlmaNoktasi && coffeeCollector && kahvePrefab && kahveStackRoot
                && coffeeCollector.kahveStogu >= gerekliHamKahveMiktari
                && stackKahve.Count < kahveStackLimit
                && ToplamAdet() < toplamKapasite;

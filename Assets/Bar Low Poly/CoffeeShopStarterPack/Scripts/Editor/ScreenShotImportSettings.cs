@@ -1,4 +1,4 @@
-﻿// ******------------------------------------------------------******
+// ******------------------------------------------------------******
 // ScreenShotImportSettings.cs
 //
 // Author:
@@ -28,7 +28,7 @@ public class ScreenShotImportSettings : AssetPostprocessor
         if (assetPath.IndexOf(folderNamesToLook) == -1)
             return;
 
-        Debug.Log("We use this AssetPostProcessign for screenshots folder and override some import settings for this folder, please delete this script if you don't want this automation tool");
+        // Debug.Log("We use this AssetPostProcessign for screenshots folder and override some import settings for this folder, please delete this script if you don't want this automation tool");
 
         TextureImporter textureImporter = (TextureImporter)assetImporter;
         textureImporter.textureType = TextureImporterType.Sprite;

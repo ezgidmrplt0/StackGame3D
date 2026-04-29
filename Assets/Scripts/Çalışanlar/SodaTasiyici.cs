@@ -36,9 +36,9 @@ public class SodaTasiyici : MonoBehaviour
     public int fiyat = 100;
     public float fiyatArtis = 0.2f;
 
-    private bool alaniAcildi = false;
+    private bool alaniAcildi = true; // Varsayılan olarak açık yapıldı çünkü SodaAlaniAc() hiçbir yerden çağrılmıyor
 
-    [Header("Hedef Noktalar (Inspector�dan ekle)")]
+    [Header("Hedef Noktalar (Inspectordan ekle)")]
     public Transform[] yolNoktalari;
 
     private List<Transform> stack = new List<Transform>();
@@ -72,7 +72,7 @@ public class SodaTasiyici : MonoBehaviour
         if (satinAlButton != null)
         {
             satinAlButton.onClick.AddListener(SatinAl);
-            satinAlButton.interactable = false;
+            satinAlButton.interactable = true; // Tıklanabilir olması için true yapıldı
         }
 
         if (fiyatText != null)

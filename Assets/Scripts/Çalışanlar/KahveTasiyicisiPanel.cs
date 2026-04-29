@@ -20,14 +20,14 @@ public class KahveTasiyicisiPanel : MonoBehaviour
 
     private int mevcutFiyat;
     private bool npcAktif = false;
-    private bool alaniAcildi = false;
+    private bool alaniAcildi = true; // Varsayılan olarak açık yapıldı çünkü KahveAlaniAc() hiçbir yerden çağrılmıyor
 
     void Start()
     {
         mevcutFiyat = baslangicFiyati;
         GuncelleFiyatYazisi();
         satinAlButton.onClick.AddListener(SatinAlNPC);
-        satinAlButton.interactable = false;
+        satinAlButton.interactable = true; // Tıklanabilir olması için true yapıldı
     }
 
     public void KahveAlaniAc()

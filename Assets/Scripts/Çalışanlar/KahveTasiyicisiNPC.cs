@@ -83,6 +83,23 @@ public class KahveTasiyicisiNPC : MonoBehaviour
     private IEnumerator WorkLoop()
     {
         isWorking = true;
+
+        // Kahve alanı henüz satın alınmamışsa, nesneler sahnede aktif olana kadar bekle
+        while (kahveAgaclari.Count == 0 || birakmaNoktasi == null)
+        {
+            if (kahveAgaclari.Count == 0)
+            {
+                GameObject[] agaclar = GameObject.FindGameObjectsWithTag(agacTag);
+                foreach (var agac in agaclar)
+                    kahveAgaclari.Add(agac.transform);
+            }
+            if (birakmaNoktasi == null)
+                birakmaNoktasi = FindNearestTaggedObject(birakmaNoktaTag);
+
+            if (kahveAgaclari.Count == 0 || birakmaNoktasi == null)
+                yield return new WaitForSeconds(0.5f);
+        }
+
         float endTime = Time.time + calismaSuresi;
 
         while (Time.time < endTime)

@@ -61,8 +61,14 @@ public class UrunTasiyici : MonoBehaviour
     private readonly List<Transform> stackCay = new List<Transform>();
     private readonly List<Transform> stackKahve = new List<Transform>();
 
+    [Header("Animasyon")]
+    public Transform modelTransform;
+
     private bool calisiyor = true;
     private bool isInDropArea = false;
+    private Tween _animTween;
+    private Vector3 _origScale;
+    private bool _isWalkingAnim;
 
     void Update()
     {
@@ -87,6 +93,8 @@ public class UrunTasiyici : MonoBehaviour
 
     void Start()
     {
+        _origScale = (modelTransform != null ? modelTransform : transform).localScale;
+
         if (stackCollector == null)
             stackCollector = FindObjectOfType<StackCollector>();
 
@@ -251,6 +259,7 @@ public class UrunTasiyici : MonoBehaviour
         newObj.transform.DOScale(localBoyut, tweenDuration).SetEase(tweenEase);
 
         stackCay.Add(newObj.transform);
+        SetCarryPose(true);
     }
 
     void AddKahve()
@@ -290,6 +299,7 @@ public class UrunTasiyici : MonoBehaviour
         newObj.transform.DOScale(localHedefScale, 0.4f).SetEase(ease);
 
         stackKahve.Add(newObj.transform);
+        SetCarryPose(true);
     }
 
     // ---------- BIRAKMA ----------
@@ -318,6 +328,8 @@ public class UrunTasiyici : MonoBehaviour
 
             yield return new WaitForSeconds(0.1f);
         }
+
+        if (stackCay.Count == 0 && stackKahve.Count == 0) SetCarryPose(false);
     }
 
     IEnumerator DropSequenceKahve()
@@ -345,11 +357,15 @@ public class UrunTasiyici : MonoBehaviour
 
             yield return new WaitForSeconds(0.1f);
         }
+
+        if (stackCay.Count == 0 && stackKahve.Count == 0) SetCarryPose(false);
     }
 
     // ---------- HAREKET ----------
     IEnumerator Git(Vector3 hedef)
     {
+        PlayWalkAnim();
+
         while (Vector3.Distance(transform.position, hedef) > 0.1f)
         {
             transform.position = Vector3.MoveTowards(transform.position, hedef, speed * Time.deltaTime);
@@ -360,7 +376,38 @@ public class UrunTasiyici : MonoBehaviour
 
             yield return null;
         }
+
+        StopWalkAnim();
     }
+
+    #region Animasyon
+    private Transform AnimT => modelTransform != null ? modelTransform : transform;
+
+    private void PlayWalkAnim()
+    {
+        if (_isWalkingAnim) return;
+        _isWalkingAnim = true;
+        _animTween?.Kill();
+        _animTween = AnimT.DOScaleY(_origScale.y * 1.06f, 0.18f)
+            .SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
+    }
+
+    private void StopWalkAnim()
+    {
+        if (!_isWalkingAnim) return;
+        _isWalkingAnim = false;
+        _animTween?.Kill();
+        AnimT.DOScaleY(_origScale.y, 0.12f);
+    }
+
+    private void SetCarryPose(bool carrying)
+    {
+        if (carrying)
+            AnimT.DOPunchScale(Vector3.one * 0.28f, 0.22f, 4, 0.5f);
+        else
+            AnimT.DOScale(_origScale, 0.2f);
+    }
+    #endregion
 
     public void CalismayiBitir()
     {

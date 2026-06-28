@@ -6,108 +6,122 @@ using UnityEngine.UI;
 
 public class KirlilikYonetici : MonoBehaviour
 {
-    public GameObject[] kirliAlanlar;
-    public float minKirlenmeSuresi = 15f;
-    public float maxKirlenmeSuresi = 45f;
+    [Header("Kir Prefab")]
+    public GameObject kirPrefab;
+
+    [Header("Zemin")]
+    [Tooltip("'Zemin' parent objesi — childlarının collider'ları spawn alanı olarak kullanılır.")]
+    public Transform zeminParent;
+    [Tooltip("Zeminin üzerinden ne kadar yüksekte spawn olsun.")]
+    public float yukseklikOfseti = 0.05f;
+
+    [Header("Spawn Ayarları")]
+    public float minKirlenmeSuresi = 5f;
+    public float maxKirlenmeSuresi = 12f;
+    public int maxKirSayisi = 8;
     public float olusmaAnimasyonSuresi = 1f;
 
-    // Temizlik Barı değişkenleri
+    [Header("UI")]
     public Slider kirlilikBar;
     public Image barRenkImage;
     public Color temizRenk = Color.green;
     public Color kirliRenk = Color.red;
 
-    private int aktifKirliAlanSayisi = 0;
+    public List<GameObject> aktifKirler = new List<GameObject>();
+
+    private Collider[] zeminParcalari;
 
     private void Start()
     {
-        foreach (GameObject kirliAlan in kirliAlanlar)
-        {
-            SetObjectAlpha(kirliAlan, 0f);
-            kirliAlan.SetActive(false);
-        }
+        if (zeminParent != null)
+            zeminParcalari = zeminParent.GetComponentsInChildren<Collider>();
 
         if (kirlilikBar != null)
         {
             kirlilikBar.value = 0f;
-            // Başlangıçta barın doluluk kısmını tamamen saydam yap
-            barRenkImage.color = new Color(temizRenk.r, temizRenk.g, temizRenk.b, 0f);
+            if (barRenkImage != null)
+                barRenkImage.color = new Color(temizRenk.r, temizRenk.g, temizRenk.b, 0f);
         }
 
-        StartCoroutine(KirlenmeDöngüsü());
+        StartCoroutine(KirlenmeDongusu());
     }
 
-    private IEnumerator KirlenmeDöngüsü()
+    private IEnumerator KirlenmeDongusu()
     {
         while (true)
         {
-            float beklemeSuresi = Random.Range(minKirlenmeSuresi, maxKirlenmeSuresi);
-            yield return new WaitForSeconds(beklemeSuresi);
+            yield return new WaitForSeconds(Random.Range(minKirlenmeSuresi, maxKirlenmeSuresi));
 
-            List<GameObject> pasifAlanlar = new List<GameObject>();
-            foreach (GameObject kirliAlan in kirliAlanlar)
+            if (kirPrefab == null || zeminParcalari == null || zeminParcalari.Length == 0) continue;
+            if (aktifKirler.Count >= maxKirSayisi) continue;
+
+            Vector3 spawnPos = RastgelePozisyon();
+            GameObject yeniKir = Instantiate(kirPrefab, spawnPos, Quaternion.identity);
+
+            Renderer rend = yeniKir.GetComponent<Renderer>();
+            if (rend != null)
             {
-                if (!kirliAlan.activeSelf)
-                {
-                    pasifAlanlar.Add(kirliAlan);
-                }
+                SetAlpha(rend, 0f);
+                rend.material.DOFade(1f, olusmaAnimasyonSuresi).SetEase(Ease.OutQuad);
             }
 
-            if (pasifAlanlar.Count > 0)
-            {
-                int rastgeleIndex = Random.Range(0, pasifAlanlar.Count);
-                GameObject yeniKirliAlan = pasifAlanlar[rastgeleIndex];
-
-                yeniKirliAlan.SetActive(true);
-                yeniKirliAlan.GetComponent<Renderer>().material.DOFade(1f, olusmaAnimasyonSuresi)
-                    .SetEase(Ease.OutQuad);
-
-                aktifKirliAlanSayisi++;
-                KirlilikBariniGuncelle();
-
-                Debug.Log("Yeni bir kirli alan belirdi! Aktif kirli alan sayısı: " + aktifKirliAlanSayisi);
-            }
+            aktifKirler.Add(yeniKir);
+            KirlilikBariniGuncelle();
         }
     }
 
-    public void KirliAlanTemizlendi()
+    private Vector3 RastgelePozisyon()
     {
-        aktifKirliAlanSayisi = Mathf.Max(0, aktifKirliAlanSayisi - 1);
+        Collider secilen = zeminParcalari[Random.Range(0, zeminParcalari.Length)];
+        Bounds b = secilen.bounds;
+
+        float x = Random.Range(b.min.x, b.max.x);
+        float z = Random.Range(b.min.z, b.max.z);
+        float y = b.max.y + yukseklikOfseti;
+
+        return new Vector3(x, y, z);
+    }
+
+    public void KirliAlanTemizlendi(GameObject kirliAlan)
+    {
+        aktifKirler.Remove(kirliAlan);
         KirlilikBariniGuncelle();
-        Debug.Log("Kirli alan temizlendi! Aktif kirli alan sayısı: " + aktifKirliAlanSayisi);
     }
 
     private void KirlilikBariniGuncelle()
     {
-        if (kirlilikBar != null)
+        if (kirlilikBar == null) return;
+
+        float oran = maxKirSayisi > 0 ? (float)aktifKirler.Count / maxKirSayisi : 0f;
+        kirlilikBar.DOValue(oran, 0.5f).SetEase(Ease.OutQuad);
+
+        if (barRenkImage != null)
         {
-            float kirlilikYuzdesi = (float)aktifKirliAlanSayisi / kirliAlanlar.Length;
-
-            // Slider'ın doluluk değerini güncelle
-            kirlilikBar.DOValue(kirlilikYuzdesi, 0.5f).SetEase(Ease.OutQuad);
-
-            // Eğer kirlilik yoksa saydam, varsa normal renge geçiş yap
-            Color hedefRenk;
-            if (aktifKirliAlanSayisi == 0)
-            {
-                hedefRenk = new Color(temizRenk.r, temizRenk.g, temizRenk.b, 0f);
-            }
-            else
-            {
-                hedefRenk = Color.Lerp(temizRenk, kirliRenk, kirlilikYuzdesi);
-            }
+            Color hedefRenk = aktifKirler.Count == 0
+                ? new Color(temizRenk.r, temizRenk.g, temizRenk.b, 0f)
+                : Color.Lerp(temizRenk, kirliRenk, oran);
             barRenkImage.DOColor(hedefRenk, 0.5f);
         }
     }
 
-    private void SetObjectAlpha(GameObject obj, float alpha)
+    private void SetAlpha(Renderer rend, float alpha)
     {
-        Renderer renderer = obj.GetComponent<Renderer>();
-        if (renderer != null && renderer.material != null)
+        Color c = rend.material.color;
+        c.a = alpha;
+        rend.material.color = c;
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (zeminParent == null) return;
+
+        Collider[] parcalar = zeminParent.GetComponentsInChildren<Collider>();
+        foreach (Collider col in parcalar)
         {
-            Color color = renderer.material.color;
-            color.a = alpha;
-            renderer.material.color = color;
+            Gizmos.color = new Color(1f, 0.5f, 0f, 0.2f);
+            Gizmos.DrawCube(col.bounds.center, col.bounds.size);
+            Gizmos.color = new Color(1f, 0.5f, 0f, 0.8f);
+            Gizmos.DrawWireCube(col.bounds.center, col.bounds.size);
         }
     }
 }

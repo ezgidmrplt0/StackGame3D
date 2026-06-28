@@ -267,6 +267,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f14c2306ff22a54da799952eeda569b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  modelTransform: {fileID: 1278261863749520526}
   speed: 20
   stackLimit: 7
   toplamaAraligi: 0.3

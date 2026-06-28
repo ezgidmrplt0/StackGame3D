@@ -169,6 +169,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20c28bbeb8a93fc47b25c2e665a66994, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  modelTransform: {fileID: 1278261863749520526}
   satisNoktasi: {fileID: 0}
   hareketHizi: 10
   sellCooldown: 0.5

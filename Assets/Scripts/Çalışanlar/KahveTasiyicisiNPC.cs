@@ -29,9 +29,14 @@ public class KahveTasiyicisiNPC : MonoBehaviour
     public int shakeVibrato = 10;
     public float shakeRandomness = 90f;
 
+    [Header("Animasyon")]
+    public Transform modelTransform;
+
     private readonly List<Transform> stack = new List<Transform>();
     private Tween hareketTween;
     private bool isWorking;
+    private Tween _animTween;
+    private Vector3 _origScale;
 
     private Transform birakmaNoktasi;
     private List<Transform> kahveAgaclari = new List<Transform>();
@@ -40,6 +45,7 @@ public class KahveTasiyicisiNPC : MonoBehaviour
 
     void Awake()
     {
+        _origScale = (modelTransform != null ? modelTransform : transform).localScale;
         spawnPoint = transform.position;
 
         birakmaNoktasi = FindNearestTaggedObject(birakmaNoktaTag);
@@ -146,9 +152,13 @@ public class KahveTasiyicisiNPC : MonoBehaviour
         float mesafe = Vector3.Distance(transform.position, hedef);
         float sure = Mathf.Max(0.05f, mesafe / Mathf.Max(0.1f, hareketHizi));
 
+        PlayWalkAnim();
+
         hareketTween?.Kill();
         hareketTween = transform.DOMove(hedef, sure).SetEase(Ease.Linear);
         yield return hareketTween.WaitForCompletion();
+
+        StopWalkAnim();
     }
 
     private IEnumerator CollectOneTree(GameObject agac)
@@ -186,6 +196,7 @@ public class KahveTasiyicisiNPC : MonoBehaviour
         cube.transform.localScale = Vector3.zero;
         cube.transform.DOScale(kahveTargetScale, 0.15f).SetEase(tweenEase);
         stack.Add(cube.transform);
+        SetCarryPose(true);
     }
 
     private IEnumerator DropSequence()
@@ -215,7 +226,31 @@ public class KahveTasiyicisiNPC : MonoBehaviour
 
         if (CoffeeStackCollector.Instance != null)
             CoffeeStackCollector.Instance.SendMessage("GuncelleUI", SendMessageOptions.DontRequireReceiver);
+
+        SetCarryPose(false);
     }
+
+    #region Animasyon
+    private Transform AnimT => modelTransform != null ? modelTransform : transform;
+
+    private void PlayWalkAnim()
+    {
+        _animTween?.Kill();
+        _animTween = AnimT.DOScaleY(_origScale.y * 1.06f, 0.18f)
+            .SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
+    }
+
+    private void StopWalkAnim()
+    {
+        _animTween?.Kill();
+        AnimT.DOScaleY(_origScale.y, 0.12f);
+    }
+
+    private void SetCarryPose(bool carrying)
+    {
+        AnimT.DOScaleX(carrying ? _origScale.x * 0.88f : _origScale.x, 0.3f);
+    }
+    #endregion
 
     private void OnDrawGizmosSelected()
     {

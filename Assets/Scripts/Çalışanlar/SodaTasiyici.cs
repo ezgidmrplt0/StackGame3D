@@ -41,10 +41,17 @@ public class SodaTasiyici : MonoBehaviour
     [Header("Hedef Noktalar (Inspectordan ekle)")]
     public Transform[] yolNoktalari;
 
+    [Header("Animasyon")]
+    public Transform modelTransform;
+
     private List<Transform> stack = new List<Transform>();
     private bool aktif = false;
     private bool dropAlaniTemas = false;
     private Coroutine dropCoroutine = null;
+    private Tween _animTween;
+    private Vector3 _origScale;
+    private bool _isWalkingAnim;
+    private bool _isCarryingAnim;
 
     private enum SodaState
     {
@@ -66,6 +73,8 @@ public class SodaTasiyici : MonoBehaviour
 
     void Start()
     {
+        _origScale = (modelTransform != null ? modelTransform : transform).localScale;
+
         if (stackRoot == null)
             stackRoot = transform;
 
@@ -92,6 +101,20 @@ public class SodaTasiyici : MonoBehaviour
     private void Update()
     {
         UpdateStackPositions();
+
+        {
+            Transform at = modelTransform != null ? modelTransform : transform;
+            bool moving = aktif && (currentState == SodaState.GoingToCollect
+                                 || currentState == SodaState.GoingThroughPath
+                                 || currentState == SodaState.GoingToDrop);
+            bool carrying = stack.Count > 0;
+
+            if (moving && !_isWalkingAnim) { _isWalkingAnim = true; _animTween?.Kill(); _animTween = at.DOScaleY(_origScale.y * 1.06f, 0.18f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine); }
+            else if (!moving && _isWalkingAnim) { _isWalkingAnim = false; _animTween?.Kill(); at.DOScaleY(_origScale.y, 0.12f); }
+
+            if (carrying && !_isCarryingAnim) { _isCarryingAnim = true; at.DOScaleX(_origScale.x * 0.88f, 0.3f); }
+            else if (!carrying && _isCarryingAnim) { _isCarryingAnim = false; at.DOScaleX(_origScale.x, 0.3f); }
+        }
 
         if (!aktif) return;
 

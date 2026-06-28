@@ -296,6 +296,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31fa437d7f4583045ad00556a605f417, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  modelTransform: {fileID: 1278261863749520526}
   calismaSuresi: 20
   hareketHizi: 20
   bekleme: 0.1

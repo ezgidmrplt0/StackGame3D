@@ -179,6 +179,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e34a554fff22d50419b3c1f2da795fae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  modelTransform: {fileID: 1278261863749520526}
   speed: 15
   kapasite: 10
   toplamaAraligi: 0.2

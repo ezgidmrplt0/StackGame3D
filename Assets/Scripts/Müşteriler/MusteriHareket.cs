@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class MusteriHareket : MonoBehaviour
 {
@@ -52,8 +53,13 @@ public class MusteriHareket : MonoBehaviour
     private Transform spawnPoint;
     private Transform musteriFinal;
 
-    private Animator animator;
+    [Header("Animasyon")]
+    public Transform modelTransform;
+
     private Collider musteriCollider;
+    private Tween _animTween;
+    private Vector3 _origScale;
+    private bool _isWalkingAnim;
 
     private static bool satisAlaniDolu = false;
     private static bool dondurmaAlaniDolu = false;
@@ -80,6 +86,7 @@ public class MusteriHareket : MonoBehaviour
     private float angryTimer = 0f;
     public float maxWaitTime = 10f;
     private bool isAngry = false;
+    private bool isShowingAngryAnim = false;
 
     void Start()
     {
@@ -112,7 +119,7 @@ public class MusteriHareket : MonoBehaviour
         spawnPoint = GameObject.FindGameObjectWithTag("BeklemeNoktasi")?.transform;
         musteriFinal = GameObject.FindGameObjectWithTag("MusteriFinal")?.transform;
 
-        animator = GetComponent<Animator>();
+        _origScale = (modelTransform != null ? modelTransform : transform).localScale;
         musteriCollider = GetComponent<Collider>();
         if (musteriCollider != null) musteriCollider.enabled = true;
 
@@ -138,6 +145,7 @@ public class MusteriHareket : MonoBehaviour
     void Update()
     {
         if (isLeaving) return;
+        if (isShowingAngryAnim) return;
 
         // Sinir zamanlayıcısı
         if (IsAtCounter() && !isAngry && alinanUrunSayisi < istenenUrunSayisi)
@@ -177,7 +185,7 @@ public class MusteriHareket : MonoBehaviour
         {
             if (KulahYenileme.Instance != null && KulahYenileme.Instance.mevcutKulahSayisi <= 0)
             {
-                if (animator != null) animator.SetBool("isWalking", false);
+                StopWalkAnim();
                 return;
             }
 
@@ -230,7 +238,7 @@ public class MusteriHareket : MonoBehaviour
                 else
                 {
                     // Tezgahta ürün beklerken dur
-                    if (animator != null) animator.SetBool("isWalking", false);
+                    StopWalkAnim();
                     return;
                 }
             }
@@ -320,28 +328,33 @@ public class MusteriHareket : MonoBehaviour
         if (isAngry) return;
 
         isAngry = true;
+        isShowingAngryAnim = true;
+        PlayAngryAnim();
         UpdateUI();
 
-        // Kuyruktan hemen çıkar
         if (!kuyruktanCikarildi)
         {
             MusteriSpawner.MusteriAyrildi(this);
             kuyruktanCikarildi = true;
         }
 
-        // Slotu anında serbest bırak (OnTriggerExit beklemeden)
         FreeServiceSlot();
+        StartCoroutine(AngryDeparture());
+    }
 
-        // Ayrılma rotasını tetikle
+    private IEnumerator AngryDeparture()
+    {
+        yield return new WaitForSeconds(1.2f);
+
+        isShowingAngryAnim = false;
         hasBeenServed = true;
         isAtCounter = false;
 
         if (musteriTipi == MusteriTipi.Dondurma)
         {
-            // Silme Noktası -> Final
             hasReachedIceCreamPoint1 = true;
             hasReachedIceCreamCounter = false;
-            hasReachedIceCreamDeletionPoint = false; // önce silme noktasına gidecek
+            hasReachedIceCreamDeletionPoint = false;
         }
     }
 
@@ -369,11 +382,11 @@ public class MusteriHareket : MonoBehaviour
             if (direction != Vector3.zero)
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), 10f * Time.deltaTime);
 
-            if (animator != null) animator.SetBool("isWalking", true);
+            PlayWalkAnim();
         }
         else
         {
-            if (animator != null) animator.SetBool("isWalking", false);
+            StopWalkAnim();
 
             // Dondurma Silme Noktası varış işareti
             if (musteriTipi == MusteriTipi.Dondurma && !hasReachedIceCreamDeletionPoint && (hasBeenServed || isAngry))
@@ -455,8 +468,13 @@ public class MusteriHareket : MonoBehaviour
 
         if (alinanUrunSayisi >= istenenUrunSayisi)
         {
+            PlayHappyAnim();
             waitingAfterProduct = true;
             waitTimer = 0f;
+        }
+        else
+        {
+            PlayReceiveAnim();
         }
     }
     #endregion
@@ -497,8 +515,49 @@ public class MusteriHareket : MonoBehaviour
         }
     }
 
+    #region Animasyon
+    private Transform AnimT => modelTransform != null ? modelTransform : transform;
+
+    private void PlayWalkAnim()
+    {
+        if (_isWalkingAnim) return;
+        _isWalkingAnim = true;
+        _animTween?.Kill();
+        _animTween = AnimT.DOScaleY(_origScale.y * 1.06f, 0.18f)
+            .SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
+    }
+
+    private void StopWalkAnim()
+    {
+        if (!_isWalkingAnim) return;
+        _isWalkingAnim = false;
+        _animTween?.Kill();
+        AnimT.DOScaleY(_origScale.y, 0.12f);
+    }
+
+    private void PlayReceiveAnim()
+    {
+        AnimT.DOPunchScale(Vector3.one * 0.22f, 0.22f, 4, 0.4f);
+    }
+
+    private void PlayAngryAnim()
+    {
+        _animTween?.Kill();
+        _isWalkingAnim = false;
+        _animTween = AnimT.DOShakeScale(0.9f, 0.32f, 15).SetLoops(-1);
+    }
+
+    private void PlayHappyAnim()
+    {
+        _animTween?.Kill();
+        _isWalkingAnim = false;
+        AnimT.DOPunchScale(Vector3.one * 0.55f, 0.45f, 7, 0.4f);
+    }
+    #endregion
+
     private void OnDestroy()
     {
+        _animTween?.Kill();
         // Kuyruktan güvenle çıkar (idempotent)
         MusteriSpawner.MusteriAyrildi(this);
 

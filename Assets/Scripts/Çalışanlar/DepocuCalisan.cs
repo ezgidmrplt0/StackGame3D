@@ -22,8 +22,15 @@ public class DepocuCalisan : MonoBehaviour
     [HideInInspector] public Transform toplamaNoktasi;
     [HideInInspector] public Transform birakmaNoktasi;
 
+    [Header("Animasyon")]
+    public Transform modelTransform;
+    private Tween _animTween;
+    private Vector3 _origScale;
+    private bool _isWalkingAnim;
+
     void Start()
     {
+        _origScale = (modelTransform != null ? modelTransform : transform).localScale;
         StartCoroutine(CalismaRutini());
     }
 
@@ -31,10 +38,10 @@ public class DepocuCalisan : MonoBehaviour
     {
         while (calisiyor)
         {
-            // 1. Toplama noktasýna git
+            // 1. Toplama noktasï¿½na git
             yield return StartCoroutine(GitVeTopla());
 
-            // 2. Býrakma noktasýna git
+            // 2. Bï¿½rakma noktasï¿½na git
             yield return StartCoroutine(GitVeBirak());
         }
     }
@@ -62,7 +69,7 @@ public class DepocuCalisan : MonoBehaviour
         // Git
         yield return StartCoroutine(Git(birakmaNoktasi.position));
 
-        // Býrak
+        // Bï¿½rak
         while (uzerindekiCay > 0)
         {
             uzerindekiCay--;
@@ -74,20 +81,37 @@ public class DepocuCalisan : MonoBehaviour
 
     IEnumerator Git(Vector3 hedef)
     {
-        // Hedefe dön (sadece Y ekseninde)
+        if (!_isWalkingAnim)
+        {
+            _isWalkingAnim = true;
+            Transform at = modelTransform != null ? modelTransform : transform;
+            _animTween?.Kill();
+            _animTween = at.DOScaleY(_origScale.y * 1.06f, 0.18f)
+                .SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
+        }
+
+        // Hedefe dï¿½n (sadece Y ekseninde)
         Vector3 direction = (hedef - transform.position).normalized;
         if (direction != Vector3.zero)
         {
             Quaternion lookRotation = Quaternion.LookRotation(direction, Vector3.up);
-            lookRotation = Quaternion.Euler(0, lookRotation.eulerAngles.y, 0); // sadece Y ekseninde dönsün
+            lookRotation = Quaternion.Euler(0, lookRotation.eulerAngles.y, 0); // sadece Y ekseninde dï¿½nsï¿½n
             transform.rotation = lookRotation;
         }
 
-        // Hedefe doðru yürü
+        // Hedefe doï¿½ru yï¿½rï¿½
         while (Vector3.Distance(transform.position, hedef) > 0.1f)
         {
             transform.position = Vector3.MoveTowards(transform.position, hedef, speed * Time.deltaTime);
             yield return null;
+        }
+
+        if (_isWalkingAnim)
+        {
+            _isWalkingAnim = false;
+            Transform at = modelTransform != null ? modelTransform : transform;
+            _animTween?.Kill();
+            at.DOScaleY(_origScale.y, 0.12f);
         }
     }
 
@@ -97,7 +121,7 @@ public class DepocuCalisan : MonoBehaviour
         Vector3 offset = Vector3.up * stackSpacing * stack.Count;
         GameObject newLeaf = Instantiate(hamCayPrefab, stackRoot.position + offset, Quaternion.identity, stackRoot);
 
-        // Collider'larý kapat
+        // Collider'larï¿½ kapat
         Collider[] colliders = newLeaf.GetComponentsInChildren<Collider>();
         foreach (var col in colliders)
         {
@@ -107,6 +131,7 @@ public class DepocuCalisan : MonoBehaviour
         newLeaf.transform.localScale = Vector3.zero;
         newLeaf.transform.DOScale(Vector3.one * 0.3f, 0.3f).SetEase(Ease.OutBack);
         stack.Add(newLeaf.transform);
+        (modelTransform != null ? modelTransform : transform).DOPunchScale(Vector3.one * 0.25f, 0.2f, 4, 0.5f);
     }
 
 
@@ -117,6 +142,8 @@ public class DepocuCalisan : MonoBehaviour
         stack.RemoveAt(stack.Count - 1);
         lastLeaf.DOScale(Vector3.zero, 0.2f).SetEase(Ease.InBack)
             .OnComplete(() => Destroy(lastLeaf.gameObject));
+        if (stack.Count == 0)
+            (modelTransform != null ? modelTransform : transform).DOScale(_origScale, 0.2f);
     }
 
     public void CalismayiBitir()
@@ -124,7 +151,7 @@ public class DepocuCalisan : MonoBehaviour
         calisiyor = false;
         StopAllCoroutines();
 
-        // Eðer üzerinde çay varsa, önce onlarý býrak sonra yok ol
+        // Eï¿½er ï¿½zerinde ï¿½ay varsa, ï¿½nce onlarï¿½ bï¿½rak sonra yok ol
         if (uzerindekiCay > 0)
         {
             StartCoroutine(CaylariBirakVeYokOl());
@@ -137,12 +164,12 @@ public class DepocuCalisan : MonoBehaviour
 
     IEnumerator CaylariBirakVeYokOl()
     {
-        // Býrakma noktasýna git
+        // Bï¿½rakma noktasï¿½na git
         if (birakmaNoktasi != null)
         {
             yield return StartCoroutine(Git(birakmaNoktasi.position));
 
-            // Tüm çaylarý býrak
+            // Tï¿½m ï¿½aylarï¿½ bï¿½rak
             while (uzerindekiCay > 0)
             {
                 uzerindekiCay--;
@@ -152,7 +179,7 @@ public class DepocuCalisan : MonoBehaviour
             }
         }
 
-        // Tüm çaylar býrakýldýktan sonra yok ol
+        // Tï¿½m ï¿½aylar bï¿½rakï¿½ldï¿½ktan sonra yok ol
         Destroy(gameObject);
     }
 }

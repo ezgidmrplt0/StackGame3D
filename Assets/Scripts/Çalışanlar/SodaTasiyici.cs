@@ -73,10 +73,48 @@ public class SodaTasiyici : MonoBehaviour
 
     void Start()
     {
+        OyuncuVeKamera player = FindObjectOfType<OyuncuVeKamera>();
+        Vector3 targetRootScale = player != null ? player.transform.localScale : Vector3.one;
+        this.speed = player != null ? player.moveSpeed : 15f;
+
         _origScale = (modelTransform != null ? modelTransform : transform).localScale;
+        if (_origScale == Vector3.zero)
+        {
+            _origScale = Vector3.one;
+        }
 
         if (stackRoot == null)
             stackRoot = transform;
+
+        // Panel versiyonunda SodaNoktasi olmayabilir; NPC aktif olunca lazy lookup yapılır
+        almaNoktasi = GameObject.FindGameObjectWithTag("SodaNoktasi")?.transform;
+
+        if (dropTargetTransform == null && SodaStack.Instance != null)
+        {
+            dropTargetTransform = SodaStack.Instance.sodaDropTarget;
+        }
+
+        if (aktif)
+        {
+            // Spawn animation and ensure visibility
+            transform.localScale = Vector3.zero;
+            transform.DOScale(targetRootScale, 0.5f).SetEase(Ease.OutBack);
+
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.isKinematic = true;
+                rb.useGravity = false;
+            }
+            return;
+        }
+
+        if (spawnPozisyon == null)
+        {
+            Debug.LogWarning($"SodaTasiyici on {gameObject.name} has no spawnPozisyon set. Disabling to prevent duplicate/null errors.");
+            enabled = false;
+            return;
+        }
 
         if (satinAlButton != null)
         {
@@ -86,9 +124,6 @@ public class SodaTasiyici : MonoBehaviour
 
         if (fiyatText != null)
             fiyatText.text = fiyat.ToString();
-
-        // Panel versiyonunda SodaNoktasi olmayabilir; NPC aktif olunca lazy lookup yapılır
-        almaNoktasi = GameObject.FindGameObjectWithTag("SodaNoktasi")?.transform;
     }
 
     public void SodaAlaniAc()
@@ -131,9 +166,15 @@ public class SodaTasiyici : MonoBehaviour
                 if (almaNoktasi == null)
                     almaNoktasi = GameObject.FindGameObjectWithTag("SodaNoktasi")?.transform;
                 if (almaNoktasi == null) break;
-                MoveTowards(almaNoktasi.position);
+
+                float distToCollect = Vector3.Distance(transform.position, almaNoktasi.position);
+                if (distToCollect > 1.8f)
+                {
+                    MoveTowards(almaNoktasi.position);
+                }
                 RotateTowards(almaNoktasi.position);
-                if (Vector3.Distance(transform.position, almaNoktasi.position) < 0.05f)
+
+                if (distToCollect < 1.8f)
                 {
                     currentState = SodaState.Collecting;
                     nextCollectTime = Time.time;
@@ -167,7 +208,7 @@ public class SodaTasiyici : MonoBehaviour
                     MoveTowards(currentPath[pathIndex].position);
                     RotateTowards(currentPath[pathIndex].position);
 
-                    if (Vector3.Distance(transform.position, currentPath[pathIndex].position) < 0.05f)
+                    if (Vector3.Distance(transform.position, currentPath[pathIndex].position) < 1.0f)
                         pathIndex++;
                 }
                 else
@@ -187,10 +228,14 @@ public class SodaTasiyici : MonoBehaviour
                 Transform dropArea = GameObject.FindGameObjectWithTag("StackSilmeNoktasi0")?.transform;
                 if (dropArea != null)
                 {
-                    MoveTowards(dropArea.position);
+                    float distToDrop = Vector3.Distance(transform.position, dropArea.position);
+                    if (distToDrop > 1.8f)
+                    {
+                        MoveTowards(dropArea.position);
+                    }
                     RotateTowards(dropArea.position);
 
-                    if (Vector3.Distance(transform.position, dropArea.position) < 0.05f || dropAlaniTemas)
+                    if (distToDrop < 1.8f || dropAlaniTemas)
                     {
                         if (dropCoroutine == null)
                         {
@@ -242,20 +287,26 @@ public class SodaTasiyici : MonoBehaviour
             {
                 SodaStack.Instance.sodaDropList.Add(soda);
                 int dropIndex = SodaStack.Instance.sodaDropList.Count - 1;
-                Vector3 targetPos = dropTargetTransform.position + Vector3.up * (SodaStack.Instance.cubeHeight * dropIndex);
-                soda.DOJump(targetPos, stackSpacing * jumpHeightMultiplier, 1, 0.4f)
+                float dropSpacingVal = SodaStack.Instance.GetPlayerSodaWorldSpacing();
+                Vector3 targetPos = dropTargetTransform.position + Vector3.up * (dropSpacingVal * (dropIndex + 0.5f));
+                soda.DOJump(targetPos, dropSpacingVal * jumpHeightMultiplier, 1, 0.4f)
                     .SetEase(Ease.OutQuad)
                     .SetLink(soda.gameObject)
                     .OnComplete(() => { if (soda != null) soda.rotation = Quaternion.identity; });
             }
             else
             {
-                Vector3 targetPos = dropTargetTransform.position + Vector3.up * (stackSpacing * stack.Count);
-                soda.DOJump(targetPos, stackSpacing * jumpHeightMultiplier, 1, 0.4f)
+                float dropSpacingVal = stackSpacing;
+                if (stackRoot != null)
+                {
+                    dropSpacingVal *= stackRoot.lossyScale.y;
+                }
+                Vector3 targetPos = dropTargetTransform.position + Vector3.up * (dropSpacingVal * (stack.Count + 0.5f));
+                soda.DOJump(targetPos, dropSpacingVal * jumpHeightMultiplier, 1, 0.4f)
                     .SetEase(Ease.OutQuad)
                     .SetLink(soda.gameObject)
                     .OnComplete(() => { if (soda != null) soda.rotation = Quaternion.identity; });
-                Debug.LogWarning("SodaStack.Instance bulunamad�! Do�rudan hedefe b�rak�l�yor.");
+                Debug.LogWarning("SodaStack.Instance bulunamadı! Doğrudan hedefe bırakılıyor.");
             }
 
             yield return new WaitForSeconds(toplamaAraligi);
@@ -279,12 +330,33 @@ public class SodaTasiyici : MonoBehaviour
 
     private void UpdateStackPositions()
     {
+        Vector3 targetWorldScale = Vector3.one;
+        float currentSpacing = 0.25f;
+
+        if (SodaStack.Instance != null)
+        {
+            targetWorldScale = SodaStack.Instance.GetPlayerSodaWorldScale();
+            currentSpacing = SodaStack.Instance.GetPlayerSodaWorldSpacing();
+        }
+
+        Vector3 localScale = targetWorldScale;
+        if (stackRoot != null)
+        {
+            Vector3 lossy = stackRoot.lossyScale;
+            localScale = new Vector3(
+                lossy.x > 0 ? targetWorldScale.x / lossy.x : targetWorldScale.x,
+                lossy.y > 0 ? targetWorldScale.y / lossy.y : targetWorldScale.y,
+                lossy.z > 0 ? targetWorldScale.z / lossy.z : targetWorldScale.z
+            );
+        }
+
         for (int i = 0; i < stack.Count; i++)
         {
             Transform soda = stack[i];
-            Vector3 targetPos = stackRoot.position + Vector3.up * stackSpacing * i;
+            Vector3 targetPos = stackRoot.position + Vector3.up * currentSpacing * i;
             soda.position = Vector3.Lerp(soda.position, targetPos, Time.deltaTime * 10f);
             soda.rotation = Quaternion.identity;
+            soda.localScale = localScale;
         }
     }
 
@@ -321,21 +393,36 @@ public class SodaTasiyici : MonoBehaviour
         }
 
         GameObject obj = Instantiate(sodaTasiyiciPrefab, spawnPozisyon.position, Quaternion.identity);
-        obj.SetActive(true);
-        obj.tag = sodaciTag;
+        OyuncuVeKamera playerObj = FindObjectOfType<OyuncuVeKamera>();
+        Vector3 targetRootScale = playerObj != null ? playerObj.transform.localScale : Vector3.one;
+        obj.transform.localScale = targetRootScale;
 
         SodaTasiyici yeniTasiyici = obj.GetComponent<SodaTasiyici>();
         if (yeniTasiyici != null)
         {
             yeniTasiyici.aktif = true;
-            yeniTasiyici.sodaScale = this.sodaScale;
-            yeniTasiyici.stackSpacing = this.stackSpacing;
+            yeniTasiyici.speed = playerObj != null ? playerObj.moveSpeed : 15f;
+            
+            if (SodaStack.Instance != null)
+            {
+                yeniTasiyici.sodaScale = SodaStack.Instance.sodaTargetScale;
+                yeniTasiyici.stackSpacing = SodaStack.Instance.cubeHeight;
+            }
+            else
+            {
+                yeniTasiyici.sodaScale = new Vector3(0.0025f, 0.0025f, 0.0025f);
+                yeniTasiyici.stackSpacing = 0.005f;
+            }
+
             yeniTasiyici.jumpHeightMultiplier = this.jumpHeightMultiplier;
             yeniTasiyici.dropTargetTransform = this.dropTargetTransform;
             yeniTasiyici.yolNoktalari = this.yolNoktalari;
             yeniTasiyici.calismaBitisZamani = Time.time + calismaSuresi;
             yeniTasiyici.currentState = SodaState.GoingToCollect;
         }
+
+        obj.tag = sodaciTag;
+        obj.SetActive(true);
 
         aktif = true;
         if (satinAlButton != null) satinAlButton.interactable = false;
@@ -367,10 +454,36 @@ public class SodaTasiyici : MonoBehaviour
         foreach (var col in newSoda.GetComponentsInChildren<Collider>(true))
             col.enabled = false;
 
-        newSoda.transform.localPosition = Vector3.up * stackSpacing * stack.Count;
+        float currentSpacingVal = 0.25f;
+        if (SodaStack.Instance != null)
+        {
+            currentSpacingVal = SodaStack.Instance.GetPlayerSodaWorldSpacing();
+        }
+        float localSpacing = currentSpacingVal;
+        if (stackRoot != null && stackRoot.lossyScale.y > 0)
+        {
+            localSpacing = currentSpacingVal / stackRoot.lossyScale.y;
+        }
+
+        newSoda.transform.localPosition = Vector3.up * localSpacing * stack.Count;
         newSoda.transform.localRotation = Quaternion.identity;
         newSoda.transform.localScale = Vector3.zero;
-        newSoda.transform.DOScale(sodaScale, 0.3f).SetEase(Ease.OutCubic);
+        
+        Vector3 targetLocalScale = Vector3.one;
+        if (SodaStack.Instance != null)
+        {
+            Vector3 targetWorldScale = SodaStack.Instance.GetPlayerSodaWorldScale();
+            if (stackRoot != null)
+            {
+                Vector3 lossy = stackRoot.lossyScale;
+                targetLocalScale = new Vector3(
+                    lossy.x > 0 ? targetWorldScale.x / lossy.x : targetWorldScale.x,
+                    lossy.y > 0 ? targetWorldScale.y / lossy.y : targetWorldScale.y,
+                    lossy.z > 0 ? targetWorldScale.z / lossy.z : targetWorldScale.z
+                );
+            }
+        }
+        newSoda.transform.DOScale(targetLocalScale, 0.3f).SetEase(Ease.OutCubic);
 
         stack.Add(newSoda.transform);
         Debug.Log($"Soda eklendi. Toplam: {stack.Count}");
@@ -427,7 +540,7 @@ public class SodaTasiyici : MonoBehaviour
             Mathf.Max(0.0025f, sodaScale.y),
             Mathf.Max(0.0025f, sodaScale.z)
         );
-        stackSpacing = Mathf.Max(0.01f, stackSpacing);
+        stackSpacing = Mathf.Max(0.001f, stackSpacing);
         jumpHeightMultiplier = Mathf.Max(0.01f, jumpHeightMultiplier);
     }
 }

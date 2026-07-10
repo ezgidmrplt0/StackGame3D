@@ -18,7 +18,7 @@ public class UrunTasiyici : MonoBehaviour
     [Header("ÇAY Referanslar (MEVCUT)")]
     public GameObject urunPrefab;                 // ÇAY prefab
     public Transform stackRoot;                   // ÇAY stack root
-    public float stackSpacing = 0.05f;             // ÇAY item'lar arası ekstra boşluk (boyut.y üzerine eklenir)
+    public float stackSpacing = 0.6f;              // ÇAY item'lar arası ekstra boşluk (boyut.y üzerine eklenir)
     public Transform stackAreaTarget;             // ÇAY drop hedefi
 
     [Header("ÇAY Çalışma Noktaları")]
@@ -73,6 +73,7 @@ public class UrunTasiyici : MonoBehaviour
     void Update()
     {
         UpdateKahveStackPositions();
+        UpdateCayStackPositions();
     }
 
     void UpdateKahveStackPositions()
@@ -87,12 +88,30 @@ public class UrunTasiyici : MonoBehaviour
         {
             if (stackKahve[i] == null) continue;
             stackKahve[i].position = kahveStackRoot.position + Vector3.up * (stackHeight * i + yOffset);
-            stackKahve[i].rotation = Quaternion.identity;
+            stackKahve[i].rotation = transform.rotation;
+        }
+    }
+
+    void UpdateCayStackPositions()
+    {
+        if (stackRoot == null) return;
+
+        float perItem = urunBoyutu.y + stackSpacing;
+        float yOffset = urunBoyutu.y * 0.5f;
+
+        for (int i = 0; i < stackCay.Count; i++)
+        {
+            if (stackCay[i] == null) continue;
+            stackCay[i].position = stackRoot.position + Vector3.up * (perItem * i + yOffset);
+            stackCay[i].rotation = transform.rotation;
         }
     }
 
     void Start()
     {
+        // Force a larger spacing to override inspector values and keep teas separated on the back
+        stackSpacing = 0.6f;
+
         _origScale = (modelTransform != null ? modelTransform : transform).localScale;
 
         if (stackCollector == null)
@@ -241,7 +260,7 @@ public class UrunTasiyici : MonoBehaviour
         float yOffset = urunBoyutu.y * 0.5f;
         float perItem = urunBoyutu.y + stackSpacing;
         Vector3 spawnPos = stackRoot.position + Vector3.up * (perItem * index + yOffset);
-        GameObject newObj = Instantiate(urunPrefab, spawnPos, Quaternion.identity, stackRoot);
+        GameObject newObj = Instantiate(urunPrefab, spawnPos, Quaternion.identity, this.transform);
 
         if (newObj.TryGetComponent<Rigidbody>(out var rb))
         { rb.isKinematic = true; rb.useGravity = false; rb.drag = 10f; }
@@ -249,7 +268,7 @@ public class UrunTasiyici : MonoBehaviour
         if (newObj.TryGetComponent<Collider>(out var col) && col is BoxCollider box)
             box.size = urunBoyutu * 0.9f;
 
-        Vector3 parentScale = stackRoot.lossyScale;
+        Vector3 parentScale = transform.lossyScale;
         Vector3 localBoyut = new Vector3(
             urunBoyutu.x / parentScale.x,
             urunBoyutu.y / parentScale.y,
@@ -274,7 +293,7 @@ public class UrunTasiyici : MonoBehaviour
         int index = stackKahve.Count;
         float yOffset = targetScale.y * 0.5f;
         Vector3 spawnPos = kahveStackRoot.position + Vector3.up * (stackHeight * index + yOffset);
-        GameObject newObj = Instantiate(kahvePrefab, spawnPos, Quaternion.identity, kahveStackRoot);
+        GameObject newObj = Instantiate(kahvePrefab, spawnPos, Quaternion.identity, this.transform);
 
         foreach (var rb in newObj.GetComponentsInChildren<Rigidbody>(true))
         { rb.isKinematic = true; rb.useGravity = false; }
@@ -289,7 +308,7 @@ public class UrunTasiyici : MonoBehaviour
             targetScale.y * playerParent.y,
             targetScale.z * playerParent.z
         );
-        Vector3 npcParent = kahveStackRoot.lossyScale;
+        Vector3 npcParent = transform.lossyScale;
         Vector3 localHedefScale = new Vector3(
             hedefWorldScale.x / npcParent.x,
             hedefWorldScale.y / npcParent.y,

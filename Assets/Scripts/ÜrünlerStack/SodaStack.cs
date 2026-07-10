@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
@@ -13,6 +13,7 @@ public class SodaStack : MonoBehaviour
     public Ease tweenEase = Ease.OutCubic;
     public int maxStack = 10;
     public float spawnDelay = 0.4f;
+    public float stackSpacingMultiplier = 1.6f;
 
     [Header("Büyütülebilir Ölçek")]
     public Vector3 sodaTargetScale = new Vector3(0.0025f, 0.0025f, 0.0025f);
@@ -41,19 +42,99 @@ public class SodaStack : MonoBehaviour
             Destroy(gameObject);
     }
 
+    void Start()
+    {
+        if (sodaTargetScale == Vector3.zero)
+        {
+            sodaTargetScale = new Vector3(0.0025f, 0.0025f, 0.0025f);
+        }
+
+        // Auto-calculate stack spacing from mesh bounds
+        if (sodaPrefab != null)
+        {
+            Renderer r = sodaPrefab.GetComponentInChildren<Renderer>();
+            if (r != null)
+            {
+                float meshHeight = r.bounds.size.y;
+                if (meshHeight > 0.01f)
+                {
+                    cubeHeight = meshHeight * sodaTargetScale.y;
+                    dropSpacing = cubeHeight;
+                }
+            }
+        }
+
+        // Ensure stack spacing is not too small (nested sodas)
+        if (cubeHeight < 0.05f)
+        {
+            cubeHeight = 0.25f;
+            dropSpacing = 0.25f;
+        }
+    }
+
     void Update()
     {
         UpdateStackPositions();
+        UpdateDropListPositions();
+    }
+
+    public Vector3 GetPlayerSodaWorldScale()
+    {
+        if (stackRoot != null)
+        {
+            return Vector3.Scale(sodaTargetScale, stackRoot.lossyScale);
+        }
+        return sodaTargetScale;
+    }
+
+    public float GetPlayerSodaWorldSpacing()
+    {
+        if (stackRoot != null)
+        {
+            return cubeHeight * stackRoot.lossyScale.y * stackSpacingMultiplier;
+        }
+        return cubeHeight * stackSpacingMultiplier;
     }
 
     private void UpdateStackPositions()
     {
+        float currentSpacing = GetPlayerSodaWorldSpacing();
         for (int i = 0; i < sodaStack.Count; i++)
         {
             Transform soda = sodaStack[i];
-            Vector3 targetPos = stackRoot.position + Vector3.up * cubeHeight * i;
+            Vector3 targetPos = stackRoot.position + Vector3.up * currentSpacing * i;
             soda.position = Vector3.Lerp(soda.position, targetPos, Time.deltaTime * 10f);
             soda.rotation = Quaternion.identity;
+            soda.localScale = sodaTargetScale;
+        }
+    }
+
+    private void UpdateDropListPositions()
+    {
+        for (int i = sodaDropList.Count - 1; i >= 0; i--)
+        {
+            if (sodaDropList[i] == null)
+            {
+                sodaDropList.RemoveAt(i);
+            }
+        }
+
+        Vector3 targetScale = GetPlayerSodaWorldScale();
+        float currentSpacing = GetPlayerSodaWorldSpacing();
+
+        for (int i = 0; i < sodaDropList.Count; i++)
+        {
+            Transform soda = sodaDropList[i];
+            if (soda != null)
+            {
+                if (!DOTween.IsTweening(soda))
+                {
+                    Vector3 targetPos = sodaDropTarget.position + Vector3.up * (currentSpacing * (i + 0.5f));
+                    soda.position = Vector3.Lerp(soda.position, targetPos, Time.deltaTime * 10f);
+                    soda.rotation = Quaternion.identity;
+                }
+                soda.localScale = targetScale;
+            }
         }
     }
 
@@ -107,7 +188,7 @@ public class SodaStack : MonoBehaviour
 
     public void AddSoda()
     {
-        Vector3 spawnPos = stackRoot.position + Vector3.up * (cubeHeight * sodaStack.Count);
+        Vector3 spawnPos = stackRoot.position + Vector3.up * (GetPlayerSodaWorldSpacing() * sodaStack.Count);
         GameObject newSoda = Instantiate(sodaPrefab, spawnPos, Quaternion.identity);
 
         foreach (var rb in newSoda.GetComponentsInChildren<Rigidbody>(true))
@@ -142,9 +223,10 @@ public class SodaStack : MonoBehaviour
                 soda.gameObject.AddComponent<SodaProduct>();
 
             int dropIndex = sodaDropList.Count - 1;
-            Vector3 targetPos = sodaDropTarget.position + Vector3.up * (cubeHeight * dropIndex);
+            float currentSpacing = GetPlayerSodaWorldSpacing();
+            Vector3 targetPos = sodaDropTarget.position + Vector3.up * (currentSpacing * (dropIndex + 0.5f));
 
-            soda.DOJump(targetPos, 0.002f, 1, 0.4f)
+            soda.DOJump(targetPos, currentSpacing * 0.5f, 1, 0.4f)
                 .SetEase(Ease.OutQuad)
                 .OnComplete(() =>
                 {

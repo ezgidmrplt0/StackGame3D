@@ -4,25 +4,57 @@ using System.Collections.Generic;
 
 public class TemizlemeSistemi : MonoBehaviour
 {
-    public float temizlemeSuresi = 1.5f;
-    public float algilaMesafesi = 1.2f;
+    public float temizlemeSuresi = 2.0f;
+    public float algilaMesafesi = 3.5f;
 
     private Dictionary<GameObject, float> temizlemeProgress = new Dictionary<GameObject, float>();
     private HashSet<GameObject> temizlenenAlanlar = new HashSet<GameObject>();
+    private HashSet<GameObject> triggerTemasindakiKirler = new HashSet<GameObject>();
 
     private KirlilikYonetici kirlilikYonetici;
     private Transform oyuncuTransform;
 
     private void Start()
     {
-        kirlilikYonetici = FindObjectOfType<KirlilikYonetici>();
-        OyuncuVeKamera oyuncu = GetComponentInParent<OyuncuVeKamera>();
-        oyuncuTransform = oyuncu != null ? oyuncu.transform : transform;
+        temizlemeSuresi = 2.0f;
+        algilaMesafesi = 3.5f;
+        EnsureReferences();
+    }
+
+    private void EnsureReferences()
+    {
+        if (kirlilikYonetici == null)
+        {
+            kirlilikYonetici = FindObjectOfType<KirlilikYonetici>();
+        }
+        if (oyuncuTransform == null)
+        {
+            OyuncuVeKamera oyuncu = GetComponentInParent<OyuncuVeKamera>();
+            oyuncuTransform = oyuncu != null ? oyuncu.transform : transform;
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        EnsureReferences();
+        if (kirlilikYonetici != null && kirlilikYonetici.aktifKirler.Contains(other.gameObject))
+        {
+            triggerTemasindakiKirler.Add(other.gameObject);
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        triggerTemasindakiKirler.Remove(other.gameObject);
     }
 
     private void Update()
     {
+        EnsureReferences();
         if (kirlilikYonetici == null || kirlilikYonetici.aktifKirler.Count == 0) return;
+
+        // Clean up destroyed references from our trigger set
+        triggerTemasindakiKirler.RemoveWhere(item => item == null);
 
         // Aktif kirleri kopyala (döngü içinde liste değişebilir)
         List<GameObject> mevcutKirler = new List<GameObject>(kirlilikYonetici.aktifKirler);
@@ -32,9 +64,28 @@ public class TemizlemeSistemi : MonoBehaviour
             if (kir == null) continue;
             if (temizlenenAlanlar.Contains(kir)) continue;
 
-            Vector3 fark = oyuncuTransform.position - kir.transform.position;
-            float mesafe = new Vector2(fark.x, fark.z).magnitude;
-            if (mesafe > algilaMesafesi) continue;
+            // Check if player is near this dirt either via trigger contact OR distance check
+            bool temasVar = triggerTemasindakiKirler.Contains(kir);
+            if (!temasVar)
+            {
+                Vector3 fark = oyuncuTransform.position - kir.transform.position;
+                float mesafe = new Vector2(fark.x, fark.z).magnitude;
+                if (mesafe <= algilaMesafesi)
+                {
+                    temasVar = true;
+                }
+            }
+
+            if (!temasVar)
+            {
+                // If player walked away, we reset the progress for this dirt
+                if (temizlemeProgress.ContainsKey(kir))
+                {
+                    temizlemeProgress.Remove(kir);
+                    SetObjectAlpha(kir, 1f);
+                }
+                continue;
+            }
 
             if (!temizlemeProgress.ContainsKey(kir))
                 temizlemeProgress[kir] = 0f;
@@ -48,6 +99,7 @@ public class TemizlemeSistemi : MonoBehaviour
             {
                 temizlenenAlanlar.Add(kir);
                 temizlemeProgress.Remove(kir);
+                triggerTemasindakiKirler.Remove(kir);
 
                 kirlilikYonetici.KirliAlanTemizlendi(kir);
 

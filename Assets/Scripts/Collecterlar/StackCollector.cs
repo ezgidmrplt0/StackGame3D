@@ -120,6 +120,120 @@ public class StackCollector : MonoBehaviour
     public float urunTasiyiciDuration = 20f;
     public TextMeshProUGUI urunTasiyiciFiyatText;
 
+    private struct StackSlot
+    {
+        public Vector3 localPosition;
+        public Quaternion localRotation;
+        public Transform parent;
+    }
+
+    private List<StackSlot> stackSlots = new List<StackSlot>();
+    private List<string> activeProductTypes = new List<string>();
+    private bool slotsInitialized = false;
+
+    void InitializeStackSlots()
+    {
+        if (slotsInitialized) return;
+
+        if (coffeeStackCollector == null)
+            coffeeStackCollector = CoffeeStackCollector.Instance;
+        if (SodaStack.Instance == null)
+            return; // Wait until SodaStack is ready
+
+        List<Transform> roots = new List<Transform>();
+        if (stackRoot != null) roots.Add(stackRoot);
+        if (coffeeStackCollector != null && coffeeStackCollector.stackRoot != null) roots.Add(coffeeStackCollector.stackRoot);
+        if (SodaStack.Instance != null && SodaStack.Instance.stackRoot != null) roots.Add(SodaStack.Instance.stackRoot);
+
+        if (roots.Count == 0) return;
+
+        // Sort by local X coordinate to keep them in Left-to-Right order
+        roots.Sort((a, b) => a.localPosition.x.CompareTo(b.localPosition.x));
+
+        stackSlots.Clear();
+        foreach (var r in roots)
+        {
+            stackSlots.Add(new StackSlot
+            {
+                localPosition = r.localPosition,
+                localRotation = r.localRotation,
+                parent = r.parent
+            });
+        }
+
+        slotsInitialized = true;
+    }
+
+    void UpdateActiveProduct(string type, bool isActive)
+    {
+        if (isActive)
+        {
+            if (!activeProductTypes.Contains(type))
+            {
+                activeProductTypes.Add(type);
+            }
+        }
+        else
+        {
+            if (activeProductTypes.Contains(type))
+            {
+                activeProductTypes.Remove(type);
+            }
+        }
+    }
+
+    void UpdateDynamicSlots()
+    {
+        if (!slotsInitialized) return;
+
+        bool isTeaActive = (stack.Count > 0);
+        bool isCoffeeActive = (coffeeStackCollector != null && coffeeStackCollector.stack.Count > 0);
+        bool isSodaActive = (SodaStack.Instance != null && SodaStack.Instance.sodaStack.Count > 0);
+
+        UpdateActiveProduct("Tea", isTeaActive);
+        UpdateActiveProduct("Coffee", isCoffeeActive);
+        UpdateActiveProduct("Soda", isSodaActive);
+
+        List<string> allProducts = new List<string> { "Tea", "Coffee", "Soda" };
+        Dictionary<string, int> productToSlot = new Dictionary<string, int>();
+
+        for (int i = 0; i < activeProductTypes.Count; i++)
+        {
+            productToSlot[activeProductTypes[i]] = i;
+        }
+
+        int slotIndex = activeProductTypes.Count;
+        foreach (var p in allProducts)
+        {
+            if (!productToSlot.ContainsKey(p))
+            {
+                productToSlot[p] = slotIndex;
+                slotIndex++;
+            }
+        }
+
+        ApplySlotToRoot("Tea", stackRoot, productToSlot);
+        if (coffeeStackCollector != null)
+            ApplySlotToRoot("Coffee", coffeeStackCollector.stackRoot, productToSlot);
+        if (SodaStack.Instance != null)
+            ApplySlotToRoot("Soda", SodaStack.Instance.stackRoot, productToSlot);
+    }
+
+    void ApplySlotToRoot(string type, Transform root, Dictionary<string, int> productToSlot)
+    {
+        if (root == null) return;
+        if (productToSlot.TryGetValue(type, out int slotIdx))
+        {
+            if (slotIdx >= 0 && slotIdx < stackSlots.Count)
+            {
+                var slot = stackSlots[slotIdx];
+                root.SetParent(slot.parent);
+                root.localPosition = Vector3.Lerp(root.localPosition, slot.localPosition, Time.deltaTime * 10f);
+                root.localRotation = Quaternion.Slerp(root.localRotation, slot.localRotation, Time.deltaTime * 10f);
+            }
+        }
+    }
+
     void Awake()
     {
         if (Instance == null)
@@ -140,8 +254,12 @@ public class StackCollector : MonoBehaviour
 
     void Update()
     {
+        InitializeStackSlots();
+        UpdateDynamicSlots();
+
         UpdateStackPositions();
         UpdateHamCayStackPositions();
+        UpdateDropListPositions();
 
         if (isInSalesArea && Time.time - lastSellTime > sellCooldown)
         {
@@ -389,6 +507,28 @@ public class StackCollector : MonoBehaviour
             Vector3 targetPos = hamCayStackRoot.position + Vector3.up * hamCaySpacing * i;
             leaf.position = Vector3.Lerp(leaf.position, targetPos, Time.deltaTime * 10f);
             leaf.rotation = Quaternion.Lerp(leaf.rotation, hamCayStackRoot.rotation, Time.deltaTime * 10f);
+        }
+    }
+
+    private void UpdateDropListPositions()
+    {
+        for (int i = dropList.Count - 1; i >= 0; i--)
+        {
+            if (dropList[i] == null)
+            {
+                dropList.RemoveAt(i);
+            }
+        }
+
+        for (int i = 0; i < dropList.Count; i++)
+        {
+            Transform item = dropList[i];
+            if (item != null && !DOTween.IsTweening(item))
+            {
+                Vector3 targetPos = stackAreaTarget.position + Vector3.up * (i * 2f);
+                item.position = Vector3.Lerp(item.position, targetPos, Time.deltaTime * 10f);
+                item.rotation = Quaternion.identity;
+            }
         }
     }
 

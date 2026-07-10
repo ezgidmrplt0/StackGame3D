@@ -18,7 +18,7 @@ public class TemizlikciPanelVeNPC : MonoBehaviour
 
     [Header("Temizlik Ayarlari")]
     public float hareketHizi = 13f;
-    public float temizlemeSuresi = 10f;
+    public float temizlemeSuresi = 2f;
 
     private KirlilikYonetici kirlilikYonetici;
     private bool satinAlindi = false;
@@ -26,6 +26,14 @@ public class TemizlikciPanelVeNPC : MonoBehaviour
 
     private void Start()
     {
+        // Disable duplicate or unconfigured spawner components in the scene or on clones
+        if (spawnPozisyon == null)
+        {
+            Debug.LogWarning($"TemizlikciPanelVeNPC on {gameObject.name} has no spawnPozisyon set. Disabling to prevent errors.");
+            enabled = false;
+            return;
+        }
+
         kirlilikYonetici = FindObjectOfType<KirlilikYonetici>();
 
         if (fiyatText != null)
@@ -67,11 +75,11 @@ public class TemizlikciPanelVeNPC : MonoBehaviour
 public class TemizlikciNPC : MonoBehaviour
 {
     [HideInInspector] public float hareketHizi = 13f;
-    [HideInInspector] public float temizlemeSuresi = 10f;
+    [HideInInspector] public float temizlemeSuresi = 2f;
     [HideInInspector] public KirlilikYonetici kirlilikYonetici;
 
     public bool sadeceYEkseni = true;
-    public float donusSuresi = 0.15f;
+    public float donusHizi = 10f;
 
     private void Start()
     {
@@ -95,19 +103,53 @@ public class TemizlikciNPC : MonoBehaviour
                 continue;
             }
 
-            yield return Dondur(hedefAlan.transform.position);
+            Vector3 targetPos = hedefAlan.transform.position;
 
-            float mesafe = Vector3.Distance(transform.position, hedefAlan.transform.position);
-            float sure = mesafe / Mathf.Max(0.01f, hareketHizi);
-            yield return transform.DOMove(hedefAlan.transform.position, sure)
-                                  .SetEase(Ease.Linear)
-                                  .WaitForCompletion();
+            // Move and Rotate towards targetPos without depending on DOTween's WaitForCompletion which could block
+            while (Vector3.Distance(transform.position, targetPos) > 0.5f)
+            {
+                if (hedefAlan == null) break;
+                targetPos = hedefAlan.transform.position;
+
+                // Rotation
+                Vector3 direction = targetPos - transform.position;
+                if (sadeceYEkseni) direction.y = 0;
+                if (direction.sqrMagnitude > 0.001f)
+                {
+                    Quaternion targetRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * donusHizi);
+                }
+
+                // Movement
+                transform.position = Vector3.MoveTowards(transform.position, targetPos, hareketHizi * Time.deltaTime);
+                yield return null;
+            }
 
             if (hedefAlan == null) continue;
 
+            // Clean the dirt over time (fading it)
             Renderer rend = hedefAlan.GetComponent<Renderer>();
-            if (rend != null)
-                yield return rend.material.DOFade(0f, temizlemeSuresi).SetEase(Ease.Linear).WaitForCompletion();
+            float elapsed = 0f;
+            Color startColor = Color.white;
+            if (rend != null && rend.material != null)
+            {
+                startColor = rend.material.color;
+            }
+
+            while (elapsed < temizlemeSuresi)
+            {
+                if (hedefAlan == null) break;
+                elapsed += Time.deltaTime;
+                float progress = elapsed / temizlemeSuresi;
+
+                if (rend != null && rend.material != null)
+                {
+                    Color c = startColor;
+                    c.a = Mathf.Lerp(startColor.a, 0f, progress);
+                    rend.material.color = c;
+                }
+                yield return null;
+            }
 
             if (hedefAlan != null)
             {
@@ -115,17 +157,5 @@ public class TemizlikciNPC : MonoBehaviour
                 Destroy(hedefAlan);
             }
         }
-    }
-
-    private IEnumerator Dondur(Vector3 hedefPozisyon)
-    {
-        Vector3 ileri = hedefPozisyon - transform.position;
-        if (sadeceYEkseni) ileri.y = 0f;
-        if (ileri.sqrMagnitude < 0.0001f) yield break;
-
-        Quaternion hedefRot = Quaternion.LookRotation(ileri.normalized, Vector3.up);
-        yield return transform.DORotateQuaternion(hedefRot, Mathf.Max(0f, donusSuresi))
-                              .SetEase(Ease.OutSine)
-                              .WaitForCompletion();
     }
 }

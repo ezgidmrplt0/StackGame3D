@@ -34,10 +34,20 @@ public class KulahYenileme : MonoBehaviour
         if (Instance == null) Instance = this;
         else { Destroy(gameObject); return; }
 
+        if (yenilemeMesafesi < 3.5f)
+        {
+            yenilemeMesafesi = 3.5f;
+        }
+
         if (oyuncuTransform == null)
         {
-            GameObject p = GameObject.FindGameObjectWithTag("Player");
+            OyuncuVeKamera p = FindObjectOfType<OyuncuVeKamera>();
             if (p != null) oyuncuTransform = p.transform;
+            else
+            {
+                GameObject pObj = GameObject.FindGameObjectWithTag("Player");
+                if (pObj != null) oyuncuTransform = pObj.transform;
+            }
         }
 
         if (yenilemeNoktasi == null) yenilemeNoktasi = transform;
@@ -52,28 +62,36 @@ public class KulahYenileme : MonoBehaviour
 
     private void Update()
     {
-        if (yenilemeNoktasi == null || oyuncuTransform == null) return;
+        if (yenilemeNoktasi == null) return;
 
-        // Bazen Y (yükseklik) farkından dolayı mesafe uzak çıkabiliyor, bu yüzden Y eksenini sıfırlıyoruz.
-        Vector3 playerPos = oyuncuTransform.position;
-        Vector3 targetPos = yenilemeNoktasi.position;
-        playerPos.y = 0f;
-        targetPos.y = 0f;
+        if (oyuncuTransform == null)
+        {
+            OyuncuVeKamera p = FindObjectOfType<OyuncuVeKamera>();
+            if (p != null) oyuncuTransform = p.transform;
+        }
 
-        float mesafe = Vector3.Distance(playerPos, targetPos);
+        bool isClose = false;
+        if (oyuncuTransform != null)
+        {
+            Vector3 playerPos = oyuncuTransform.position;
+            Vector3 targetPos = yenilemeNoktasi.position;
+            playerPos.y = 0f;
+            targetPos.y = 0f;
 
-        // Ya mesafeden ya da trigger'dan tetiklenmesi için kontrol
-        if (mesafe <= yenilemeMesafesi)
+            float mesafe = Vector3.Distance(playerPos, targetPos);
+            if (mesafe <= yenilemeMesafesi)
+            {
+                isClose = true;
+            }
+        }
+
+        if (isClose || triggerIcerisinde)
         {
             AlanaGir();
         }
         else
         {
-            // Eğer trigger'da değilse alandan çık
-            if (oyuncuAlanaGirdi && !triggerIcerisinde)
-            {
-                AlanaCik();
-            }
+            AlanaCik();
         }
     }
 
@@ -81,16 +99,15 @@ public class KulahYenileme : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") || other.GetComponent<OyuncuVeKamera>() != null || other.GetComponentInParent<OyuncuVeKamera>() != null)
         {
             triggerIcerisinde = true;
-            AlanaGir();
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") || other.GetComponent<OyuncuVeKamera>() != null || other.GetComponentInParent<OyuncuVeKamera>() != null)
         {
             triggerIcerisinde = false;
         }
@@ -101,6 +118,7 @@ public class KulahYenileme : MonoBehaviour
         if (!oyuncuAlanaGirdi)
         {
             oyuncuAlanaGirdi = true;
+            Debug.Log("Külah Yenileme Alanına Girildi! Külahlar doluyor...");
             StartRefill();
         }
     }
@@ -110,6 +128,7 @@ public class KulahYenileme : MonoBehaviour
         if (oyuncuAlanaGirdi)
         {
             oyuncuAlanaGirdi = false;
+            Debug.Log("Külah Yenileme Alanından Çıkıldı!");
             StopRefill();
         }
     }
@@ -136,6 +155,7 @@ public class KulahYenileme : MonoBehaviour
             if (mevcutKulahSayisi < maxKulahSayisi)
             {
                 mevcutKulahSayisi++;
+                Debug.Log($"Külah eklendi: {mevcutKulahSayisi} / {maxKulahSayisi}");
                 UpdateUI();
                 yield return new WaitForSeconds(refillInterval);
             }

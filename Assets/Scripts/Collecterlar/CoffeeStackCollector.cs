@@ -52,6 +52,7 @@ public class CoffeeStackCollector : MonoBehaviour
     void Update()
     {
         UpdateStackPositions();
+        UpdateDropListPositions();
         GuncelleUI();
     }
 
@@ -64,6 +65,28 @@ public class CoffeeStackCollector : MonoBehaviour
             Vector3 targetPos = stackRoot.position + Vector3.up * (stackHeight * i + yOffset);
             cube.position = targetPos;
             cube.rotation = Quaternion.identity;
+        }
+    }
+
+    private void UpdateDropListPositions()
+    {
+        for (int i = dropList.Count - 1; i >= 0; i--)
+        {
+            if (dropList[i] == null)
+            {
+                dropList.RemoveAt(i);
+            }
+        }
+
+        for (int i = 0; i < dropList.Count; i++)
+        {
+            Transform item = dropList[i];
+            if (item != null && !DOTween.IsTweening(item))
+            {
+                Vector3 targetPos = dropAreaTarget.position + Vector3.up * (dropSpacing * i);
+                item.position = Vector3.Lerp(item.position, targetPos, Time.deltaTime * 10f);
+                item.rotation = Quaternion.identity;
+            }
         }
     }
 

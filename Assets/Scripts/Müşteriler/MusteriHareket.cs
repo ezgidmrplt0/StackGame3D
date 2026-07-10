@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -165,14 +165,26 @@ public class MusteriHareket : MonoBehaviour
                 waitTimer = 0f;
                 hasBeenServed = true;
 
-                // Normal müşteri kuyruktan çıkarma
-                if (musteriTipi == MusteriTipi.Normal && !kuyruktanCikarildi)
+                // Kuyruktan çıkarma (Normal ve Dondurma)
+                if (!kuyruktanCikarildi)
                 {
-                    if (MusteriSpawner.musteriKuyrugu.Count > 0 &&
-                        MusteriSpawner.musteriKuyrugu.Peek() == this)
+                    if (musteriTipi == MusteriTipi.Normal)
                     {
-                        MusteriSpawner.musteriKuyrugu.Dequeue();
-                        MusteriSpawner.UpdateQueuePositions();
+                        if (MusteriSpawner.musteriKuyrugu.Count > 0 &&
+                            MusteriSpawner.musteriKuyrugu.Peek() == this)
+                        {
+                            MusteriSpawner.musteriKuyrugu.Dequeue();
+                            MusteriSpawner.UpdateQueuePositions();
+                        }
+                    }
+                    else if (musteriTipi == MusteriTipi.Dondurma)
+                    {
+                        if (MusteriSpawner.dondurmaMusteriKuyrugu.Count > 0 &&
+                            MusteriSpawner.dondurmaMusteriKuyrugu.Peek() == this)
+                        {
+                            MusteriSpawner.dondurmaMusteriKuyrugu.Dequeue();
+                            MusteriSpawner.UpdateDondurmaQueuePositions();
+                        }
                     }
                     kuyruktanCikarildi = true;
                 }
@@ -227,7 +239,7 @@ public class MusteriHareket : MonoBehaviour
             }
         }
         // 3) Hizmet Rotası
-        else if (kuyruktakiSirasi == 0 || musteriTipi == MusteriTipi.Dondurma)
+        else if (kuyruktakiSirasi == 0)
         {
             if (musteriTipi == MusteriTipi.Dondurma)
             {
@@ -274,22 +286,53 @@ public class MusteriHareket : MonoBehaviour
                 }
             }
         }
-        // 4) Sırada Bekleme (Normal)
+        // 4) Sırada Bekleme
         else
         {
-            Queue<MusteriHareket> kuyruk = MusteriSpawner.musteriKuyrugu;
-            MusteriHareket[] musteriler = kuyruk.ToArray();
-
-            if (kuyruktakiSirasi > 0 && kuyruktakiSirasi < musteriler.Length)
+            if (musteriTipi == MusteriTipi.Dondurma)
             {
-                MusteriHareket onundeki = musteriler[kuyruktakiSirasi - 1];
-                Vector3 onundekiPozisyon = onundeki.transform.position;
+                if (dondurmaNoktasi1 != null && dondurmaSatisAlani != null)
+                {
+                    Vector3 queueDir = (dondurmaNoktasi1.position - dondurmaSatisAlani.position).normalized;
+                    queueDir.y = 0;
+                    if (queueDir == Vector3.zero) queueDir = Vector3.back;
 
-                hedefPozisyon = new Vector3(
-                    onundekiPozisyon.x - onundeki.transform.forward.x * takipMesafesi,
-                    musteriYukseklik,
-                    onundekiPozisyon.z - onundeki.transform.forward.z * takipMesafesi
-                );
+                    Vector3 waitPos = dondurmaNoktasi1.position + queueDir * (takipMesafesi * kuyruktakiSirasi);
+                    hedefPozisyon = new Vector3(waitPos.x, musteriYukseklik, waitPos.z);
+                }
+                else
+                {
+                    hedefNokta = dondurmaNoktasi1;
+                }
+            }
+            else // Normal
+            {
+                if (musteriNoktasi != null && spawnPoint != null)
+                {
+                    Vector3 queueDir = (spawnPoint.position - musteriNoktasi.position).normalized;
+                    queueDir.y = 0;
+                    if (queueDir == Vector3.zero) queueDir = Vector3.back;
+
+                    Vector3 waitPos = musteriNoktasi.position + queueDir * (takipMesafesi * kuyruktakiSirasi);
+                    hedefPozisyon = new Vector3(waitPos.x, musteriYukseklik, waitPos.z);
+                }
+                else
+                {
+                    Queue<MusteriHareket> kuyruk = MusteriSpawner.musteriKuyrugu;
+                    MusteriHareket[] musteriler = kuyruk.ToArray();
+
+                    if (kuyruktakiSirasi > 0 && kuyruktakiSirasi < musteriler.Length)
+                    {
+                        MusteriHareket onundeki = musteriler[kuyruktakiSirasi - 1];
+                        Vector3 onundekiPozisyon = onundeki.transform.position;
+
+                        hedefPozisyon = new Vector3(
+                            onundekiPozisyon.x - onundeki.transform.forward.x * takipMesafesi,
+                            musteriYukseklik,
+                            onundekiPozisyon.z - onundeki.transform.forward.z * takipMesafesi
+                        );
+                    }
+                }
             }
         }
 
